@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "midi_arm")(type "KiCad")(uri "${KIPRJMOD}/midi_arm.pretty")(options "")(descr ""))
+)
