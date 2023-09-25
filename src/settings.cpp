@@ -2,6 +2,11 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
+
+#define TOUCH_TH_CTRL 23000
+#define TOUCH_TH_A 41000
+#define TOUCH_TH_B 27000
+
 setup_t settings;
 
 //---------------------------------
@@ -18,33 +23,42 @@ void print_settings()
     Serial.print(settings.magic4);  
     Serial.println("--------");              
     Serial.print("Acc Bias X: ");
-    Serial.println(settings.acc_bias_x);
+    Serial.println(settings.main_acc_bias_x);
     Serial.print("Acc Bias Y: ");
-    Serial.println(settings.acc_bias_y);
+    Serial.println(settings.main_acc_bias_y);
     Serial.print("Acc Bias Z: ");
-    Serial.println(settings.acc_bias_z);    
+    Serial.println(settings.main_acc_bias_z);    
     Serial.println("");
     Serial.print("Gyro Bias X: ");
-    Serial.println(settings.gyro_bias_x);
+    Serial.println(settings.main_gyro_bias_x);
     Serial.print("Gyro Bias Y: ");
-    Serial.println(settings.gyro_bias_y);
+    Serial.println(settings.main_gyro_bias_y);
     Serial.print("Gyro Bias Z: ");
-    Serial.println(settings.gyro_bias_z);    
+    Serial.println(settings.main_gyro_bias_z);    
     Serial.println("");
     Serial.print("Mag Bias X: ");
-    Serial.println(settings.mag_bias_x);
+    Serial.println(settings.main_mag_bias_x);
     Serial.print("Mag Bias Y: ");
-    Serial.println(settings.mag_bias_y);
+    Serial.println(settings.main_mag_bias_y);
     Serial.print("Mag Bias Z: ");
-    Serial.println(settings.mag_bias_z);    
+    Serial.println(settings.main_mag_bias_z);    
     Serial.println("");
     Serial.print("Mag Scale X: ");
-    Serial.println(settings.mag_scale_x);
+    Serial.println(settings.main_mag_scale_x);
     Serial.print("Mag Scale Y: ");
-    Serial.println(settings.mag_scale_y);
+    Serial.println(settings.main_mag_scale_y);
     Serial.print("Mag Scale Z X: ");
-    Serial.println(settings.mag_scale_z);    
+    Serial.println(settings.main_mag_scale_z);    
     Serial.println("");    
+
+    Serial.println("");
+    Serial.print("Touch TH CTRL: ");
+    Serial.println(settings.th_but_ctrl);
+    Serial.print("Touch TH A: ");
+    Serial.println(settings.th_but_a);
+    Serial.print("Touch TH B: ");
+    Serial.println(settings.th_but_b);    
+    Serial.println("");        
 
 }
 
@@ -62,22 +76,36 @@ void init_settings_acc_gyro()
   settings.magic2 = 'G';
   settings.magic3 = 'I';
   settings.magic4 = 'C';
-  settings.acc_bias_x = 0;
-  settings.acc_bias_y = 0;
-  settings.acc_bias_z = 0;
-  settings.gyro_bias_x = 0;
-  settings.gyro_bias_y = 0;
-  settings.gyro_bias_z = 0;
+  settings.main_acc_bias_x = 0;
+  settings.main_acc_bias_y = 0;
+  settings.main_acc_bias_z = 0;
+  settings.main_gyro_bias_x = 0;
+  settings.main_gyro_bias_y = 0;
+  settings.main_gyro_bias_z = 0;
 }
 
 void init_settings_mag()
 {
-  settings.mag_bias_x = 0;
-  settings.mag_bias_y = 0;
-  settings.mag_bias_z = 0;
-  settings.mag_scale_x = 1;
-  settings.mag_scale_y = 1;
-  settings.mag_scale_z = 1;
+  settings.main_mag_bias_x = 0;
+  settings.main_mag_bias_y = 0;
+  settings.main_mag_bias_z = 0;
+  settings.main_mag_scale_x = 1;
+  settings.main_mag_scale_y = 1;
+  settings.main_mag_scale_z = 1;
+}
+
+void default_settings_but()
+{
+  settings.th_but_ctrl = TOUCH_TH_CTRL;
+  settings.th_but_a = TOUCH_TH_A;
+  settings.th_but_b = TOUCH_TH_B;    
+}
+
+void init_settings_but()
+{
+  settings.th_but_ctrl = 0;
+  settings.th_but_a = 0;
+  settings.th_but_b = 0;    
 }
 
 void save_settings()
@@ -90,7 +118,7 @@ void save_settings()
 
 }
 
-void load_settings()
+bool load_settings()
 {
     uint16_t ii;
 
@@ -98,52 +126,61 @@ void load_settings()
 #ifdef DEBUG  
     print_settings();    
 #endif
-  if (isnan(settings.acc_bias_x))
+  if (isnan(settings.main_acc_bias_x))
   {
-    settings.acc_bias_x = 0;
+    settings.main_acc_bias_x = 0;
   }
-  if (isnan(settings.acc_bias_y))
+  if (isnan(settings.main_acc_bias_y))
   {
-    settings.acc_bias_y = 0;
+    settings.main_acc_bias_y = 0;
   }
-  if (isnan(settings.acc_bias_z))
+  if (isnan(settings.main_acc_bias_z))
   {
-    settings.acc_bias_z = 0;
+    settings.main_acc_bias_z = 0;
   }  
-  if (isnan(settings.gyro_bias_x))
+  if (isnan(settings.main_gyro_bias_x))
   {
-    settings.gyro_bias_x = 0;
+    settings.main_gyro_bias_x = 0;
   }
-  if (isnan(settings.gyro_bias_y))
+  if (isnan(settings.main_gyro_bias_y))
   {
-    settings.gyro_bias_y = 0;
+    settings.main_gyro_bias_y = 0;
   }
-  if (isnan(settings.gyro_bias_z))
+  if (isnan(settings.main_gyro_bias_z))
   {
-    settings.gyro_bias_z = 0;
+    settings.main_gyro_bias_z = 0;
   }  
-  if (isnan(settings.mag_bias_x))
+  if (isnan(settings.main_mag_bias_x))
   {
-    settings.mag_bias_x = 0;
+    settings.main_mag_bias_x = 0;
   }
-  if (isnan(settings.mag_bias_y))
+  if (isnan(settings.main_mag_bias_y))
   {
-    settings.mag_bias_y = 0;
+    settings.main_mag_bias_y = 0;
   }
-  if (isnan(settings.mag_bias_z))
+  if (isnan(settings.main_mag_bias_z))
   {
-    settings.mag_bias_z = 0;
+    settings.main_mag_bias_z = 0;
   }   
-    if (isnan(settings.mag_scale_x))
+    if (isnan(settings.main_mag_scale_x))
   {
-    settings.mag_scale_x = 0;
+    settings.main_mag_scale_x = 0;
   }
-  if (isnan(settings.mag_scale_y))
+  if (isnan(settings.main_mag_scale_y))
   {
-    settings.mag_scale_y = 0;
+    settings.main_mag_scale_y = 0;
   }
-  if (isnan(settings.mag_scale_z))
+  if (isnan(settings.main_mag_scale_z))
   {
-    settings.mag_scale_z = 0;
+    settings.main_mag_scale_z = 0;
   }  
+
+  if ((settings.magic0 == 'M') && (settings.magic1 == 'A') && (settings.magic2 == 'G') && (settings.magic3 == 'I') && (settings.magic4 == 'C'))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }

@@ -1,17 +1,17 @@
 {
-  "splitx": false,
+  "splitr": false,
   "splity": false,
-  "maxy": 2.549999952316284,
+  "maxy": 0.7152902483940125,
   "winy": 53,
   "winx": 0,
-  "minp": -1.3799999952316284,
-  "minr": -1.6699999570846558,
+  "splitp": false,
+  "minp": -1.0852694511413574,
+  "minr": -1.0179603099822998,
   "crossy": false,
-  "miny": 0.3799999952316284,
+  "miny": -0.6858367919921875,
   "crossr": false,
   "artnet": false,
   "crossp": false,
-  "splitz": false,
-  "maxr": 0.9599999785423279,
-  "maxp": 0.5799999833106995
+  "maxr": 1.3643863201141357,
+  "maxp": 0.3546452224254608
 }

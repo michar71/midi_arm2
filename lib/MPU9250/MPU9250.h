@@ -8,6 +8,7 @@
 #include "MPU9250/QuaternionFilter.h"
 #include "kalman.h"
 
+
 enum class ACCEL_FS_SEL {
     A2G,
     A4G,
@@ -302,9 +303,9 @@ public:
         float md = -m[2];
 
         //Filter Gyro Data
-        mn = kgx.getFilteredValue(mn);
-        me = kgy.getFilteredValue(me);
-        md = kgz.getFilteredValue(md);
+        //mn = kgx.getFilteredValue(mn);
+        //me = kgy.getFilteredValue(me);
+        //md = kgz.getFilteredValue(md);
 
         for (size_t i = 0; i < n_filter_iter; ++i) {
             quat_filter.update(an, ae, ad, gn, ge, gd, mn, me, md, q);

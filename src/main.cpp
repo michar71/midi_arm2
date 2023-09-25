@@ -10,15 +10,18 @@
 
 #ifdef WIFI
 //#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+#include <DNSServer.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
+
 //WiFiManager wm;
+DNSServer dnsServer;
 AsyncWebServer server(80);
 #endif
 
-
+void calibrate_buttons();
 
 
 //-------------------------------
@@ -44,9 +47,7 @@ bool challenge = false;
 #define BUT_A 3
 #define BUT_B 11
 
-#define TOUCH_TH1 23000
-#define TOUCH_TH2 41000
-#define TOUCH_TH3 27000
+
 
 #define STATUS_LED LED_BUILTIN //Asuming D2 here...
 
@@ -75,18 +76,18 @@ ButtonClass but_ctrl(BUT_CTRL,true);
 
 void store_mpu_data()
 {
-    settings.acc_bias_x = mpu.getAccBiasX();
-    settings.acc_bias_y = mpu.getAccBiasY();
-    settings.acc_bias_z = mpu.getAccBiasZ();
-    settings.gyro_bias_x = mpu.getGyroBiasX();
-    settings.gyro_bias_y = mpu.getGyroBiasY();
-    settings.gyro_bias_z = mpu.getGyroBiasZ();
-    settings.mag_bias_x = mpu.getMagBiasX();
-    settings.mag_bias_y = mpu.getMagBiasY();
-    settings.mag_bias_z = mpu.getMagBiasZ();
-    settings.mag_scale_x = mpu.getMagScaleX();
-    settings.mag_scale_y = mpu.getMagScaleY();
-    settings.mag_scale_z = mpu.getMagScaleZ();
+    settings.main_acc_bias_x = mpu.getAccBiasX();
+    settings.main_acc_bias_y = mpu.getAccBiasY();
+    settings.main_acc_bias_z = mpu.getAccBiasZ();
+    settings.main_gyro_bias_x = mpu.getGyroBiasX();
+    settings.main_gyro_bias_y = mpu.getGyroBiasY();
+    settings.main_gyro_bias_z = mpu.getGyroBiasZ();
+    settings.main_mag_bias_x = mpu.getMagBiasX();
+    settings.main_mag_bias_y = mpu.getMagBiasY();
+    settings.main_mag_bias_z = mpu.getMagBiasZ();
+    settings.main_mag_scale_x = mpu.getMagScaleX();
+    settings.main_mag_scale_y = mpu.getMagScaleY();
+    settings.main_mag_scale_z = mpu.getMagScaleZ();
 }
 
 
@@ -200,6 +201,161 @@ void send_processing_data(bool senddata)
   }
 }
 
+#ifdef WIFI
+
+class CaptiveRequestHandler : public AsyncWebHandler {
+public:
+  CaptiveRequestHandler() {}
+  virtual ~CaptiveRequestHandler() {}
+
+  bool canHandle(AsyncWebServerRequest *request){
+    //request->addInterestingHeader("ANY");
+    return true;
+  }
+
+  void handleRequest(AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Setup Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title></head><body>");
+    response->printf("<h1>%s FW V%d.%d Webserver running.</h1><br>",devicename,maj_ver,min_ver);
+    response->print("<p>This is out captive portal front page.</p>");
+    response->printf("<p>You were trying to reach: http://%s%s</p>", request->host().c_str(), request->url().c_str());
+    response->printf("<p>Try opening <a href='http://%s'>this link</a> instead</p>", WiFi.softAPIP().toString().c_str());
+
+    response->print("<a href=\"http://192.168.0.1/update\">Update</a><br><br>");
+    response->print("<a href=\"http://192.168.0.1/settings\">Settings</a><br><br>");
+    response->print("<a href=\"http://192.168.0.1/reset\">Reset Settings</a><br><br>");
+    response->print("<a href=\"http://192.168.0.1/calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
+    response->print("<a href=\"http://192.168.0.1/calmag\">Calibrate Magnetometer</a><br><br>");       
+    response->print("<a href=\"http://192.168.0.1/calbuttons\">Calibrate Buttons</a><br><br>");       
+    response->print("</body></html>");
+    request->send(response);
+
+  }
+};
+
+void notFound(AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "Page Not found");
+}
+
+void setup_settings_webpage()
+{
+    server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Settings Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title></head><body>");
+
+    response->print("<h1>Settings</h1><br>");
+          
+    response->printf("Acc Bias X: %f <br>",settings.main_acc_bias_x);
+    response->printf("Acc Bias Y: %f <br>",settings.main_acc_bias_y);
+    response->printf("Acc Bias Z: %f <br>",settings.main_acc_bias_z);
+
+    response->printf("Gyro Bias X: %f <br>",settings.main_gyro_bias_x);
+    response->printf("Gyro Bias Y: %f <br>",settings.main_gyro_bias_y);
+    response->printf("Gyro Bias Z: %f <br>",settings.main_gyro_bias_z);        
+
+    response->printf("Mag Bias X: %f <br>",settings.main_mag_bias_x);    
+    response->printf("Mag Bias Y: %f <br>",settings.main_mag_bias_y);    
+    response->printf("Mag Bias Z: %f <br>",settings.main_mag_bias_z);    
+
+    response->printf("Mag Scale X: %f <br>",settings.main_mag_scale_x);   
+    response->printf("Mag Scale Y: %f <br>",settings.main_mag_scale_y);   
+    response->printf("Mag Scale Z: %f <br>",settings.main_mag_scale_z);   
+
+    response->printf("Touch TH CTRL: %d <br>",settings.th_but_ctrl); 
+    response->printf("Touch TH A: %d <br>",settings.th_but_a); 
+    response->printf("Touch TH B: %d <br>",settings.th_but_b); 
+
+    response->print("<h1>Debug Data</h1><br>");
+    response->printf("Free Heap: %d <br>",ESP.getFreeHeap());     
+    response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
+    response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
+    response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
+    request->send(response);
+  });
+}
+
+void setup_main_webpage()
+{
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Main Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title></head><body>");
+    response->printf("<h1>%s FW V%d.%d Webserver running.</h1><br>",devicename,maj_ver,min_ver);
+    response->print("<a href=\"http://192.168.0.1/update\">Update</a><br><br>");
+    response->print("<a href=\"http://192.168.0.1/setup\">Setup</a><br><br>");
+    response->print("<a href=\"http://192.168.0.1/reset\">Reset Settings</a><br><br>");
+    response->print("<a href=\"http://192.168.0.1/calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
+    response->print("<a href=\"http://192.168.0.1/calmag\">Calibrate Magnetometer</a><br><br>");       
+    response->print("<a href=\"http://192.168.0.1/calbuttons\">Calibrate Buttons</a><br><br>");         
+    response->print("</body></html>");
+    request->send(response);
+  });
+}
+
+void setup_reset_webpage()
+{
+
+   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
+
+      request->send(200, "text/plain", "Settings Reset");
+      init_settings_acc_gyro();
+      init_settings_mag();
+      init_settings_but();
+      save_settings();
+      setLED(1,64,64,64);
+      delay(250);
+      setLED(0,0,0,0);
+    });
+}
+
+void setup_cal_gyro_acc_webpage()
+{
+  server.on("/calgyroacc", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "Calibrating Gyro/Accelerometer");
+    setLED(1,0,0,255);
+    delay(500);
+    init_settings_acc_gyro();
+    mpu.calibrateAccelGyro();
+    delay(300);
+    store_mpu_data();
+    save_settings();
+  });
+}
+
+void setup_cal_mag_webpage()
+{
+  server.on("/calmag", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "Calibrating Magnetometer");
+      setLED(1,0,255,255);
+      delay(1000);
+      init_settings_mag();
+      mpu.calibrateMag();
+      store_mpu_data();      
+      save_settings();    
+  });
+}
+
+void setup_cal_buttons_webpage()
+{
+  server.on("/calbuttons", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "Calibrating Buttons");
+      setLED(1,255,0,255);
+      calibrate_buttons();      
+      save_settings();    
+  });
+}
+
+
+void setup_captive_webpage()
+{
+  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);//only when requested from AP
+}
+
+
+#endif
+
 
 void setup() 
 {
@@ -220,7 +376,7 @@ void setup()
     pinMode(BUT_B,INPUT);
 
     touchSetCycles(0x500,0x1000);
-    but_ctrl.setTouchThreshold(TOUCH_TH1);
+    
         
     delay(10);
     settings_init();
@@ -238,7 +394,7 @@ void setup()
     delay(200);    
     setLED(0,0,0,64);
     delay(200);
-    setLED(0,0,0,0);
+    setLED(0,0,0,0); 
 
   #ifdef DEBUG
     Serial.println("LED Setup Done...");
@@ -294,69 +450,68 @@ void setup()
     Serial.print("AP IP address: ");
     Serial.println(IP);
 
-    //Tiny test page...
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-      request->send(200, "text/plain", "Hi. BABOI Webserver is running!");
-    });
+    dnsServer.start(53, "*", WiFi.softAPIP()); 
+
+    //web pages
+    //setup_captive_webpage();
+    server.onNotFound(notFound);
+    setup_reset_webpage();
+    setup_settings_webpage();
+    setup_main_webpage();
+    setup_cal_gyro_acc_webpage();
+    setup_cal_mag_webpage();
+    setup_cal_buttons_webpage();
+
 
     AsyncElegantOTA.begin(&server);    // Start AsyncElegantOTA
     server.begin();
     Serial.println("HTTP server started");    
   #endif
 
-    if((touchRead(BUT_A) > TOUCH_TH2) && (touchRead(BUT_B) > TOUCH_TH3))
+  if (load_settings())
+  {
+    mpu.setAccBias(settings.main_acc_bias_x ,settings.main_acc_bias_y ,settings.main_acc_bias_z);
+    mpu.setGyroBias(settings.main_gyro_bias_x,settings.main_gyro_bias_y,settings.main_gyro_bias_z);
+    mpu.setMagBias(settings.main_mag_bias_x,settings.main_mag_bias_y,settings.main_mag_bias_z);
+    mpu.setMagScale(settings.main_mag_scale_x,settings.main_mag_scale_y,settings.main_mag_scale_z);
+    but_ctrl.setTouchThreshold(settings.th_but_ctrl);
+    delay(120);
+    setLED(0,0,64,0);
+    delay(120);
+    setLED(0,0,0,0);
+
+
+    if ((settings.th_but_ctrl == 0) || (settings.th_but_a == 0) || (settings.th_but_b == 0) || (settings.th_but_ctrl == 65535) || (settings.th_but_a == 65535) || (settings.th_but_b == 65535))
     {
-      #ifdef WIFI
-      //wm.resetSettings();
-      #endif
-      init_settings_acc_gyro();
-      init_settings_mag();
-      store_mpu_data();
-      save_settings();
-      setLED(1,64,64,64);
-      delay(250);
-      setLED(0,0,0,0);
-
-      #ifdef DEBUG
-        Serial.println("Settings Reset");
-        print_settings();
-      #endif      
+      setLED(1,255,0,255);
+      calibrate_buttons();
+      delay(1000);          
+      save_settings();  
     }
-    else
-    {
-      load_settings();
-      if ((settings.magic0 == 'M') && (settings.magic1 == 'A') && (settings.magic2 == 'G') && (settings.magic3 == 'I') && (settings.magic4 == 'C'))
-      {
-        mpu.setAccBias(settings.acc_bias_x ,settings.acc_bias_y ,settings.acc_bias_z);
-        mpu.setGyroBias(settings.gyro_bias_x,settings.gyro_bias_y,settings.gyro_bias_z);
-        mpu.setMagBias(settings.mag_bias_x,settings.mag_bias_y,settings.mag_bias_z);
-        mpu.setMagScale(settings.mag_scale_x,settings.mag_scale_y,settings.mag_scale_z);
-        delay(120);
-        setLED(0,0,64,0);
-        delay(120);
-        setLED(0,0,0,0);
 
-    #ifdef DEBUG
-      Serial.println("Sensor Calib Load Done...");
-    #endif      
-      }
-      else
-      {
-        init_settings_acc_gyro();
-        init_settings_mag();
-        store_mpu_data();
-        save_settings();
-        delay(400);
-        setLED(0,64,0,0);
-        delay(400);
-        setLED(0,0,0,0);
 
-    #ifdef DEBUG
-      Serial.println("Sensor Calib Load Failed...");
-      print_settings();
-    #endif
-      }
-    }
+#ifdef DEBUG
+  Serial.println("Sensor Calib Load Done...");
+#endif      
+  }
+  else
+  {
+    init_settings_acc_gyro();
+    init_settings_mag();
+    store_mpu_data();
+    save_settings();
+    delay(400);
+    setLED(0,64,0,0);
+    delay(400);
+    setLED(0,0,0,0);
+
+#ifdef DEBUG
+  Serial.println("Sensor Calib Load Failed...");
+  print_settings();
+#endif
+  }
+
+
   #ifdef DEBUG
     Serial.println("Setup Done...");
   #endif    
@@ -405,6 +560,52 @@ void serial_info_request(void)
   } 
 }
 
+//We need to illimate high outliers...
+#define CUTOFF 40000
+void calibrate_buttons()
+{
+  uint16_t min[3] = {0xFFFF,0xFFFF,0xFFFF};
+  uint16_t max[3] = {0,0,0};
+  uint16_t val = 0;
+
+  //Do cal for 30 sec
+  for (int ii=0;ii<700;ii++)
+  {
+    val = touchRead(BUT_A);
+    if (val<CUTOFF)
+    {
+      if (val > max[0])
+        max[0] = val;
+      if (val < min[0])
+        min[0] = val;
+    }
+    val = touchRead(BUT_B);
+    if (val<CUTOFF)
+    {
+      if (val > max[1])
+        max[1] = val;
+      if (val < min[1])
+        min[1] = val;
+    }
+    val = touchRead(BUT_CTRL);
+    if (val<CUTOFF)
+    {
+      if (val > max[2])
+        max[2] = val;
+      if (val < min[2])
+        min[2] = val;
+    }
+    delay(20);
+  }
+  //Take average of min/max
+  //(Is this a good idea? Do we need to exclude outlieers?)
+  settings.th_but_a = (min[0] + max[0])/2;
+  settings.th_but_b = (min[1] + max[1])/2;
+  settings.th_but_ctrl = (min[2] + max[2])/2;    
+  but_ctrl.setTouchThreshold(settings.th_but_ctrl);
+}
+
+
 void loop() 
 {
   //Check Mode button
@@ -412,6 +613,7 @@ void loop()
 
 #ifdef WIFI
   //wm.process();
+   dnsServer.processNextRequest();
 #endif
 
   serial_info_request();
@@ -453,6 +655,9 @@ void loop()
           mpu.calibrateMag();
           delay(300);
           store_mpu_data();
+          setLED(1,255,0,255);
+          calibrate_buttons();
+          delay(1000);          
           save_settings();    
         #ifdef DEBUG    
           Serial.println("Sensor Calib Mag Done...");
@@ -465,11 +670,11 @@ void loop()
         }
 
 
-        if (touchRead(BUT_A) < TOUCH_TH2)
+        if (touchRead(BUT_A) < settings.th_but_a)
           but_a_state = false;
         else
           but_a_state = true; 
-        if (touchRead(BUT_B) < TOUCH_TH3)
+        if (touchRead(BUT_B) < settings.th_but_b)
           but_b_state = false;
         else
           but_b_state = true; 
