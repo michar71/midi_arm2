@@ -35,7 +35,6 @@ MPU9250 mpu;
 
 extern setup_t settings;
 
-bool challenge = false;
 
 //I2C Stuff
 //---------
@@ -51,7 +50,6 @@ bool challenge = false;
 
 #define STATUS_LED LED_BUILTIN //Asuming D2 here...
 
-bool isLive = false;
 int led_state = LOW;    // the current state of LED
 bool but_a_state = false;
 bool but_b_state = false;
@@ -73,6 +71,10 @@ CRGB leds[NUM_LEDS];
 
 
 ButtonClass but_ctrl(BUT_CTRL,true);
+
+t_state state = STATE_STARTUP;
+t_state lastState = STATE_STARTUP;
+
 
 void store_mpu_data()
 {
@@ -140,6 +142,11 @@ void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b)
   FastLED.show();
 }
 
+void setState(t_state newState)
+{
+  lastState = state;
+  state = newState;
+}
 
 void send_processing_data(bool senddata)
 {
@@ -167,7 +174,7 @@ void send_processing_data(bool senddata)
     Serial.print("C:0:0:0:0:0:0");
   }
 
-  if (isLive)
+  if (state == STATE_LIVE)
   {
     Serial.print(":1");
   }
@@ -314,13 +321,8 @@ void setup_cal_gyro_acc_webpage()
 {
   server.on("/calgyroacc", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", "Calibrating Gyro/Accelerometer");
-    setLED(1,0,0,255);
-    delay(500);
-    init_settings_acc_gyro();
-    mpu.calibrateAccelGyro();
-    delay(300);
-    store_mpu_data();
-    save_settings();
+    delay(1000);
+    setState(STATE_CAL_GYRO);
   });
 }
 
@@ -328,12 +330,8 @@ void setup_cal_mag_webpage()
 {
   server.on("/calmag", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", "Calibrating Magnetometer");
-      setLED(1,0,255,255);
-      delay(1000);
-      init_settings_mag();
-      mpu.calibrateMag();
-      store_mpu_data();      
-      save_settings();    
+    delay(1000);
+    setState(STATE_CAL_MAG);   
   });
 }
 
@@ -341,9 +339,7 @@ void setup_cal_buttons_webpage()
 {
   server.on("/calbuttons", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", "Calibrating Buttons");
-      setLED(1,255,0,255);
-      calibrate_buttons();      
-      save_settings();    
+    setState(STATE_CAL_BUTTONS); 
   });
 }
 
@@ -359,6 +355,7 @@ void setup_captive_webpage()
 
 void setup() 
 {
+    setState(STATE_STARTUP);
     Serial.begin(230400);	
     setCpuFrequencyMhz(240);
 
@@ -515,7 +512,8 @@ void setup()
   #ifdef DEBUG
     Serial.println("Setup Done...");
   #endif    
-  setLED(0,64,64,0);
+
+  setState(STATE_WAITCONN);
 }
 
 
@@ -538,9 +536,8 @@ void serial_info_request(void)
         Serial.print(":");
         Serial.println(min_ver);
       }
-      setLED(0,0,0,0);
-      isLive = true;
-      challenge = true;
+      setLED(0,0,64,0);
+      setState(STATE_LIVE);
     }
     else if (incomingByte == 'S')
     {
@@ -606,6 +603,73 @@ void calibrate_buttons()
 }
 
 
+void process_state(void)
+{
+  switch(state)
+  {
+    case STATE_STARTUP:
+    
+    break;
+
+    case STATE_WAITCONN:
+      setLED(0,64,64,0);
+    break;
+
+    case STATE_LIVE:
+      send_processing_data(true);
+      setLED(1,0,64,0);
+    break;
+
+    case STATE_PAUSED:
+      send_processing_data(false);
+      setLED(1,64,0,0);
+    break;
+
+    case STATE_CAL_BUTTONS:
+      setLED(1,255,0,255);
+      init_settings_but();
+      calibrate_buttons();        
+      save_settings();    
+    #ifdef DEBUG    
+      Serial.println("Button Calib Done...");
+      print_settings();
+      #endif   
+      setState(lastState);
+    break;
+
+    case STATE_CAL_GYRO:
+      setLED(1,0,0,255);
+      delay(500);
+      init_settings_acc_gyro();
+      mpu.calibrateAccelGyro();
+      store_mpu_data();
+      save_settings();
+    #ifdef DEBUG    
+      Serial.println("Sensor Calib Gyro/Acc Done...");
+      print_settings();
+    #endif  
+      setState(lastState);
+    break;
+
+    case STATE_CAL_MAG:
+      setLED(1,0,255,255);
+      init_settings_mag();
+      mpu.calibrateMag();
+      store_mpu_data();
+      save_settings();
+    #ifdef DEBUG    
+      Serial.println("Sensor Calib Mag Done...");
+      print_settings();
+    #endif  
+      setState(lastState);          
+    break;
+
+    case STATE_UPDATE:
+
+    break;
+  }
+}
+
 void loop() 
 {
   //Check Mode button
@@ -617,6 +681,8 @@ void loop()
 #endif
 
   serial_info_request();
+  process_state();
+
 
   if (mpu.update()) 
   {
@@ -631,42 +697,22 @@ void loop()
         button_res = but_ctrl.check_button();
         if (SHORT_PRESS == button_res)
         {
-          isLive = !isLive;
+          if (state == STATE_LIVE)
+            setState(STATE_PAUSED);
+          else if (state == STATE_PAUSED)  
+            setState(STATE_LIVE);
         }  
         else if (button_res == LONG_PRESS)
         {
-          setLED(1,0,0,255);
-          delay(500);
-          init_settings_acc_gyro();
-          mpu.calibrateAccelGyro();
-          delay(300);
-          store_mpu_data();
-          save_settings();
-        #ifdef DEBUG    
-          Serial.println("Sensor Calib Gyro/Acc Done...");
-          print_settings();
-        #endif  
+          setState(STATE_CAL_GYRO);
         }
         else if (button_res == VERY_LONG_PRESS)
-        {
-          setLED(1,0,255,255);
-          delay(1000);
-          init_settings_mag();
-          mpu.calibrateMag();
-          delay(300);
-          store_mpu_data();
-          setLED(1,255,0,255);
-          calibrate_buttons();
-          delay(1000);          
-          save_settings();    
-        #ifdef DEBUG    
-          Serial.println("Sensor Calib Mag Done...");
-          print_settings();
-        #endif      
+        {   
+          setState(STATE_CAL_MAG);
         }
         else if (button_res == VERY_VERY_LONG_PRESS)
         {
-          mpu.selftest();
+          setState(STATE_CAL_BUTTONS);
         }
 
 
@@ -679,19 +725,6 @@ void loop()
         else
           but_b_state = true; 
 
-
-        if (isLive)
-        {
-          if (challenge)
-            send_processing_data(true);
-            setLED(1,0,64,0);
-        }
-        else
-        {
-          if (challenge)
-            send_processing_data(false);
-            setLED(1,64,0,0);
-        }
       }
   }
 

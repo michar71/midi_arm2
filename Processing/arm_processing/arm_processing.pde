@@ -1,5 +1,12 @@
 /*
 This code is made for processing https://processing.org/
+
+EVERYTHING SHOULD BE IN ORDER 
+PITCH
+ROLL
+YAW
+
+
 */
 
 import processing.serial.*;     // import the Processing serial library
@@ -9,6 +16,7 @@ import java.util.*;
 import controlP5.*;
 import com.jogamp.newt.opengl.GLWindow;
 import ch.bildspur.artnet.*;
+import  java.nio.ByteBuffer;
 
 ControlP5 cp5;
 ArtNetClient artnet;
@@ -17,15 +25,23 @@ byte[] dmxData = new byte[512];
 Serial myPort;                  // The serial port
 String my_port = "/dev/cu.usbmodem145101";        // choose your port
 //String my_port = "/dev/tty.MIDIARM";        // choose your port
-float y, p, r;
-float cy,cp,cr;
-float qx,qy,qz,qw;
+float p, r, y;
+float cp,cr,cy;
 float accx,accy,accz;
-float miny,maxy,minp,maxp,minr,maxr;
+float minp,maxp,minr,maxr,miny,maxy;
 boolean isCal;
 boolean isMap;
 MidiBus myBus; // The MidiBus
 
+
+kalman KalFilterP;
+kalman KalFilterR;
+kalman KalFilterY;
+
+//Raw Debug Values
+float a[] = {0,0,0};
+float g[] = {0,0,0};
+float m[] = {0,0,0};
 
 int m1 = 0;
 int m2 = 0;
@@ -44,13 +60,14 @@ boolean last_B_state = false;
 boolean last_C_state = false;
 
 boolean isConnected = false;
-boolean splitx = false;
+boolean splitp = false;
+boolean splitr = false;
 boolean splity = false;
-boolean splitz = false;
 
-boolean crossy = false;
+
 boolean crossp = false;
 boolean crossr = false;
+boolean crossy = false;
 
 boolean artnet_en =false;
 
@@ -65,6 +82,16 @@ String deviceName = "UNKNOWN";
 boolean isValidDevice=false;
 
 
+float fourBytesToFloat(byte b1, byte b2, byte b3, byte b4)
+{
+  byte [] data = new byte[] {1,2,3,4};
+  data[0] = b1;
+  data[1] = b2;
+  data[2] = b3;
+  data[3] = b4; 
+  ByteBuffer b = ByteBuffer.wrap(data);
+  return b.getFloat();
+}
 
 boolean get_usbmodem_list(ArrayList<String> list)
 {
@@ -112,7 +139,7 @@ boolean try_to_open(String comport)
       myPort.stop();
       myPort = null;
     }
-    myPort = new Serial(this, comport, 115200);
+    myPort = new Serial(this, comport, 230400);
     if (myPort != null)
     {
       myPort.bufferUntil('\n');
@@ -178,21 +205,21 @@ boolean try_connect_usb_modem()
  return false;
 }
 
-void Splitx(boolean theFlag) 
+void Splitp(boolean theFlag) 
 {
-  splitx = theFlag;
+  splitp = theFlag;
   save_settings();
+}
+
+void Splitr(boolean theFlag) 
+{
+  splitr = theFlag;
+  save_settings();    
 }
 
 void Splity(boolean theFlag) 
 {
   splity = theFlag;
-  save_settings();    
-}
-
-void Splitz(boolean theFlag) 
-{
-  splitz = theFlag;
   save_settings();   
 }
 
@@ -249,30 +276,30 @@ void setup() {
      .setBroadcast(true)
      ;
   
-    cp5.addToggle("Splitx")
+    cp5.addToggle("Splitp")
      .setBroadcast(false)
-     .setValue(splitx)
+     .setValue(splitp)
      .setPosition(width-110,60)
      .setSize(18,18)
-     .setLabel("Split X")
+     .setLabel("Split P")
      .setBroadcast(true)
      ;
   
-    cp5.addToggle("Splity")
+    cp5.addToggle("Splitr")
      .setBroadcast(false)
-     .setValue(splity)
+     .setValue(splitr)
      .setPosition(width-70,60)
      .setSize(18,18)
-     .setLabel("Split Y")
+     .setLabel("Split R")
      .setBroadcast(true)
      ;
      
-    cp5.addToggle("Splitz")
+    cp5.addToggle("Splity")
      .setBroadcast(false)
-     .setValue(splitz)
+     .setValue(splity)
      .setPosition(width-30,60)
      .setSize(18,18)
-     .setLabel("Split Z")
+     .setLabel("Split Y")
      .setBroadcast(true)
      ;     
      
@@ -286,6 +313,7 @@ void setup() {
      ;   
      
     // create a new button with name 'buttonA'
+    /*
   cp5.addButton("Test")
      .setBroadcast(false)
      .setValue(0)
@@ -293,12 +321,21 @@ void setup() {
      .setSize(50,18)
      .setBroadcast(true)
      ;
+     */
      
   MidiBus.list();
   myBus = new MidiBus(this, -1, "Bus 1"); // Create a new MidiBus with no input device and the default MacOS Midi Distributor as output
    
   artnet = new ArtNetClient(null);
   artnet.start();
+  
+  float p_noise = 2;
+  float s_noise = 32;//32
+  float e_error = 128;
+ 
+  KalFilterP = new kalman(p_noise,s_noise,e_error,0.0);
+  KalFilterR = new kalman(p_noise,s_noise,e_error,0.0);  
+  KalFilterY = new kalman(p_noise,s_noise,e_error,0.0);  
   
   smooth();
 }
@@ -341,19 +378,23 @@ void load_settings()
   {
     try
     {
-      maxy = json.getFloat("maxy");
-      miny = json.getFloat("miny");
       maxp = json.getFloat("maxp");
       minp = json.getFloat("minp");
       maxr = json.getFloat("maxr");
       minr = json.getFloat("minr");
+      maxy = json.getFloat("maxy");
+      miny = json.getFloat("miny");      
+
+      crossp = json.getBoolean("crossp");
+      crossr = json.getBoolean("crossr");
       crossy = json.getBoolean("crossy");
-      crossp = json.getBoolean("crossy");
-      crossr = json.getBoolean("crossp");
-      splitx = json.getBoolean("splitp");
-      splity = json.getBoolean("splitr");
-      splitz = json.getBoolean("splitr");
+
+      splitp = json.getBoolean("splitp");
+      splitr = json.getBoolean("splitr");
+      splity = json.getBoolean("splity");
+      
       artnet_en = json.getBoolean("artnet");
+      
       winx = json.getInt("winx");        
       winy = json.getInt("winy");      
     }
@@ -371,19 +412,23 @@ void save_settings()
 {
   JSONObject json = new JSONObject();
 
-  json.setFloat("maxy",maxy);
-  json.setFloat("miny",miny);
   json.setFloat("maxp",maxp);
   json.setFloat("minp",minp);
   json.setFloat("maxr",maxr);
   json.setFloat("minr",minr);
-  json.setBoolean("crossy",crossy);
+  json.setFloat("maxy",maxy);
+  json.setFloat("miny",miny);
+  
   json.setBoolean("crossp",crossp);
   json.setBoolean("crossr",crossr);
-  json.setBoolean("splitx",splitx);  
-  json.setBoolean("splity",splity);    
-  json.setBoolean("splitz",splitz);  
+  json.setBoolean("crossy",crossy);
+  
+  json.setBoolean("splitp",splitp);    
+  json.setBoolean("splitr",splitr);  
+  json.setBoolean("splity",splity);  
+  
   json.setBoolean("artnet",artnet_en);
+
   json.setInt("winx",winx);  
   json.setInt("winy",winy);  
   
@@ -391,36 +436,15 @@ void save_settings()
 }
 
 
-
-  PMatrix3D toMatrix(float x,float y, float z, float w) {
-    return toMatrix(new PMatrix3D(),x,y,z,w);
-  }
-  
- PMatrix3D toMatrix(PMatrix3D out,float x, float y, float z,float w) 
- {
-    float x2 = x + x; float y2 = y + y; float z2 = z + z;
-    float xsq2 = x * x2; float ysq2 = y * y2; float zsq2 = z * z2;
-    float xy2 = x * y2; float xz2 = x * z2; float yz2 = y * z2;
-    float wx2 = w * x2; float wy2 = w * y2; float wz2 = w * z2;
-    out.set(
-      1.0 - (ysq2 + zsq2), xy2 - wz2, xz2 + wy2, 0.0,
-      xy2 + wz2, 1.0 - (xsq2 + zsq2), yz2 - wx2, 0.0,
-      xz2 - wy2, yz2 + wx2, 1.0 - (xsq2 + ysq2), 0.0,
-      0.0, 0.0, 0.0, 1.0);
-    return out;
-  }
-  
   
 void show_map_text()
 {
-  //fill(0);
-  //rect(10,height-10,200,height-110);
   fill(255);
   textAlign(LEFT);
   text("Mapping Keys:",20,height-80);
-  text("X-Axis=1,Y-Axis=2,Z-Axis=3",20,height-60);
-  text("X-Split=4,Y-Split=5,Z-Split=6",20,height-40);
-  text("Button A=7,Button B=8,Button C=9",20,height-20);
+  text("Pitch=1,Roll=2,Yaw=3",20,height-60);
+  text("P-Split=4,R-Split=5,=Y-Split=6",20,height-40);
+  text("Button A=7,Button B=8, Button C=9",20,height-20);
 }
 
 
@@ -453,24 +477,24 @@ void draw_labels()
   
   textAlign(LEFT);
   textSize(14);
-  text(nf(cy,0,2),5,10);
-  text(nf(cp,0,2),5,22);
-  text(nf(cr,0,2),5,34);
-  text(nf(miny,0,2)+"/"+nf(maxy,0,2),50,10);
-  text(nf(minp,0,2)+"/"+nf(maxp,0,2),50,22);
-  text(nf(minr,0,2)+"/"+nf(maxr,0,2),50,34);
+  text("P:"+nf(cp,0,2),5,10);
+  text("R:"+nf(cr,0,2),5,22);
+  text("Y:"+nf(cy,0,2),5,34);
+  text(nf(minp,0,2)+"/"+nf(maxp,0,2),55,10);
+  text(nf(minr,0,2)+"/"+nf(maxr,0,2),55,22);
+  text(nf(miny,0,2)+"/"+nf(maxy,0,2),55,34);
   
-  if (splitx)
+  if (splitp)
     text(m1+"/"+m11,120,10);
   else
     text(m1,120,10);
     
-  if (splity)  
+  if (splitr)  
     text(m2+"/"+m22,120,22);
   else
     text(m2,120,22);
   
-  if (splitz)
+  if (splity)
     text(m3+"/"+m33,120,34);  
   else
     text(m3,120,34);  
@@ -491,7 +515,7 @@ void draw_labels()
   if (isMap)
          show_map_text();
          
-  show_acceleration();
+  
   hint(ENABLE_DEPTH_TEST);
 }
 
@@ -513,96 +537,88 @@ int limit(int in, int min, int max)
 void send_midi()
 {
   
-  if (splitx)
+  if (splitp)
   {
-      float half = map(50,0,100, miny,maxy);
-      if (cy < half)
+      float half = map(50,0,100, minp,maxp);
+      if (cp < half)
       {
-        m1 =(int)map(cy,miny, half, 127,0);
+        m1 =(int)map(cp,minp, half, 127,0);
         m1 = limit(m1,0,127);
         m11 = 0;
       }
       else
       {
-        m11 =(int)map(cy,half, maxy, 0,127);
+        m11 =(int)map(cp,half, maxp, 0,127);
         m11 = limit(m11,0,127);
         m1 = 0;
       }
-        ControlChange change1 = new ControlChange(0, 1, m1);
-        myBus.sendControllerChange(change1);
-        ControlChange change2 = new ControlChange(0, 4, m11);
-        myBus.sendControllerChange(change2);        
-      
+      ControlChange change1 = new ControlChange(0, 1, m1);
+      myBus.sendControllerChange(change1);
+      ControlChange change2 = new ControlChange(0, 4, m11);
+      myBus.sendControllerChange(change2);        
   }
   else
   {
     m11 = 0;
-    m1 =(int)map(cy,miny, maxy, 0,127);
+    m1 =(int)map(cp,minp, maxp, 0,127);
     m1 = limit(m1,0,127);
     ControlChange change1 = new ControlChange(0, 1, m1);
     myBus.sendControllerChange(change1);
   }
   
-  
-  if (splity)
+  if (splitr)
   {
-      float half = map(50,0,100, minp,maxp);
-      if (cp < half)
+      float half = map(50,0,100, minr,maxr);
+      if (cr < half)
       {
-        m2 =(int)map(cp,minp, half, 127,0);
+        m2 =(int)map(cr,minr, half, 127,0);
         m2 = limit(m2,0,127);
         m22 = 0;
       }
       else
       {
-        m22 =(int)map(cp,half, maxp, 0,127);
+        m22 =(int)map(cr,half, maxr, 0,127);
         m22 = limit(m22,0,127);
         m2 = 0;
-      }
-      
-        ControlChange change1 = new ControlChange(0, 2, m2);
-        myBus.sendControllerChange(change1);
-        ControlChange change2 = new ControlChange(0, 5, m22);
-        myBus.sendControllerChange(change2);        
-      
+      } 
+      ControlChange change1 = new ControlChange(0, 2, m2);
+      myBus.sendControllerChange(change1);
+      ControlChange change2 = new ControlChange(0, 5, m22);
+      myBus.sendControllerChange(change2);           
   }
   else
   {
     m22 = 0;
-    m2 =(int)map(cp,minp, maxp, 0,127);
+    m2 =(int)map(cr,minr, maxr, 0,127);
     m2 = limit(m2,0,127);
     ControlChange change1 = new ControlChange(0, 2, m2);
     myBus.sendControllerChange(change1);
   }
   
-  
-  if (splitz)
+  if (splity)
   {
-      float half = map(50,0,100, minr,maxr);
-
-      if (cr < half)
+      float half = map(50,0,100, miny,maxy);
+      if (cy < half)
       {
-        m3 =(int)map(cr,minr, half, 127,0);
+        m3 =(int)map(cy,miny, half, 127,0);
         m3 = limit(m3,0,127);
         m33 = 0;
       }
       else
       {
-        m33 =(int)map(cr,half, maxr, 0,127);
+        m33 =(int)map(cy,half, maxy, 0,127);
         m33 = limit(m33,0,127);
         m3 = 0;
       }
-      
-        ControlChange change1 = new ControlChange(0, 3, m3);
-        myBus.sendControllerChange(change1);
-        ControlChange change2 = new ControlChange(0, 6, m33);
-        myBus.sendControllerChange(change2);        
-      
+      ControlChange change1 = new ControlChange(0, 3, m3);
+      myBus.sendControllerChange(change1);
+      ControlChange change2 = new ControlChange(0, 6, m33);
+      myBus.sendControllerChange(change2);            
   }
   else
   {
-    m33= 0;
-    m3 =(int)map(cr,minr, maxr, 0,127);
+    m33 = 0;
+    m3 =(int)map(cy,miny, maxy, 0,127);
     m3 = limit(m3,0,127);
     ControlChange change1 = new ControlChange(0, 3, m3);
     myBus.sendControllerChange(change1);
@@ -614,15 +630,17 @@ void send_artnet()
     // fill dmx array
     int val = 0;
     
-    val =(int)map(cy,miny, maxy, 0,255);
-    val = limit(val,0,255);
-    dmxData[0] = (byte) val;
+
 
     val =(int)map(cp,minp, maxp, 0,255);
     val = limit(val,0,255);
-    dmxData[1] = (byte) val;
+    dmxData[0] = (byte) val;
 
     val =(int)map(cr,minr, maxr, 0,255);
+    val = limit(val,0,255);
+    dmxData[1] = (byte) val;
+    
+    val =(int)map(cy,miny, maxy, 0,255);
     val = limit(val,0,255);
     dmxData[2] = (byte) val;
     
@@ -698,6 +716,7 @@ void draw_cube()
   directionalLight(204, 204, 204, -dirX, -dirY, -1); //Why is this linked to the mouse? 
   noStroke();
   pushMatrix();
+  show_acceleration();
   translate(width/2, height/2);
   /*
   PMatrix3D rm = new PMatrix3D();
@@ -705,6 +724,8 @@ void draw_cube()
   applyMatrix(rm);
   */
 
+  drawDebugVectors();
+  
   rotateY(y);//yaw
   rotateX(p);//pitch
   rotateZ(r);//roll
@@ -712,6 +733,16 @@ void draw_cube()
   box(100, 100/2, 100*2);
   
   popMatrix();
+}
+
+void drawDebugVectors()
+{
+  stroke(255,0,0);
+  line(0,0,0,a[0] * 100, a[1] * 100, a[2] * 100);
+  stroke(0,255,0);
+  line(0,0,0,g[0] * 100, g[1] * 100, g[2] * 100);
+  stroke(0,0,255);
+  line(0,0,0,m[0] * 100, m[1] * 100, m[2] * 100);  
 }
 
 
@@ -803,23 +834,19 @@ void draw()
 
 void clear_cal_min_max()
 {
-  miny = 65535;
-  maxy = -65535;
   minp = 65535;
   maxp = -65535;
   minr = 65535;
   maxr = -65535;  
-  crossy = false;
+  miny = 65535;
+  maxy = -65535; 
   crossp = false;
   crossr = false;
+  crossy = false;  
 }
 
 void calc_call_min_max()
 {
-  if (cy<miny)
-    miny = cy;
-  if (maxy<cy)
-    maxy=cy;
   if (cp<minp)
     minp = cp;
   if (maxp<cp)
@@ -828,15 +855,12 @@ void calc_call_min_max()
     minr = cr;
   if (maxr<cr)
     maxr=cr;
-    
+  if (cy<miny)
+    miny = cy;
+  if (maxy<cy)
+    maxy=cy;
     
   //Zero Crossover Detection
-  if (((miny <= -3.1) || (maxy >+ 3.1)) && (crossy == false))
-  {
-    crossy = true;
-    miny = 65535;
-    maxy = -65535;  
-  }
   if (((minp <+ -3.1) || (maxp >= 3.1)) && (crossp == false))
   {
     crossp = true;
@@ -849,10 +873,16 @@ void calc_call_min_max()
     minr = 65535;
     maxr = -65535;  
   }
-    
+  if (((miny <= -3.1) || (maxy >+ 3.1)) && (crossy == false))
+  {
+    crossy = true;
+    miny = 65535;
+    maxy = -65535;  
+  }  
 }
 
-void serialEvent(Serial myPort) {
+void serialEvent(Serial myPort) 
+{
 
   float v1,v2,v3,v4;
   String myString = myPort.readStringUntil('\n');
@@ -860,6 +890,7 @@ void serialEvent(Serial myPort) {
   if (ignorelines == 0)
   {
     myString = trim(myString);
+
     String[] list = split(myString, ':');
     
     if (list[0].contains("BABOI"))
@@ -872,78 +903,90 @@ void serialEvent(Serial myPort) {
       isValidDevice = true;
       return;
     }
-    
-    
-    float sensors[] = float(list);
-  
-    v1 = sensors[6];
-    if (v1 == 0)
+    else if (list[0].contains("C"))
     {
-      isLive = false;
-      b_A_state = false;
-      b_B_state = false;
-      b_C_state = false;
-    }
-    else
-    {
-      isLive = true;
-      y = -sensors[0];
-      p = sensors[1];
-      r = sensors[2];   
-      cy = y;
-      cp = p;
-      cr = r;
-
-
-      if (crossy)
+      float sensors[] = float(list);
+      v1 = sensors[7];
+      if (v1 == 0)
       {
-        if (cy < 0)
-          cy = cy + 2*PI;
-      }   
-      
-      if (crossp)
-      {
-        if (cp < 0)
-          cp = cp + 2*PI;
-      }   
-      
-      if (crossr)
-      {
-        if (cr < 0)
-          cr = cr + 2*PI;
-      }
-      
-      /*
-      qx = sensors[3];
-      qy = sensors[4];
-      qz = sensors[5];
-      qw = sensors[6];
-      */
-      
-      accx = sensors[3];
-      accy = sensors[4];
-      accz = sensors[5];   
-      
-      
-      v2 = sensors[7];
-      v3 = sensors[8];
-      v4 = sensors[9];  
-      
-      
-      if (v2 == 0)
+        isLive = false;
         b_A_state = false;
-      else
-        b_A_state = true;
-        
-      if (v3 == 0)
         b_B_state = false;
-      else
-        b_B_state = true;
-        
-      if (v4 == 0)
         b_C_state = false;
+      }
       else
-        b_C_state = true;         
+      {
+        isLive = true;
+        y = sensors[1];
+        p = sensors[2];
+        r = sensors[3];  
+          
+        p = KalFilterP.getFilteredValue(p);
+        r = KalFilterR.getFilteredValue(r);     
+        y = KalFilterY.getFilteredValue(y);
+        
+        cp = p;
+        cr = r;
+        cy = y;
+        
+        if (crossp)
+        {
+          if (cp < 0)
+            cp = cp + 2*PI;
+        }           
+        if (crossr)
+        {
+          if (cr < 0)
+            cr = cr + 2*PI;
+        }
+        if (crossy)
+        {
+          if (cy < 0)
+            cy = cy + 2*PI;
+        }   
+        
+        
+        accx = sensors[4];
+        accy = sensors[5];
+        accz = sensors[6];   
+        
+        
+        v2 = sensors[8];
+        v3 = sensors[9];
+        v4 = sensors[10];  
+        
+        
+        if (v2 == 0)
+          b_A_state = false;
+        else
+          b_A_state = true;
+          
+        if (v3 == 0)
+          b_B_state = false;
+        else
+          b_B_state = true;
+          
+        if (v4 == 0)
+          b_C_state = false;
+        else
+          b_C_state = true;         
+      }
+    }
+    else if (list[0].contains("D"))
+    {
+      float sensors[] = float(list);
+      
+      a[0] = sensors[1];
+      a[1] = sensors[2];
+      a[2] = sensors[3];
+      g[0] = sensors[4];
+      g[1] = sensors[5];
+      g[2] = sensors[6];
+      m[0] = sensors[7];
+      m[1] = sensors[8];
+      m[2] = sensors[9];
+      
+      normalizeVectors();
     }
   }
   else
@@ -954,6 +997,43 @@ void serialEvent(Serial myPort) {
   lastSerial = millis();
 
 }
+
+void normalizeVectors()
+{
+  float norm;
+  float tmp;
+  
+  tmp = a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
+  if (tmp > 0.0) {
+    // Normalise accelerometer (assumed to measure the direction of gravity in body frame)
+    norm = 1.0 / sqrt(tmp);
+    a[0] *= norm;
+    a[1] *= norm;
+    a[2] *= norm;
+  }
+  
+
+  tmp = g[0] * g[0] + g[1] * g[1] + g[2] * g[2];
+  if (tmp > 0.0) {
+    // Normalise accelerometer (assumed to measure the direction of gravity in body frame)
+    norm = 1.0 / sqrt(tmp);
+    g[0] *= norm;
+    g[1] *= norm;
+    g[2] *= norm;
+  }
+
+  
+  tmp = m[0] * m[0] + m[1] * m[1] + m[2] * m[2];
+  if (tmp > 0.0) {
+    // Normalise accelerometer (assumed to measure the direction of gravity in body frame)
+    norm = 1.0 / sqrt(tmp);
+    m[0] *= norm;
+    m[1] *= norm;
+    m[2] *= norm;
+  }  
+}
+
+
 
 void keyPressed() 
 {
