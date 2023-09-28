@@ -320,7 +320,7 @@ void setup_reset_webpage()
 void setup_cal_gyro_acc_webpage()
 {
   server.on("/calgyroacc", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Gyro/Accelerometer");
+    request->send(200, "text/plain", "Calibrating Gyro/Accelerometer. But BABOI on flat surface and don't move during calibration.");
     delay(1000);
     setState(STATE_CAL_GYRO);
   });
@@ -329,7 +329,7 @@ void setup_cal_gyro_acc_webpage()
 void setup_cal_mag_webpage()
 {
   server.on("/calmag", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Magnetometer");
+    request->send(200, "text/plain", "Calibrating Magnetometer. Move BABOI in a figure-8.");
     delay(1000);
     setState(STATE_CAL_MAG);   
   });
@@ -338,7 +338,7 @@ void setup_cal_mag_webpage()
 void setup_cal_buttons_webpage()
 {
   server.on("/calbuttons", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Buttons");
+    request->send(200, "text/plain", "Calibrating Buttons. Touch all 3 buttons repeatatly.");
     setState(STATE_CAL_BUTTONS); 
   });
 }
