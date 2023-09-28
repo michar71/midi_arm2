@@ -1,6 +1,6 @@
 # midi_arm2
 
-##BABOI Update
+## BABOI Update
 1) Download .bin Firmware File
 1) Power Up BABOI
 2) Connect Computer o Phone to BABOI Access Point
@@ -11,7 +11,7 @@
 ##Processing Sketch update
 Just copy the .app file in the relase folder to your computer 
 
-##LED's
+## LED's
 
 Left LED
 --------
@@ -28,7 +28,7 @@ Blue > Acc/Gyro Cal
 Cyan > Mag Cal
 Magenta > Button Cal
 
-##Buttons
+## Buttons
 
 Left
 ----
@@ -45,7 +45,7 @@ Right
 -----
 B-Button
 
-##Calibration
+## Calibration
 - Best Way to calibrate is from the webpage
 - Buttons might not work correctly initially. Calibrate from Webpage...
 - Gyro/Accelerometer Calibration can be triggered both by 3 sec button press or webpage.
