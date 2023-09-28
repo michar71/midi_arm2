@@ -14,11 +14,13 @@ Just copy the .app file in the relase folder to your computer
 ## LED's
 
 **Left LED**
+
 Red,Green,Blue -> Boot
 Yellow -> Ready for Connection
 Green -> Connection initiated
 
 **Right LED**
+
 Off > Not Connected
 Red > Pause
 Green > Live
@@ -29,6 +31,7 @@ Magenta > Button Cal
 ## Buttons
 
 **Left**
+
 CTRL-Button
 Short Press > Live/Pause Toggle
 Long Press > Gyro/Accelerometer Calibration
@@ -37,7 +40,9 @@ Very Long Press > Mag Calibration
 **Front**
 
 A-Button
+
 **Right**
+
 B-Button
 
 ## Calibration
