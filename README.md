@@ -21,25 +21,28 @@ Green -> Connection initiated
 
 Right LED
 ---------
-Off -> Not Connected
-Red -> Pause
-Green -> Live
-Blue -> Acc/Gyro Cal
-Cyan -> Mag Cal
-Magenta -> Button Cal
+Off > Not Connected
+Red > Pause
+Green > Live
+Blue > Acc/Gyro Cal
+Cyan > Mag Cal
+Magenta > Button Cal
 
-#Buttons
+##Buttons
 
 Left
+----
 CTRL-Button
-Short Press -> Live/Pause Toggle
-Long Press -> Gyro/Accelerometer Calibration
-Very Long Press -> Mag Calibration
+Short Press > Live/Pause Toggle
+Long Press > Gyro/Accelerometer Calibration
+Very Long Press > Mag Calibration
 
 Front
+-----
 A-Button
 
 Right
+-----
 B-Button
 
 ##Calibration
