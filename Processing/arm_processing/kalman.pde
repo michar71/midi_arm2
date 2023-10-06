@@ -9,7 +9,8 @@ class kalman {
     protected float x; //value
     protected float p; //estimation error covariance
     protected float k; //kalman gain
-    
+    protected float offset;
+    protected float lastpos;
 
     kalman(float process_noise, float sensor_noise, float estimated_error, float intial_value) 
     {
@@ -35,59 +36,21 @@ class kalman {
         this.r = sensor_noise;
         this.p = estimated_error;
         this.x = intial_value; //x will hold the iterated filtered value
+        lastpos = intial_value;
     }
     
     public float getFilteredValue(float measurement) 
     {
 
-/*    
-    //Deal with zero rollover
-    if ((((measurement > 0) && (this.x<0)) || ((measurement < 0) && (this.x>0))) && (abs(this.x - measurement) > 1)) 
-    {
-      this.x = -this.x;      
-      this.p = 0;
-      this.k = 0;
-      
-      for(int ii=0;ii<64;ii++)
-      {
-        //Do Filtering
-        this.p = this.p + this.q;   
-        //measurement update
-        this.k = this.p / (this.p + this.r);
-        this.x = this.x + this.k * (measurement - this.x);   
-        this.p = (1 - this.k) * this.p;
-      }
-      
-      return this.x;
-    }
-*/
-
-    //Deal with sign issues...
-    float sign = 1;
-    if (measurement<0)
-      sign = -1;
-    measurement = abs(measurement);  
-    
-    float sr;
-    
-    if (measurement > PI/2)
-       sr = map(measurement,PI-(PI/10),PI,this.r,0);
-    else
-       sr = map(measurement,0,PI/10,0,this.r);
-
-
     //Do Filtering
     this.p = this.p + this.q;
       
     //measurement update
-    this.k = this.p / (this.p + sr);
+    this.k = this.p / (this.p + this.r);
     this.x = this.x + this.k * (measurement - this.x);   
     this.p = (1 - this.k) * this.p;
     
-    if (this.x > PI)
-        this.x = this.x - (this.x - PI);    
-
-    return (this.x * sign);
+    return this.x;
     }
     
     public void setParameters(float process_noise, float sensor_noise, float estimated_error) 
@@ -116,6 +79,28 @@ class kalman {
     public float getEstimatedError() 
     {
       return this.p;
+    }
+    
+
+    float getFilteredRADValue(float measurement)
+    {
+      if ((lastpos < (-PI/2.0)) && (measurement > (PI/2.0)))
+        offset = offset - (2.0*PI);
+        
+      else if ((lastpos > (PI/2.0)) && (measurement < (-PI/2.0)))
+        offset = offset + (2.0*PI);  
+ 
+      lastpos = measurement;
+      float fake_value = measurement + offset;
+      float filtered_value = getFilteredValue(fake_value);
+      
+      while(filtered_value > PI)
+        filtered_value = filtered_value - (2*PI);
+        
+      while (filtered_value < -PI)
+        filtered_value = filtered_value + (2*PI);
+        
+      return filtered_value;  
     }
     
 }

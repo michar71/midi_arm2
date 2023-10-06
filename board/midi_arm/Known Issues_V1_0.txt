@@ -1,0 +1,9 @@
+Known Issues
+------------
+1) Touch Pad TOUCH3 connected to pin 11 whihc uses ADC2 which cannot be used together with WiFi
+2) Pin 12 routed to extension header was supposed to be used with Touch-Pad but is also connected to ADC2
+3) Pin 16/18 where supposed to be used with Tension Strip resistors are also connected to ADC2
+
+We can tempeorarily fix this by attaching these pins to the inner uC board header row to use ADC1 only:
+- Connect Pin 11 to Pin 10 (ADC 1_9)
+- Connect Pin 16/18 to pin 1/2

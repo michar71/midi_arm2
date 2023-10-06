@@ -1,74 +1,39 @@
-#define DEBUG
-#define WIFI
-
 #include "main.h"
 #include <Wire.h>
 #include "MPU9250.h"
-#include <FastLED.h>
 #include "ButtonClass.h"
 #include "settings.h"
+#include "baboi_protocol.h"
 
 #ifdef WIFI
 //#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <DNSServer.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <AsyncElegantOTA.h>
+#include "baboi_webserver.h"
+
 
 //WiFiManager wm;
 DNSServer dnsServer;
-AsyncWebServer server(80);
+
+
 #endif
 
-void calibrate_buttons();
-
-
-//-------------------------------
-// Add Very Long Press Mag Calib
-// Store/load Mag Calib
-//-------------------------------
-
-//Sensor Stuff
-//------------
-MPU9250 mpu;
+String devicename = "BABOI";
+int maj_ver = 1;
+int min_ver = 0;
 
 extern setup_t settings;
 
-
-//I2C Stuff
-//---------
-#define SDA 7
-#define SCL 5
-
-#define DATA_PIN 39
-#define BUT_CTRL 9
-#define BUT_A 3
-#define BUT_B 11
-
-
-
-#define STATUS_LED LED_BUILTIN //Asuming D2 here...
+MPU9250 mpu;
 
 int led_state = LOW;    // the current state of LED
 bool but_a_state = false;
 bool but_b_state = false;
 bool but_c_state = false;
 
-//LED/Button Stuff
-//----------------
-
-// How many leds in your strip?
-#define NUM_LEDS 2
-
-// For led chips like WS2812, which have a data line, ground, and power, you just
-// need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
-// ground, and power), like the LPD8806 define both DATA_PIN and CLOCK_PIN
-// Clock pin only needed for SPI based chipsets when not using hardware SPI
-
 // Define the array of leds
 CRGB leds[NUM_LEDS];
-
 
 ButtonClass but_ctrl(BUT_CTRL,true);
 
@@ -142,215 +107,18 @@ void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b)
   FastLED.show();
 }
 
+
+void toggle_led(void)
+{
+    led_state = !led_state;
+    digitalWrite(STATUS_LED, led_state);
+}
+
 void setState(t_state newState)
 {
   lastState = state;
   state = newState;
 }
-
-void send_processing_data(bool senddata)
-{
-  //Plotting for Processing
-  if (senddata)
-  {
-    Serial.print("C");
-    Serial.print(":");
-    Serial.print(mpu.getYaw()*DEG_TO_RAD);
-    Serial.print(":");
-    Serial.print(mpu.getPitch()*DEG_TO_RAD);
-    Serial.print(":");
-    Serial.print(mpu.getRoll()*DEG_TO_RAD);
-
-
-    Serial.print(":");
-    Serial.print(mpu.getLinearAccX());
-    Serial.print(":");
-    Serial.print(mpu.getLinearAccY());
-    Serial.print(":");
-    Serial.print(mpu.getLinearAccZ());           
-  }
-  else
-  {
-    Serial.print("C:0:0:0:0:0:0");
-  }
-
-  if (state == STATE_LIVE)
-  {
-    Serial.print(":1");
-  }
-  else
-  {
-    Serial.print(":0");  
-  }
-  if (but_a_state)
-  {
-    Serial.print(":1");
-  }
-  else
-  {
-    Serial.print(":0");  
-  }
-  if (but_b_state)
-  {
-    Serial.print(":1");
-  }
-  else
-  {
-    Serial.print(":0");  
-  }
-  if (but_c_state)
-  {
-    Serial.println(":1");
-  }
-  else
-  {
-    Serial.println(":0");  
-  }
-}
-
-#ifdef WIFI
-
-class CaptiveRequestHandler : public AsyncWebHandler {
-public:
-  CaptiveRequestHandler() {}
-  virtual ~CaptiveRequestHandler() {}
-
-  bool canHandle(AsyncWebServerRequest *request){
-    //request->addInterestingHeader("ANY");
-    return true;
-  }
-
-  void handleRequest(AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/html");
-    response->addHeader("Server","ESP BABOI Setup Page");
-    response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title></head><body>");
-    response->printf("<h1>%s FW V%d.%d Webserver running.</h1><br>",devicename,maj_ver,min_ver);
-    response->print("<p>This is out captive portal front page.</p>");
-    response->printf("<p>You were trying to reach: http://%s%s</p>", request->host().c_str(), request->url().c_str());
-    response->printf("<p>Try opening <a href='http://%s'>this link</a> instead</p>", WiFi.softAPIP().toString().c_str());
-
-    response->print("<a href=\"http://192.168.0.1/update\">Update</a><br><br>");
-    response->print("<a href=\"http://192.168.0.1/settings\">Settings</a><br><br>");
-    response->print("<a href=\"http://192.168.0.1/reset\">Reset Settings</a><br><br>");
-    response->print("<a href=\"http://192.168.0.1/calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
-    response->print("<a href=\"http://192.168.0.1/calmag\">Calibrate Magnetometer</a><br><br>");       
-    response->print("<a href=\"http://192.168.0.1/calbuttons\">Calibrate Buttons</a><br><br>");       
-    response->print("</body></html>");
-    request->send(response);
-
-  }
-};
-
-void notFound(AsyncWebServerRequest *request) {
-    request->send(404, "text/plain", "Page Not found");
-}
-
-void setup_settings_webpage()
-{
-    server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
-    AsyncResponseStream *response = request->beginResponseStream("text/html");
-    response->addHeader("Server","ESP BABOI Settings Page");
-    response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title></head><body>");
-
-    response->print("<h1>Settings</h1><br>");
-          
-    response->printf("Acc Bias X: %f <br>",settings.main_acc_bias_x);
-    response->printf("Acc Bias Y: %f <br>",settings.main_acc_bias_y);
-    response->printf("Acc Bias Z: %f <br>",settings.main_acc_bias_z);
-
-    response->printf("Gyro Bias X: %f <br>",settings.main_gyro_bias_x);
-    response->printf("Gyro Bias Y: %f <br>",settings.main_gyro_bias_y);
-    response->printf("Gyro Bias Z: %f <br>",settings.main_gyro_bias_z);        
-
-    response->printf("Mag Bias X: %f <br>",settings.main_mag_bias_x);    
-    response->printf("Mag Bias Y: %f <br>",settings.main_mag_bias_y);    
-    response->printf("Mag Bias Z: %f <br>",settings.main_mag_bias_z);    
-
-    response->printf("Mag Scale X: %f <br>",settings.main_mag_scale_x);   
-    response->printf("Mag Scale Y: %f <br>",settings.main_mag_scale_y);   
-    response->printf("Mag Scale Z: %f <br>",settings.main_mag_scale_z);   
-
-    response->printf("Touch TH CTRL: %d <br>",settings.th_but_ctrl); 
-    response->printf("Touch TH A: %d <br>",settings.th_but_a); 
-    response->printf("Touch TH B: %d <br>",settings.th_but_b); 
-
-    response->print("<h1>Debug Data</h1><br>");
-    response->printf("Free Heap: %d <br>",ESP.getFreeHeap());     
-    response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
-    response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
-    response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
-    request->send(response);
-  });
-}
-
-void setup_main_webpage()
-{
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    AsyncResponseStream *response = request->beginResponseStream("text/html");
-    response->addHeader("Server","ESP BABOI Main Page");
-    response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title></head><body>");
-    response->printf("<h1>%s FW V%d.%d Webserver running.</h1><br>",devicename,maj_ver,min_ver);
-    response->print("<a href=\"http://192.168.0.1/update\">Update</a><br><br>");
-    response->print("<a href=\"http://192.168.0.1/setup\">Setup</a><br><br>");
-    response->print("<a href=\"http://192.168.0.1/reset\">Reset Settings</a><br><br>");
-    response->print("<a href=\"http://192.168.0.1/calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
-    response->print("<a href=\"http://192.168.0.1/calmag\">Calibrate Magnetometer</a><br><br>");       
-    response->print("<a href=\"http://192.168.0.1/calbuttons\">Calibrate Buttons</a><br><br>");         
-    response->print("</body></html>");
-    request->send(response);
-  });
-}
-
-void setup_reset_webpage()
-{
-
-   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
-
-      request->send(200, "text/plain", "Settings Reset");
-      init_settings_acc_gyro();
-      init_settings_mag();
-      init_settings_but();
-      save_settings();
-      setLED(1,64,64,64);
-      delay(250);
-      setLED(0,0,0,0);
-    });
-}
-
-void setup_cal_gyro_acc_webpage()
-{
-  server.on("/calgyroacc", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Gyro/Accelerometer. But BABOI on flat surface and don't move during calibration.");
-    delay(1000);
-    setState(STATE_CAL_GYRO);
-  });
-}
-
-void setup_cal_mag_webpage()
-{
-  server.on("/calmag", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Magnetometer. Move BABOI in a figure-8.");
-    delay(1000);
-    setState(STATE_CAL_MAG);   
-  });
-}
-
-void setup_cal_buttons_webpage()
-{
-  server.on("/calbuttons", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Buttons. Touch all 3 buttons repeatatly.");
-    setState(STATE_CAL_BUTTONS); 
-  });
-}
-
-
-void setup_captive_webpage()
-{
-  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);//only when requested from AP
-}
-
-
-#endif
 
 
 void setup() 
@@ -420,7 +188,7 @@ void setup()
     /*
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP    
     wm.setConfigPortalBlocking(false);
-    wm.setConfigPortalTimeout(60);
+    wm.setConfigPortalTimeout(60;)
     //automatically connect using saved credentials if they exist
     //If connection fails it starts an access point with the specified name
     if(wm.autoConnect("BABOI"))
@@ -439,7 +207,7 @@ void setup()
     IPAddress IP = WiFi.softAPIP();
     delay(100);
     Serial.println("Setting the AP");
-    IPAddress Ip(192, 168, 0, 1);    //setto IP Access Point same as gateway
+    IPAddress Ip(192, 168, 1, 1);    //setto IP Access Point same as gateway
     IPAddress NMask(255, 255, 255, 0);
     WiFi.softAPConfig(Ip, Ip, NMask);
 
@@ -449,20 +217,10 @@ void setup()
 
     dnsServer.start(53, "*", WiFi.softAPIP()); 
 
-    //web pages
-    //setup_captive_webpage();
-    server.onNotFound(notFound);
-    setup_reset_webpage();
-    setup_settings_webpage();
-    setup_main_webpage();
-    setup_cal_gyro_acc_webpage();
-    setup_cal_mag_webpage();
-    setup_cal_buttons_webpage();
+    init_webserver();
 
+    init_protocol();
 
-    AsyncElegantOTA.begin(&server);    // Start AsyncElegantOTA
-    server.begin();
-    Serial.println("HTTP server started");    
   #endif
 
   if (load_settings())
@@ -515,47 +273,7 @@ void setup()
 
   setState(STATE_WAITCONN);
 }
-
-
-void serial_info_request(void)
-{
-  char incomingByte;
-  static bool filter = false;
-
-  if (Serial.available() > 0) 
-  {
-    // read the incoming byte:
-    incomingByte = Serial.read();
-    if (incomingByte == 'Q')
-    {
-      for (int ii=0;ii<10;ii++)
-      {
-        Serial.print(devicename);
-        Serial.print(":");
-        Serial.print(maj_ver);
-        Serial.print(":");
-        Serial.println(min_ver);
-      }
-      setLED(0,0,64,0);
-      setState(STATE_LIVE);
-    }
-    else if (incomingByte == 'S')
-    {
-      if (filter == false)
-      {
-        filter = true;
-        setLED(0,64,64,0);
-        mpu.selectFilter(QuatFilterSel::MAHONY);
-      }
-      else
-      {
-        filter = false;
-        setLED(0,0,0,64);
-        mpu.selectFilter(QuatFilterSel::MADGWICK);  
-      }
-    }
-  } 
-}
+ 
 
 //We need to illimate high outliers...
 #define CUTOFF 40000
@@ -670,69 +388,101 @@ void process_state(void)
   }
 }
 
+  float GetCurrentYaw(void)
+  {
+    return mpu.getYaw()*DEG_TO_RAD;
+  }
+
+  float GetCurrentPitch(void)
+  {
+    return mpu.getPitch()*DEG_TO_RAD;
+  }
+
+  float GetCurrentRoll(void)
+  {
+    return mpu.getRoll()*DEG_TO_RAD;
+  }
+
+  float GetCurrentAX(void)
+  {
+    return mpu.getLinearAccX();
+  }
+
+  float GetCurrentAY(void)  
+  {
+    return mpu.getLinearAccY();
+  }
+
+  float GetCurrentAZ(void)
+  {
+    return mpu.getLinearAccZ();
+  }
+
+
+void handle_buttons(void)
+{
+  mode_button_e  button_res = but_ctrl.check_button();
+  if (SHORT_PRESS == button_res)
+  {
+    if (state == STATE_LIVE)
+      setState(STATE_PAUSED);
+    else if (state == STATE_PAUSED)  
+      setState(STATE_LIVE);
+  }  
+  else if (button_res == LONG_PRESS)
+  {
+    setState(STATE_CAL_GYRO);
+  }
+  else if (button_res == VERY_LONG_PRESS)
+  {   
+    setState(STATE_CAL_MAG);
+  }
+  else if (button_res == VERY_VERY_LONG_PRESS)
+  {
+    setState(STATE_CAL_BUTTONS);
+  }
+
+
+  if (touchRead(BUT_A) < settings.th_but_a)
+    but_a_state = false;
+  else
+    but_a_state = true; 
+  if (touchRead(BUT_B) < settings.th_but_b)
+    but_b_state = false;
+  else
+    but_b_state = true; 
+}
+
 void loop() 
 {
-  //Check Mode button
-  mode_button_e button_res;
-
 #ifdef WIFI
   //wm.process();
    dnsServer.processNextRequest();
 #endif
 
-  serial_info_request();
+  //Deal with incoming data
+  incoming_protocol_request();
+
+  //See If we have to deal with state-changes
   process_state();
 
-
-  if (mpu.update()) 
+  //Handle Motion Data
+  if (mpu.update() == false) 
   {
-      EVERY_N_MILLIS(33)
-      {
-
-        //Serial.println(touchRead(BUT_CTRL));
-        //Serial.println(touchRead(BUT_A));
-        //Serial.println(touchRead(BUT_B));
-
-
-        button_res = but_ctrl.check_button();
-        if (SHORT_PRESS == button_res)
-        {
-          if (state == STATE_LIVE)
-            setState(STATE_PAUSED);
-          else if (state == STATE_PAUSED)  
-            setState(STATE_LIVE);
-        }  
-        else if (button_res == LONG_PRESS)
-        {
-          setState(STATE_CAL_GYRO);
-        }
-        else if (button_res == VERY_LONG_PRESS)
-        {   
-          setState(STATE_CAL_MAG);
-        }
-        else if (button_res == VERY_VERY_LONG_PRESS)
-        {
-          setState(STATE_CAL_BUTTONS);
-        }
-
-
-        if (touchRead(BUT_A) < settings.th_but_a)
-          but_a_state = false;
-        else
-          but_a_state = true; 
-        if (touchRead(BUT_B) < settings.th_but_b)
-          but_b_state = false;
-        else
-          but_b_state = true; 
-
-      }
+    //MPU ERROR
+    //Not sure what to do
   }
 
+  EVERY_N_MILLIS(33)
+  {
+    //Handle Buttons
+    handle_buttons();
+  }
+  
   //Heartbeat
   EVERY_N_SECONDS(1)
   {
-    led_state = !led_state;
-    digitalWrite(STATUS_LED, led_state);
+    toggle_led();
   }
 }
 

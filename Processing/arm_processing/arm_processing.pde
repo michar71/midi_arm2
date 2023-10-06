@@ -5,8 +5,6 @@ EVERYTHING SHOULD BE IN ORDER
 PITCH
 ROLL
 YAW
-
-
 */
 
 import processing.serial.*;     // import the Processing serial library
@@ -17,7 +15,20 @@ import controlP5.*;
 import com.jogamp.newt.opengl.GLWindow;
 import ch.bildspur.artnet.*;
 import  java.nio.ByteBuffer;
+import com.bckmnn.udp.*;
+import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.SocketAddress;
 
+//Data Sentences
+char ID_DATA = 'D';   //Mition Data
+char ID_QUERY = 'Q';  //Info Query
+char ID_INFO = 'I';   //Answer to Query
+char ID_SETUP = 'S';  //Setup Parameters
+char ID_PING = 'P';  //PING to reset timeout counter in uC 
+int baboi_port = 2255;
+
+UDPHelper udp;
 ControlP5 cp5;
 ArtNetClient artnet;
 byte[] dmxData = new byte[512];
@@ -27,6 +38,10 @@ String my_port = "/dev/cu.usbmodem145101";        // choose your port
 //String my_port = "/dev/tty.MIDIARM";        // choose your port
 float p, r, y;
 float cp,cr,cy;
+float npo = 0;
+float nro = 0;
+float nyo = 0;
+
 float accx,accy,accz;
 float minp,maxp,minr,maxr,miny,maxy;
 boolean isCal;
@@ -157,27 +172,24 @@ boolean try_to_open(String comport)
   }  
 }
 
-
-
 boolean ping_usbmodem()
 {
   
-  int maxping = 20;
-  isValidDevice = false;
+  int maxping = 5;
+  
    for(int ii=0;ii<maxping;ii++)
    {
-     myPort.write('Q');
-     println("Query Sent"+ii);
-     delay(100);
-     //We need to figure out how to do this right
-     //Need to be ablew to identify different types of BABOIs
+     String id_query = String.format("%c\n", ID_QUERY);
+     myPort.write(id_query);
+     println("Query Sent "+ii);
+     delay(200);
+
+     //Need to be able to identify different types of BABOIs
      if (isValidDevice)
         return true;
    }
-   isValidDevice = true;
    return false;
 }
-
 
 boolean try_connect_usb_modem()
 {
@@ -187,6 +199,7 @@ boolean try_connect_usb_modem()
   ArrayList<String> Seriallist = new ArrayList<String>();
   //Build a list of all USB Modems
   
+  isValidDevice = false;
   hasList = get_usbmodem_list(Seriallist);
   if (hasList == false)
     return false;
@@ -203,6 +216,32 @@ boolean try_connect_usb_modem()
    }
  }
  return false;
+}
+
+boolean try_to_connect_wifi()
+{
+  int maxping = 5;
+  
+  for(int ii=0;ii<maxping;ii++)
+  {
+    String id_query = String.format("%c\n", ID_QUERY);
+    try
+    {
+      SocketAddress all = new InetSocketAddress(InetAddress.getByName("255.255.255.255"),13370);
+        udp.sendMessage(UDPHelper.bytesFromString(id_query),all);
+     } 
+     catch(Exception e)
+     {
+       e.printStackTrace();
+     }
+     println("Wifi Query Sent "+ii);
+     delay(200);
+
+    //Need to be able to identify different types of BABOIs
+    if (isValidDevice)
+       return true;
+   }
+  return false;
 }
 
 void Splitp(boolean theFlag) 
@@ -239,7 +278,7 @@ void Artnet(boolean theFlag)
     // send dmx to localhost
     //artnet.unicastDmx("127.0.0.1", 0, 0, dmxData);
     
-    //Fuckit... Jsut send it to everybody ;-)
+    //Fuckit... Just send it to everybody ;-)
     artnet.broadcastDmx(0, 0, dmxData);
   }
   
@@ -329,6 +368,10 @@ void setup() {
   artnet = new ArtNetClient(null);
   artnet.start();
   
+  udp = new UDPHelper(this);
+  udp.setLocalPort(baboi_port);
+  udp.startListening();
+  
   float p_noise = 2;
   float s_noise = 32;//32
   float e_error = 128;
@@ -344,7 +387,7 @@ int c;
 
 public void Test(int theValue) {
   if (myPort != null)
-        myPort.write('S');
+        myPort.write(ID_SETUP);
 }
 
 // function colorA will receive changes from 
@@ -436,7 +479,6 @@ void save_settings()
 }
 
 
-  
 void show_map_text()
 {
   fill(255);
@@ -825,6 +867,8 @@ void draw()
     line(width,0,0,height);
     text("NO CONNECTION",width/2,height/2);
     isConnected = try_connect_usb_modem();
+    if (isConnected == false)
+      isConnected = try_to_connect_wifi();
   }
   
     GLWindow glw = (GLWindow)surface.getNative();
@@ -881,29 +925,27 @@ void calc_call_min_max()
   }  
 }
 
-void serialEvent(Serial myPort) 
+void process_received_string(String myString)
 {
-
   float v1,v2,v3,v4;
-  String myString = myPort.readStringUntil('\n');
-  //println(myString);
+  
+    //println(myString);
   if (ignorelines == 0)
   {
     myString = trim(myString);
 
     String[] list = split(myString, ':');
     
-    if (list[0].contains("BABOI"))
-    {
-      
-      deviceName = list[0];
-      maj_ver = parseInt(list[1]);
-      min_ver = parseInt(list[2]);
+    if (list[0].contains(String.valueOf(ID_INFO)))
+    {  
+      deviceName = list[1];
+      maj_ver = parseInt(list[2]);
+      min_ver = parseInt(list[3]);
       println(deviceName+":"+maj_ver+"."+min_ver);
       isValidDevice = true;
       return;
     }
-    else if (list[0].contains("C"))
+    else if (list[0].contains(String.valueOf(ID_DATA)))
     {
       float sensors[] = float(list);
       v1 = sensors[7];
@@ -920,14 +962,14 @@ void serialEvent(Serial myPort)
         y = sensors[1];
         p = sensors[2];
         r = sensors[3];  
-          
-        p = KalFilterP.getFilteredValue(p);
-        r = KalFilterR.getFilteredValue(r);     
-        y = KalFilterY.getFilteredValue(y);
+        
+        p = KalFilterP.getFilteredRADValue(p);
+        r = KalFilterR.getFilteredRADValue(r);     
+        y = KalFilterY.getFilteredRADValue(y);
         
         cp = p;
-        cr = r;
         cy = y;
+        cr = r;
         
         if (crossp)
         {
@@ -996,6 +1038,20 @@ void serialEvent(Serial myPort)
   //println("roll: " + xx + " pitch: " + yy + " yaw: " + zz + "\n"); //debug
   lastSerial = millis();
 
+}
+
+public void onUdpMessageRecieved(SocketAddress client, byte[] message)
+{
+  String messageString = UDPHelper.stringFromBytes(message); //<>//
+  //println(client + " sent you this message: " + messageString);
+  process_received_string(messageString);
+}
+
+
+void serialEvent(Serial myPort) 
+{  
+  String myString = myPort.readStringUntil('\n'); 
+  process_received_string(myString);
 }
 
 void normalizeVectors()

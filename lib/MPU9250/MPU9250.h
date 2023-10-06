@@ -3,7 +3,6 @@
 #define MPU9250_H
 
 #include <Wire.h>
-
 #include "MPU9250/MPU9250RegisterMap.h"
 #include "MPU9250/QuaternionFilter.h"
 #include "kalman.h"
