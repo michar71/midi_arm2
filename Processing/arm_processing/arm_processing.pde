@@ -227,7 +227,8 @@ boolean try_to_connect_wifi()
     String id_query = String.format("%c\n", ID_QUERY);
     try
     {
-      SocketAddress all = new InetSocketAddress(InetAddress.getByName("255.255.255.255"),13370);
+      //This should be brtoadcast
+      SocketAddress all = new InetSocketAddress(InetAddress.getByName("192.168.1.1"),baboi_port);
         udp.sendMessage(UDPHelper.bytesFromString(id_query),all);
      } 
      catch(Exception e)
@@ -833,10 +834,6 @@ void draw()
     background(0);
   else
     background(255,0,0);
-  //if (isConnected)
-  //  println("CONNECTED");
-  //else
-  //  println("NOT CONNECTED");
     
   if (isConnected)
   {
@@ -1040,10 +1037,12 @@ void process_received_string(String myString)
 
 }
 
+
+//This sould receive boradcast and unicast....
 public void onUdpMessageRecieved(SocketAddress client, byte[] message)
 {
-  String messageString = UDPHelper.stringFromBytes(message); //<>//
-  //println(client + " sent you this message: " + messageString);
+  String messageString = UDPHelper.stringFromBytes(message);
+  println(client + " sent you this message: " + messageString);
   process_received_string(messageString);
 }
 

@@ -207,15 +207,14 @@ void setup()
     IPAddress IP = WiFi.softAPIP();
     delay(100);
     Serial.println("Setting the AP");
-    IPAddress Ip(192, 168, 1, 1);    //setto IP Access Point same as gateway
+    IPAddress Ip(192, 168, 1, 1);    //set to IP Access Point same as gateway
     IPAddress NMask(255, 255, 255, 0);
     WiFi.softAPConfig(Ip, Ip, NMask);
 
+    dnsServer.start(53, "*", WiFi.softAPIP()); 
 
     Serial.print("AP IP address: ");
     Serial.println(IP);
-
-    dnsServer.start(53, "*", WiFi.softAPIP()); 
 
     init_webserver();
 

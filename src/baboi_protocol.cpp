@@ -95,8 +95,8 @@ void send_processing_data(bool senddata)
     message.printf("%s",send_data);
 
     //Sending everything as broadcast right now. Replace with unicast later    
-    udp.broadcastTo(message, UDP_BROADCAST_PORT);
-    //udp.sendTo(message, comm_host_ip, UDP_BROADCAST_PORT);
+    //udp.broadcastTo(message, UDP_BROADCAST_PORT);
+    udp.sendTo(message, comm_host_ip, UDP_BROADCAST_PORT);
 #endif  
   }
 }
@@ -127,6 +127,7 @@ void send_info_data(void)
         AsyncUDPMessage message;
         message.printf("%s",send_data);    
         udp.broadcastTo(message, UDP_BROADCAST_PORT);
+        //udp.sendTo(message,comm_host_ip,UDP_BROADCAST_PORT); 
         delay(20);
     }
 #endif 
@@ -194,40 +195,47 @@ void setup_udp_broadcast_receiver()
 {
     udp.onPacket([](AsyncUDPPacket packet) 
     {
+      //if (packet.isBroadcast())
+      {
         int ii=0;
-        //Well... The packet made ikt here.. lets try to parse it
+        //Well... The packet made it here.. lets try to parse it
         uint8_t *pdata = packet.data();
 
         if (packet.length()< RECEIVE_DATA_LENGTH-1)
         {
             for (ii=0;ii<packet.length();ii++)
-                send_data[ii] = (char)pdata[ii];
-
-            send_data[ii] = 0;
+                receive_data[ii] = (char)pdata[ii];
 
             //Only store adress and use it if its a packet for us
             if (true == process_incoming_data(COMM_WIFI))
                 comm_host_ip = packet.remoteIP();
         }
+      }
         
-
-        //Debug only
-        Serial.print("UDP Packet Type: ");
-        Serial.print(packet.isBroadcast()?"Broadcast":packet.isMulticast()?"Multicast":"Unicast");
-        Serial.print(", From: ");
-        Serial.print(packet.remoteIP());
-        Serial.print(":");
-        Serial.print(packet.remotePort());
-        Serial.print(", To: ");
-        Serial.print(packet.localIP());
-        Serial.print(":");
-        Serial.print(packet.localPort());
-        Serial.print(", Length: ");
-        Serial.print(packet.length());
-        Serial.print(", Data: ");
-        Serial.write(packet.data(), packet.length());
-        Serial.println();
+    /*
+      //Debug only
+      Serial.print("UDP Packet Type: ");
+      Serial.print(packet.isBroadcast()?"Broadcast":packet.isMulticast()?"Multicast":"Unicast");
+      Serial.print(", From: ");
+      Serial.print(packet.remoteIP());
+      Serial.print(":");
+      Serial.print(packet.remotePort());
+      Serial.print(", To: ");
+      Serial.print(packet.localIP());
+      Serial.print(":");
+      Serial.print(packet.localPort());
+      Serial.print(", Length: ");
+      Serial.print(packet.length());
+      Serial.print(", Data: ");
+      Serial.write(packet.data(), packet.length());
+      Serial.println();
+    */
+    
     });
+
+    #ifdef DEBUG
+    Serial.println("UDP Receiver started");
+    #endif
 }
 
 #endif
@@ -236,7 +244,7 @@ void init_protocol(void)
 {
 #ifdef WIFI
     //This should be the Broadcast IP address
-    if(udp.listenMulticast(IPAddress(255,255,255,255), UDP_BROADCAST_PORT)) 
+    if(udp.listen(UDP_BROADCAST_PORT)) 
     {
       setup_udp_broadcast_receiver();
     }
