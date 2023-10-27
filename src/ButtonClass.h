@@ -8,7 +8,7 @@
 #define VERY_LONG_PRESS_MS 2000
 #define VERY_VERY_LONG_PRESS_MS 5000
 #define TOUCH_THRESHOLD 40
-
+#define TOUCH_CUTOFF 0xFFFF
     typedef enum{
         NO_PRESS,
         DOWN,
@@ -35,11 +35,12 @@ private:
     uint16_t very_long_press_ms = VERY_LONG_PRESS_MS;
     uint16_t very_very_long_press_ms = VERY_VERY_LONG_PRESS_MS;
     uint16_t touch_th = TOUCH_THRESHOLD;
+    uint16_t touch_cutoff = TOUCH_CUTOFF;
 public:
     ButtonClass(uint8_t pin, bool isTouch = false);
     mode_button_e check_button(void);
     void setTiming(uint16_t long_press_ms,uint16_t very_long_press_ms,uint16_t very_very_long_press_ms);
-    void setTouchThreshold(uint16_t touch_th);
+    void setTouchThreshold(uint16_t touch_th,uint16_t touch_cutoff);
 
 
 };

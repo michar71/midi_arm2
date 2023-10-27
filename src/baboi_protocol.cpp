@@ -1,5 +1,6 @@
-#include "baboi_protocol.h"
 #include <arduino.h>
+#include "baboi_protocol.h"
+#include "baboi_sensors.h"
 #include "main.h"
 
 #ifdef WIFI
@@ -48,12 +49,12 @@ extern int min_ver;
 
 void build_processing_data(bool senddata)
 {
-  float yaw_val = GetCurrentYaw();
-  float pitch_val = GetCurrentPitch();
-  float roll_val = GetCurrentRoll();  
-  float ax_val = GetCurrentAX();
-  float ay_val = GetCurrentAY();  
-  float az_val = GetCurrentAZ();
+  float yaw_val = mpu_GetCurrentYaw();
+  float pitch_val = mpu_GetCurrentPitch();
+  float roll_val = mpu_GetCurrentRoll();  
+  float ax_val = mpu_GetCurrentAX();
+  float ay_val = mpu_GetCurrentAY();  
+  float az_val = mpu_GetCurrentAZ();
 
   if(senddata)
     snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val);

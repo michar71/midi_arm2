@@ -1,9 +1,8 @@
 #include "main.h"
-#include <Wire.h>
-#include "MPU9250.h"
 #include "ButtonClass.h"
 #include "settings.h"
 #include "baboi_protocol.h"
+#include "baboi_sensors.h"
 
 #ifdef WIFI
 //#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
@@ -21,11 +20,10 @@ DNSServer dnsServer;
 
 String devicename = "BABOI";
 int maj_ver = 1;
-int min_ver = 0;
+int min_ver = 1;
 
 extern setup_t settings;
 
-MPU9250 mpu;
 
 int led_state = LOW;    // the current state of LED
 bool but_a_state = false;
@@ -40,63 +38,6 @@ ButtonClass but_ctrl(BUT_CTRL,true);
 t_state state = STATE_STARTUP;
 t_state lastState = STATE_STARTUP;
 
-
-void store_mpu_data()
-{
-    settings.main_acc_bias_x = mpu.getAccBiasX();
-    settings.main_acc_bias_y = mpu.getAccBiasY();
-    settings.main_acc_bias_z = mpu.getAccBiasZ();
-    settings.main_gyro_bias_x = mpu.getGyroBiasX();
-    settings.main_gyro_bias_y = mpu.getGyroBiasY();
-    settings.main_gyro_bias_z = mpu.getGyroBiasZ();
-    settings.main_mag_bias_x = mpu.getMagBiasX();
-    settings.main_mag_bias_y = mpu.getMagBiasY();
-    settings.main_mag_bias_z = mpu.getMagBiasZ();
-    settings.main_mag_scale_x = mpu.getMagScaleX();
-    settings.main_mag_scale_y = mpu.getMagScaleY();
-    settings.main_mag_scale_z = mpu.getMagScaleZ();
-}
-
-
-void i2c_scan(TwoWire* tw)
-{
-  byte error, address;
-  int nDevices;
- 
-  Serial.println("Scanning...");
- 
-  nDevices = 0;
-  for(address = 1; address < 127; address++ )
-  {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
-    tw->beginTransmission(address);
-    error = tw->endTransmission();
- 
-    if (error == 0)
-    {
-      Serial.print("I2C device found at address 0x");
-      if (address<16)
-        Serial.print("0");
-      Serial.print(address,HEX);
-      Serial.println("  !");
- 
-      nDevices++;
-    }
-    else if (error==4)
-    {
-      Serial.print("Unknown error at address 0x");
-      if (address<16)
-        Serial.print("0");
-      Serial.println(address,HEX);
-    }    
-  }
-  if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
-  else
-    Serial.println("done\n");
-}
 
 void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b)
 {
@@ -133,15 +74,7 @@ void setup()
     Serial.setDebugOutput(true);
     Serial.println("Startup...");
   #endif
-    Wire.begin(SDA, SCL,1000000);
-
     pinMode(STATUS_LED, OUTPUT);     
-    pinMode(BUT_CTRL,INPUT);
-    pinMode(BUT_A,INPUT);
-    pinMode(BUT_B,INPUT);
-
-    touchSetCycles(0x500,0x1000);
-    
         
     delay(10);
     settings_init();
@@ -164,23 +97,8 @@ void setup()
   #ifdef DEBUG
     Serial.println("LED Setup Done...");
   #endif
-    i2c_scan(&Wire);
-    
-    if (!mpu.setup(0x68)) {  // change to your own address
-        Serial.println("ERROR");
-        setLED(0,64,0,0);
-        delay(5000);
-        while(1)
-        {}
-    }
 
-    delay(10);
-
-
-  #ifdef DEBUG
-    Serial.println("Sensor Setup Done...");
-  #endif    
-
+    init_sensors();
 
   #ifdef WIFI
     
@@ -203,7 +121,7 @@ void setup()
 
     const char* ssid     = "BABOI";
 
-    WiFi.softAP(ssid);
+    WiFi.softAP(ssid,NULL,7);
     IPAddress IP = WiFi.softAPIP();
     delay(100);
     Serial.println("Setting the AP");
@@ -217,18 +135,15 @@ void setup()
     Serial.println(IP);
 
     init_webserver();
-
     init_protocol();
 
   #endif
 
   if (load_settings())
   {
-    mpu.setAccBias(settings.main_acc_bias_x ,settings.main_acc_bias_y ,settings.main_acc_bias_z);
-    mpu.setGyroBias(settings.main_gyro_bias_x,settings.main_gyro_bias_y,settings.main_gyro_bias_z);
-    mpu.setMagBias(settings.main_mag_bias_x,settings.main_mag_bias_y,settings.main_mag_bias_z);
-    mpu.setMagScale(settings.main_mag_scale_x,settings.main_mag_scale_y,settings.main_mag_scale_z);
-    but_ctrl.setTouchThreshold(settings.th_but_ctrl);
+    mpu_set_settings();
+
+    but_ctrl.setTouchThreshold(settings.th_but_ctrl,(uint16_t)TH_CUTOFF);
     delay(120);
     setLED(0,0,64,0);
     delay(120);
@@ -250,9 +165,7 @@ void setup()
   }
   else
   {
-    init_settings_acc_gyro();
-    init_settings_mag();
-    store_mpu_data();
+    mpu_init_settings();
     save_settings();
     delay(400);
     setLED(0,64,0,0);
@@ -275,18 +188,18 @@ void setup()
  
 
 //We need to illimate high outliers...
-#define CUTOFF 40000
+
 void calibrate_buttons()
 {
   uint16_t min[3] = {0xFFFF,0xFFFF,0xFFFF};
   uint16_t max[3] = {0,0,0};
   uint16_t val = 0;
 
-  //Do cal for 30 sec
-  for (int ii=0;ii<700;ii++)
+  //Do cal for 15 sec
+  for (int ii=0;ii<400;ii++)
   {
     val = touchRead(BUT_A);
-    if (val<CUTOFF)
+    if (val<TH_CUTOFF)
     {
       if (val > max[0])
         max[0] = val;
@@ -294,7 +207,7 @@ void calibrate_buttons()
         min[0] = val;
     }
     val = touchRead(BUT_B);
-    if (val<CUTOFF)
+    if (val<TH_CUTOFF)
     {
       if (val > max[1])
         max[1] = val;
@@ -302,7 +215,7 @@ void calibrate_buttons()
         min[1] = val;
     }
     val = touchRead(BUT_CTRL);
-    if (val<CUTOFF)
+    if (val<TH_CUTOFF)
     {
       if (val > max[2])
         max[2] = val;
@@ -313,10 +226,13 @@ void calibrate_buttons()
   }
   //Take average of min/max
   //(Is this a good idea? Do we need to exclude outlieers?)
-  settings.th_but_a = (min[0] + max[0])/2;
-  settings.th_but_b = (min[1] + max[1])/2;
-  settings.th_but_ctrl = (min[2] + max[2])/2;    
-  but_ctrl.setTouchThreshold(settings.th_but_ctrl);
+  settings.th_but_a = min[0] + ((max[0] - min[0])/3*2);
+  settings.th_but_b = min[1] + ((max[1] - min[1])/3*2);
+  settings.th_but_ctrl = min[2] + ((max[2] - min[2])/3*2);    
+  but_ctrl.setTouchThreshold(settings.th_but_ctrl,TH_CUTOFF);
+
+
+
 }
 
 
@@ -347,6 +263,7 @@ void process_state(void)
       init_settings_but();
       calibrate_buttons();        
       save_settings();    
+      setLED(1,0,0,0);
     #ifdef DEBUG    
       Serial.println("Button Calib Done...");
       print_settings();
@@ -357,9 +274,7 @@ void process_state(void)
     case STATE_CAL_GYRO:
       setLED(1,0,0,255);
       delay(500);
-      init_settings_acc_gyro();
-      mpu.calibrateAccelGyro();
-      store_mpu_data();
+      mpu_cal_gyro_accel();
       save_settings();
     #ifdef DEBUG    
       Serial.println("Sensor Calib Gyro/Acc Done...");
@@ -370,9 +285,7 @@ void process_state(void)
 
     case STATE_CAL_MAG:
       setLED(1,0,255,255);
-      init_settings_mag();
-      mpu.calibrateMag();
-      store_mpu_data();
+      mpu_cal_mag();
       save_settings();
     #ifdef DEBUG    
       Serial.println("Sensor Calib Mag Done...");
@@ -386,36 +299,6 @@ void process_state(void)
     break;
   }
 }
-
-  float GetCurrentYaw(void)
-  {
-    return mpu.getYaw()*DEG_TO_RAD;
-  }
-
-  float GetCurrentPitch(void)
-  {
-    return mpu.getPitch()*DEG_TO_RAD;
-  }
-
-  float GetCurrentRoll(void)
-  {
-    return mpu.getRoll()*DEG_TO_RAD;
-  }
-
-  float GetCurrentAX(void)
-  {
-    return mpu.getLinearAccX();
-  }
-
-  float GetCurrentAY(void)  
-  {
-    return mpu.getLinearAccY();
-  }
-
-  float GetCurrentAZ(void)
-  {
-    return mpu.getLinearAccZ();
-  }
 
 
 void handle_buttons(void)
@@ -441,14 +324,17 @@ void handle_buttons(void)
     setState(STATE_CAL_BUTTONS);
   }
 
-
-  if (touchRead(BUT_A) < settings.th_but_a)
+  int val = 0;
+  val = touchRead(BUT_A);
+  if (val < settings.th_but_a)
     but_a_state = false;
-  else
+  else if (val < TH_CUTOFF)
     but_a_state = true; 
-  if (touchRead(BUT_B) < settings.th_but_b)
+
+  val = touchRead(BUT_B);  
+  if (val < settings.th_but_b)
     but_b_state = false;
-  else
+  else if (val < TH_CUTOFF)
     but_b_state = true; 
 }
 
@@ -462,11 +348,10 @@ void loop()
   //Deal with incoming data
   incoming_protocol_request();
 
-  //See If we have to deal with state-changes
-  process_state();
+
 
   //Handle Motion Data
-  if (mpu.update() == false) 
+  if (mpu_update() == false) 
   {
     //MPU ERROR
     //Not sure what to do
@@ -476,6 +361,8 @@ void loop()
   {
     //Handle Buttons
     handle_buttons();
+    //See If we have to deal with state-changes
+    process_state();
   }
   
   //Heartbeat

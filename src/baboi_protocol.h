@@ -15,7 +15,6 @@ typedef enum{
 
 #define SEND_DATA_LENGTH 255
 #define RECEIVE_DATA_LENGTH 255
-
 #define UDP_BROADCAST_PORT 2255
 
 void build_processing_data(bool senddata);

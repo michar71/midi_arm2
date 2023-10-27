@@ -65,7 +65,6 @@ int m11 = 0;
 int m22 = 0;
 int m33 = 0;
 
-int ignorelines = 0;
 boolean isLive = true;
 boolean b_A_state = false;
 boolean b_B_state = false;
@@ -199,7 +198,7 @@ boolean try_connect_usb_modem()
   ArrayList<String> Seriallist = new ArrayList<String>();
   //Build a list of all USB Modems
   
-  isValidDevice = false;
+
   hasList = get_usbmodem_list(Seriallist);
   if (hasList == false)
     return false;
@@ -221,13 +220,14 @@ boolean try_connect_usb_modem()
 boolean try_to_connect_wifi()
 {
   int maxping = 5;
+ 
   
   for(int ii=0;ii<maxping;ii++)
   {
     String id_query = String.format("%c\n", ID_QUERY);
     try
     {
-      //This should be brtoadcast
+
       SocketAddress all = new InetSocketAddress(InetAddress.getByName("192.168.1.1"),baboi_port);
         udp.sendMessage(UDPHelper.bytesFromString(id_query),all);
      } 
@@ -806,21 +806,30 @@ void update_midi()
 }
 
 
-boolean check_timeout()
+void check_timeout()
 {
-  int timeout = 3500;
+  int timeout = 3000;
   int current_time = millis();
   if ((current_time - lastSerial) > timeout)
   {
     // Clear the buffer, or available() will still be > 0
-    myPort.clear();
-    // Close the port
-    myPort.stop();
+    try
+    {
+      if (myPort != null)
+      {
+        myPort.clear();
+        // Close the port
+        myPort.stop();
+      }
+    }
+    catch (Exception e)
+    {
+      println("Serial EXCEPTION");
+    }
     println("TIMEOUT");
-    return false;
+    isValidDevice = false;
+    isConnected = false;
   }
-  else
-    return true;
 }
 
 void draw() 
@@ -854,7 +863,9 @@ void draw()
         update_midi();
     }
    
-     isConnected = check_timeout();  
+    if (isConnected)
+      check_timeout();  
+
   }
   else
   {
@@ -926,112 +937,105 @@ void process_received_string(String myString)
 {
   float v1,v2,v3,v4;
   
-    //println(myString);
-  if (ignorelines == 0)
-  {
-    myString = trim(myString);
-
-    String[] list = split(myString, ':');
-    
-    if (list[0].contains(String.valueOf(ID_INFO)))
-    {  
-      deviceName = list[1];
-      maj_ver = parseInt(list[2]);
-      min_ver = parseInt(list[3]);
-      println(deviceName+":"+maj_ver+"."+min_ver);
-      isValidDevice = true;
-      return;
-    }
-    else if (list[0].contains(String.valueOf(ID_DATA)))
-    {
-      float sensors[] = float(list);
-      v1 = sensors[7];
-      if (v1 == 0)
-      {
-        isLive = false;
-        b_A_state = false;
-        b_B_state = false;
-        b_C_state = false;
-      }
-      else
-      {
-        isLive = true;
-        y = sensors[1];
-        p = sensors[2];
-        r = sensors[3];  
-        
-        p = KalFilterP.getFilteredRADValue(p);
-        r = KalFilterR.getFilteredRADValue(r);     
-        y = KalFilterY.getFilteredRADValue(y);
-        
-        cp = p;
-        cy = y;
-        cr = r;
-        
-        if (crossp)
-        {
-          if (cp < 0)
-            cp = cp + 2*PI;
-        }           
-        if (crossr)
-        {
-          if (cr < 0)
-            cr = cr + 2*PI;
-        }
-        if (crossy)
-        {
-          if (cy < 0)
-            cy = cy + 2*PI;
-        }   
-        
-        
-        accx = sensors[4];
-        accy = sensors[5];
-        accz = sensors[6];   
-        
-        
-        v2 = sensors[8];
-        v3 = sensors[9];
-        v4 = sensors[10];  
-        
-        
-        if (v2 == 0)
-          b_A_state = false;
-        else
-          b_A_state = true;
-          
-        if (v3 == 0)
-          b_B_state = false;
-        else
-          b_B_state = true;
-          
-        if (v4 == 0)
-          b_C_state = false;
-        else
-          b_C_state = true;         
-      }
-    }
-    else if (list[0].contains("D"))
-    {
-      float sensors[] = float(list);
-      
-      a[0] = sensors[1];
-      a[1] = sensors[2];
-      a[2] = sensors[3];
-      g[0] = sensors[4];
-      g[1] = sensors[5];
-      g[2] = sensors[6];
-      m[0] = sensors[7];
-      m[1] = sensors[8];
-      m[2] = sensors[9];
-      
-      normalizeVectors();
-    }
-  }
-  else
+  myString = trim(myString);
+  String[] list = split(myString, ':');
+  
+  if (list[0].contains(String.valueOf(ID_INFO)))
   {  
-    ignorelines--;
+    deviceName = list[1];
+    maj_ver = parseInt(list[2]);
+    min_ver = parseInt(list[3]);
+    println(deviceName+":"+maj_ver+"."+min_ver);
+    isValidDevice = true;
+    return;
   }
+  else if (list[0].contains(String.valueOf(ID_DATA)))
+  {
+    float sensors[] = float(list);
+    v1 = sensors[7];
+    if (v1 == 0)
+    {
+      isLive = false;
+      b_A_state = false;
+      b_B_state = false;
+      b_C_state = false;
+    }
+    else
+    {
+      isLive = true;
+      y = sensors[1];
+      p = sensors[2];
+      r = sensors[3];  
+      
+      p = KalFilterP.getFilteredRADValue(p);
+      r = KalFilterR.getFilteredRADValue(r);     
+      y = KalFilterY.getFilteredRADValue(y);
+      
+      cp = p;
+      cy = y;
+      cr = r;
+      
+      if (crossp)
+      {
+        if (cp < 0)
+          cp = cp + 2*PI;
+      }           
+      if (crossr)
+      {
+        if (cr < 0)
+          cr = cr + 2*PI;
+      }
+      if (crossy)
+      {
+        if (cy < 0)
+          cy = cy + 2*PI;
+      }   
+      
+      
+      accx = sensors[4];
+      accy = sensors[5];
+      accz = sensors[6];   
+      
+      
+      v2 = sensors[8];
+      v3 = sensors[9];
+      v4 = sensors[10];  
+      
+      
+      if (v2 == 0)
+        b_A_state = false;
+      else
+        b_A_state = true;
+        
+      if (v3 == 0)
+        b_B_state = false;
+      else
+        b_B_state = true;
+        
+      if (v4 == 0)
+        b_C_state = false;
+      else
+        b_C_state = true;         
+    }
+  }
+  else if (list[0].contains("D"))
+  {
+    float sensors[] = float(list);
+    
+    a[0] = sensors[1];
+    a[1] = sensors[2];
+    a[2] = sensors[3];
+    g[0] = sensors[4];
+    g[1] = sensors[5];
+    g[2] = sensors[6];
+    m[0] = sensors[7];
+    m[1] = sensors[8];
+    m[2] = sensors[9];
+    
+    //normalizeVectors();
+  }
+
+
   //println("roll: " + xx + " pitch: " + yy + " yaw: " + zz + "\n"); //debug
   lastSerial = millis();
 
@@ -1042,7 +1046,7 @@ void process_received_string(String myString)
 public void onUdpMessageRecieved(SocketAddress client, byte[] message)
 {
   String messageString = UDPHelper.stringFromBytes(message);
-  println(client + " sent you this message: " + messageString);
+  //println(client + " sent you this message: " + messageString);
   process_received_string(messageString);
 }
 

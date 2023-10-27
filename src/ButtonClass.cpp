@@ -50,7 +50,7 @@ mode_button_e ButtonClass::check_button(void)
         //New Button Press
         uint16_t tb = touchRead(buttonID);
 
-        if ((tb > touch_th) && (buttonPressed == false))
+        if ((tb > touch_th) && (buttonPressed == false) && (tb < touch_cutoff))
         {
             buttonPressed = true;
             button_time = millis();     
@@ -88,7 +88,8 @@ void ButtonClass::setTiming(uint16_t long_press_ms,uint16_t very_long_press_ms,u
     this->very_very_long_press_ms = very_very_long_press_ms;
 }
 
-void ButtonClass::setTouchThreshold(uint16_t touch_th)
+void ButtonClass::setTouchThreshold(uint16_t touch_th,uint16_t touch_cutoff)
 {
     this->touch_th = touch_th;
+    this->touch_cutoff = touch_cutoff;
 }

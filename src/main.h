@@ -10,6 +10,8 @@
 #define DEBUG
 #define WIFI
 
+#define TH_CUTOFF 20000
+
 
 //Pin Stuff
 //---------
@@ -17,9 +19,10 @@
 #define SCL 5
 
 #define DATA_PIN 39
-#define BUT_CTRL 9
-#define BUT_A 3
-#define BUT_B 11
+#define BUT_CTRL 3
+#define BUT_A 9
+#define BUT_B 10
+#define OLD_BUT_B 11
 
 #define STATUS_LED LED_BUILTIN //Assuming D2 here...
 
@@ -51,11 +54,6 @@ void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b);
 void setState(t_state newState);
 void calibrate_buttons();
 
-float GetCurrentYaw(void);
-float GetCurrentPitch(void);
-float GetCurrentRoll(void);
-float GetCurrentAX(void);
-float GetCurrentAY(void); 
-float GetCurrentAZ(void);
+
 
 #endif //main_h
