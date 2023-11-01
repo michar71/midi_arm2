@@ -55,11 +55,13 @@ void build_processing_data(bool senddata)
   float ax_val = mpu_GetCurrentAX();
   float ay_val = mpu_GetCurrentAY();  
   float az_val = mpu_GetCurrentAZ();
+  int16_t tension_ch1 = tension_get_ch1();
+  int16_t tension_ch2 = tension_get_ch2();
 
   if(senddata)
-    snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val);
+    snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f:%d:%d",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val,tension_ch1,tension_ch2);
   else
-    snprintf(send_data,SEND_DATA_LENGTH,"%c:0:0:0:0:0:0",ID_DATA);
+    snprintf(send_data,SEND_DATA_LENGTH,"%c:0:0:0:0:0:0:0:0",ID_DATA);
 
     if (state == STATE_LIVE)
       strcat(send_data,":1");

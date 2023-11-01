@@ -17,5 +17,9 @@ void mpu_store_data(void);
 void i2c_scan(TwoWire* tw);
 void init_sensors(void);
 bool mpu_update(void);
+void tension_update(void);
+int16_t tension_get_ch1(void);
+int16_t tension_get_ch2(void);
+void calibrate_tension(void);
 
 #endif

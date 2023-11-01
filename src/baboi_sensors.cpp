@@ -9,6 +9,15 @@ MPU9250 mpu;
 
 extern setup_t settings;
 
+#define ADC_COUNT 8
+uint16_t adc_val[2][ADC_COUNT] = {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}};
+uint8_t adc_index = 0;
+
+uint16_t adc_ch1_avg = 0;
+uint16_t adc_ch2_avg = 0;
+
+
+
 void mpu_store_data(void)
 {
     settings.main_acc_bias_x = mpu.getAccBiasX();
@@ -133,6 +142,106 @@ bool mpu_update(void)
     return mpu.update();
 }
 
+void tension_update(void)
+{
+  uint32_t s1;
+  uint32_t s2;
+
+  adc_val[0][adc_index]= analogRead(ANALOG_CH1);
+  adc_val[1][adc_index]= analogRead(ANALOG_CH2);
+  adc_index++;
+  if (adc_index == ADC_COUNT)
+    adc_index = 0;
+
+  s1 = 0;
+  s2 = 0;
+  for (uint8_t ii=0;ii<ADC_COUNT;ii++)
+  {
+    s1 = s1 + adc_val[0][ii];
+    s2 = s2 + adc_val[01][ii];
+  }
+  adc_ch1_avg = s1/ADC_COUNT;
+  adc_ch2_avg = s2/ADC_COUNT;
+ 
+  //Add Kalman Filter here...
+}
+
+
+void calibrate_tension(void)
+{
+  int ii=0;
+  //Check if we have a glove
+  for (ii=0;ii<50;ii++)
+  {
+    tension_update();
+    yield();
+  }
+  //No glove found
+  if ((tension_get_ch1() < 0) || (tension_get_ch2() < 0))
+    return;
+
+  init_settings_tension();
+
+  for (ii=0;ii<1000;ii++)
+  {
+    int16_t val;
+    
+    val = analogRead(ANALOG_CH1);
+    if (val>settings.tension_ch1_max)
+      settings.tension_ch1_max = val;
+    else if (val<settings.tension_ch1_min)
+      settings.tension_ch1_min = val;
+
+    val = analogRead(ANALOG_CH2);
+    if (val>settings.tension_ch2_max)
+      settings.tension_ch2_max = val;
+    else if (val<settings.tension_ch2_min)
+      settings.tension_ch2_min = val;
+
+    delay(5);
+  }
+}
+
+int16_t tension_get_ch1(void)
+{
+  int16_t val = 0;
+  
+  if (adc_ch1_avg < 2000)
+    val = -1;
+  else
+  {
+    float res = 0;
+    res = map(adc_ch1_avg,settings.tension_ch1_min,settings.tension_ch1_max,0,255);
+    if (res<0)
+      val = 0;
+    else if (res>255)
+      val = 255;
+    else
+      val = round(res);  
+  }  
+  return val;
+}
+
+int16_t tension_get_ch2(void)
+{
+  int16_t val = 0;
+  
+  if (adc_ch2_avg < 2000)
+    val = -1;
+  else
+  {
+    float res = 0;
+    res = map(adc_ch2_avg,settings.tension_ch2_min,settings.tension_ch2_max,0,255);
+    if (res<0)
+      val = 0;
+    else if (res>255)
+      val = 255;
+    else
+      val = round(res);  
+  }  
+  return val;
+}
+
 void init_sensors(void)
 {
     Wire.begin(SDA, SCL,1000000);
@@ -148,6 +257,13 @@ void init_sensors(void)
     }    
 
     delay(10);
+
+    //Setup analog pins
+    pinMode(ANALOG_CH1,ANALOG);
+    pinMode(ANALOG_CH2,ANALOG);
+    analogSetPinAttenuation(ANALOG_CH1,ADC_0db);
+    analogSetPinAttenuation(ANALOG_CH2,ADC_0db);    
+
 
   #ifdef DEBUG
     Serial.println("Sensor Setup Done...");

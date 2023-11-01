@@ -43,6 +43,7 @@ float nro = 0;
 float nyo = 0;
 
 float accx,accy,accz;
+int tension_ch1,tension_ch2;
 float minp,maxp,minr,maxr,miny,maxy;
 boolean isCal;
 boolean isMap;
@@ -485,9 +486,10 @@ void show_map_text()
   fill(255);
   textAlign(LEFT);
   text("Mapping Keys:",20,height-80);
-  text("Pitch=1,Roll=2,Yaw=3",20,height-60);
-  text("P-Split=4,R-Split=5,=Y-Split=6",20,height-40);
-  text("Button A=7,Button B=8, Button C=9",20,height-20);
+  text("Pitch=1,Roll=2,Yaw=3",20,height-64);
+  text("P-Split=4,R-Split=5,=Y-Split=6",20,height-48);
+  text("Button A=7,Button B=8",20,height-32);
+  text("Finger 1=9,Finger 2=0",20,height-16);
 }
 
 
@@ -666,6 +668,11 @@ void send_midi()
     ControlChange change1 = new ControlChange(0, 3, m3);
     myBus.sendControllerChange(change1);
   }
+  
+  ControlChange change3 = new ControlChange(0, 9, tension_ch1/2);
+  myBus.sendControllerChange(change3);
+  ControlChange change4 = new ControlChange(0, 10, tension_ch2/2);
+  myBus.sendControllerChange(change4);
 }
 
 void send_artnet()
@@ -766,6 +773,19 @@ void draw_cube()
   rm = toMatrix(rm,qx,qy,qz,qw);
   applyMatrix(rm);
   */
+  if (tension_ch1 > 0)
+  {
+    translate(-180, 0, -100); 
+    box(50, tension_ch1, 50);
+    translate(180, 0, 100); 
+  }
+  if (tension_ch2 > 0)
+  {
+    translate(180, 0, -100); 
+    box(50, tension_ch2, 50);
+    translate(-180, 0, 100); 
+  }
+  
 
   drawDebugVectors();
   
@@ -952,7 +972,7 @@ void process_received_string(String myString)
   else if (list[0].contains(String.valueOf(ID_DATA)))
   {
     float sensors[] = float(list);
-    v1 = sensors[7];
+    v1 = sensors[9];
     if (v1 == 0)
     {
       isLive = false;
@@ -996,10 +1016,16 @@ void process_received_string(String myString)
       accy = sensors[5];
       accz = sensors[6];   
       
+      tension_ch1 = int(sensors[7]);   
+      tension_ch2 = int(sensors[8]);  
       
-      v2 = sensors[8];
-      v3 = sensors[9];
-      v4 = sensors[10];  
+      tension_ch1 = int(map(tension_ch1,0,255,255,0));
+      tension_ch2 = int(map(tension_ch2,0,255,255,0));
+      
+      
+      v2 = sensors[10];
+      v3 = sensors[11];
+      v4 = sensors[12];  
       
       
       if (v2 == 0)
@@ -1150,7 +1176,12 @@ void keyPressed()
       {
           ControlChange change1 = new ControlChange(0, 9, 1);
           myBus.sendControllerChange(change1);
-      }          
+      }   
+      if (key =='0')
+      {
+          ControlChange change1 = new ControlChange(0, 10, 1);
+          myBus.sendControllerChange(change1);
+      }    
     }
     else
     {

@@ -1,4 +1,5 @@
 #include "baboi_webserver.h"
+#include "baboi_sensors.h"
 #include <AsyncElegantOTA.h>
 
 
@@ -37,7 +38,9 @@ response->print("<a href=\"http://192.168.1.1/settings\">Settings</a><br><br>");
 response->print("<a href=\"http://192.168.1.1/reset\">Reset Settings</a><br><br>");
 response->print("<a href=\"http://192.168.1.1/calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
 response->print("<a href=\"http://192.168.1.1/calmag\">Calibrate Magnetometer</a><br><br>");       
-response->print("<a href=\"http://192.168.1.1/calbuttons\">Calibrate Buttons</a><br><br>");       
+response->print("<a href=\"http://192.168.1.1/calbuttons\">Calibrate Buttons</a><br><br>");     
+response->print("<a href=\"http://192.168.1.1/caltension\">Calibrate Glove</a><br><br>");      
+
 response->print("</body></html>");
 request->send(response);
 }
@@ -75,13 +78,20 @@ void setup_settings_webpage()
 
     response->printf("Touch TH CTRL: %d <br>",settings.th_but_ctrl); 
     response->printf("Touch TH A: %d <br>",settings.th_but_a); 
-    response->printf("Touch TH B: %d <br>",settings.th_but_b); 
+    response->printf("Touch TH B: %d <br>",settings.th_but_b);    
+
+    response->printf("Tension Ch1 Min: %d <br>",settings.tension_ch1_min); 
+    response->printf("Tension Ch1 Max: %d <br>",settings.tension_ch1_max); 
+    response->printf("Tension Ch2 Min: %d <br>",settings.tension_ch2_min); 
+    response->printf("Tension Ch2 Max: %d <br>",settings.tension_ch2_max);         
 
     response->print("<h1>Debug Data</h1><br>");
     response->printf("Free Heap: %d <br>",ESP.getFreeHeap());     
     response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
     response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
     response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
+    response->printf("TENSION CH1 VAL: %d <br>",tension_get_ch1());      
+    response->printf("TENSION CH2 VAL: %d <br>",tension_get_ch2());      
     request->send(response);
   });
 }
@@ -98,7 +108,8 @@ void setup_main_webpage()
     response->print("<a href=\"http://192.168.1.1/reset\">Reset Settings</a><br><br>");
     response->print("<a href=\"http://192.168.1.1/calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
     response->print("<a href=\"http://192.168.1.1/calmag\">Calibrate Magnetometer</a><br><br>");       
-    response->print("<a href=\"http://192.168.1.1/calbuttons\">Calibrate Buttons</a><br><br>");         
+    response->print("<a href=\"http://192.168.1.1/calbuttons\">Calibrate Buttons</a><br><br>");      
+    response->print("<a href=\"http://192.168.1.1/caltension\">Calibrate Glove</a><br><br>");     
     response->print("</body></html>");
     request->send(response);
   });
@@ -146,13 +157,18 @@ void setup_cal_buttons_webpage()
   });
 }
 
+void setup_cal_tension_webpage()
+{
+  server.on("/caltension", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "Calibrating Glove. Bend Fingers repeatedly.");
+    setState(STATE_CAL_TENSION); 
+  });
+}
 
 void setup_captive_webpage()
 {
   server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);//only when requested from AP
 }
-
-
 
 void init_webserver()
 {
@@ -164,6 +180,7 @@ void init_webserver()
     setup_cal_gyro_acc_webpage();
     setup_cal_mag_webpage();
     setup_cal_buttons_webpage();
+    setup_cal_tension_webpage();
 
     AsyncElegantOTA.begin(&server);    // Start AsyncElegantOTA
     server.begin();

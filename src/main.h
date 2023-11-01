@@ -23,6 +23,8 @@
 #define BUT_A 9
 #define BUT_B 10
 #define OLD_BUT_B 11
+#define ANALOG_CH1 1
+#define ANALOG_CH2 2
 
 #define STATUS_LED LED_BUILTIN //Assuming D2 here...
 
@@ -36,6 +38,7 @@ typedef enum{
     STATE_LIVE,
     STATE_PAUSED,
     STATE_CAL_BUTTONS,
+    STATE_CAL_TENSION,
     STATE_CAL_GYRO,
     STATE_CAL_MAG,
     STATE_UPDATE,

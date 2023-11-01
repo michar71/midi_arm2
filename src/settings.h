@@ -1,6 +1,7 @@
 #ifndef settings_h
 #define settings_h
 
+#include <stdint.h>
 
 
 typedef struct{
@@ -30,6 +31,10 @@ typedef struct{
     char16_t th_but_ctrl;
     char16_t th_but_a;
     char16_t th_but_b;
+    uint16_t tension_ch1_max;
+    uint16_t tension_ch1_min;
+    uint16_t tension_ch2_max;
+    uint16_t tension_ch2_min;    
 }setup_t;
 
 
@@ -41,6 +46,7 @@ void save_settings();
 void init_settings_mag();
 void init_settings_acc_gyro();
 void init_settings_but();
+void init_settings_tension();
 void default_settings_but();
 
 

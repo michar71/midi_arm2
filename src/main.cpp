@@ -5,17 +5,14 @@
 #include "baboi_sensors.h"
 
 #ifdef WIFI
-//#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-#include <DNSServer.h>
-#include <WiFi.h>
-#include <AsyncTCP.h>
-#include "baboi_webserver.h"
+  //#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+  #include <DNSServer.h>
+  #include <WiFi.h>
+  #include <AsyncTCP.h>
+  #include "baboi_webserver.h"
 
-
-//WiFiManager wm;
-DNSServer dnsServer;
-
-
+  //WiFiManager wm;
+  DNSServer dnsServer;
 #endif
 
 String devicename = "BABOI";
@@ -67,6 +64,7 @@ void setup()
     setState(STATE_STARTUP);
     Serial.begin(230400);	
     setCpuFrequencyMhz(240);
+
 
     
   #ifdef DEBUG
@@ -230,9 +228,6 @@ void calibrate_buttons()
   settings.th_but_b = min[1] + ((max[1] - min[1])/3*2);
   settings.th_but_ctrl = min[2] + ((max[2] - min[2])/3*2);    
   but_ctrl.setTouchThreshold(settings.th_but_ctrl,TH_CUTOFF);
-
-
-
 }
 
 
@@ -266,6 +261,18 @@ void process_state(void)
       setLED(1,0,0,0);
     #ifdef DEBUG    
       Serial.println("Button Calib Done...");
+      print_settings();
+      #endif   
+      setState(lastState);
+    break;
+
+    case STATE_CAL_TENSION:
+      setLED(1,64,64,64);
+      calibrate_tension();
+      save_settings();    
+      setLED(1,0,0,0);
+    #ifdef DEBUG    
+      Serial.println("Tension Calib Done...");
       print_settings();
       #endif   
       setState(lastState);
@@ -340,6 +347,7 @@ void handle_buttons(void)
 
 void loop() 
 {
+  static uint16_t sampleCount = 0;
 #ifdef WIFI
   //wm.process();
    dnsServer.processNextRequest();
@@ -348,6 +356,7 @@ void loop()
   //Deal with incoming data
   incoming_protocol_request();
 
+  tension_update();
 
 
   //Handle Motion Data
@@ -357,12 +366,17 @@ void loop()
     //Not sure what to do
   }
 
-  EVERY_N_MILLIS(33)
+
+  sampleCount++;
+
+  EVERY_N_MILLIS(33)  //30 times/sec
   {
     //Handle Buttons
     handle_buttons();
     //See If we have to deal with state-changes
     process_state();
+
+    sampleCount = 0;
   }
   
   //Heartbeat

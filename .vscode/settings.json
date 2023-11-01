@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "esp32-hal-adc.h": "c",
+        "adc.h": "c"
     }
 }

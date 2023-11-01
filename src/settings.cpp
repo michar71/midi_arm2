@@ -51,13 +51,22 @@ void print_settings()
     Serial.println(settings.main_mag_scale_z);    
     Serial.println("");    
 
-    Serial.println("");
     Serial.print("Touch TH CTRL: ");
     Serial.println(settings.th_but_ctrl);
     Serial.print("Touch TH A: ");
     Serial.println(settings.th_but_a);
     Serial.print("Touch TH B: ");
     Serial.println(settings.th_but_b);    
+
+    Serial.println("");
+    Serial.print("Tension Ch1 Min: ");
+    Serial.println(settings.tension_ch1_min);    
+    Serial.print("Tension Ch1 Max: ");
+    Serial.println(settings.tension_ch1_max);   
+    Serial.print("Tension Ch2 Min: ");
+    Serial.println(settings.tension_ch2_min);   
+    Serial.print("Tension Ch2 Max: ");
+    Serial.println(settings.tension_ch2_max);           
     Serial.println("");        
 
 }
@@ -99,6 +108,14 @@ void default_settings_but()
   settings.th_but_ctrl = TOUCH_TH_CTRL;
   settings.th_but_a = TOUCH_TH_A;
   settings.th_but_b = TOUCH_TH_B;    
+}
+
+void init_settings_tension()
+{
+    settings.tension_ch1_max = 0;
+    settings.tension_ch1_min = 0XFFFF;
+    settings.tension_ch2_max = 0;
+    settings.tension_ch2_min = 0XFFFF;    
 }
 
 void init_settings_but()
