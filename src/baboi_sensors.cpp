@@ -9,9 +9,10 @@ MPU9250 mpu;
 
 extern setup_t settings;
 
-#define ADC_COUNT 8
-uint16_t adc_val[2][ADC_COUNT] = {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}};
-uint8_t adc_index = 0;
+#define ADC_COUNT 4
+uint16_t adc_val[2][ADC_COUNT];
+uint8_t adc_index1 = 0;
+uint8_t adc_index2 = 0;
 
 uint16_t adc_ch1_avg = 0;
 uint16_t adc_ch2_avg = 0;
@@ -144,25 +145,45 @@ bool mpu_update(void)
 
 void tension_update(void)
 {
+  static uint8_t cnt = 0;
   uint32_t s1;
   uint32_t s2;
 
-  adc_val[0][adc_index]= analogRead(ANALOG_CH1);
-  adc_val[1][adc_index]= analogRead(ANALOG_CH2);
-  adc_index++;
-  if (adc_index == ADC_COUNT)
-    adc_index = 0;
+  //We alternagte between the two ADC's to reeuce timing overhead...
 
-  s1 = 0;
-  s2 = 0;
-  for (uint8_t ii=0;ii<ADC_COUNT;ii++)
+  if (cnt == 0)
   {
-    s1 = s1 + adc_val[0][ii];
-    s2 = s2 + adc_val[01][ii];
+    adc_val[0][adc_index1]= analogRead(ANALOG_CH1);
+    adc_index1++;
+    if (adc_index1 == ADC_COUNT)
+      adc_index1 = 0;
+
+    s1 = 0;
+    for (uint8_t ii=0;ii<ADC_COUNT;ii++)
+    {
+      s1 = s1 + adc_val[0][ii];
+    }
+    adc_ch1_avg = s1/ADC_COUNT;    
   }
-  adc_ch1_avg = s1/ADC_COUNT;
-  adc_ch2_avg = s2/ADC_COUNT;
- 
+  else
+  {
+    adc_val[1][adc_index2]= analogRead(ANALOG_CH2);
+    adc_index2++;
+    if (adc_index2 == ADC_COUNT)
+      adc_index2 = 0;
+
+    s2 = 0;
+    for (uint8_t ii=0;ii<ADC_COUNT;ii++)
+    {
+      s2 = s2 + adc_val[1][ii];
+    }
+    adc_ch2_avg = s2/ADC_COUNT;
+  }
+
+  cnt++;
+  if (cnt>1)
+    cnt = 0;
+
   //Add Kalman Filter here...
 }
 

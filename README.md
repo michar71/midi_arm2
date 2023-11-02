@@ -27,6 +27,7 @@ Green > Live
 Blue > Acc/Gyro Cal
 Cyan > Mag Cal
 Magenta > Button Cal
+White > Glove Tension Strip Cal
 
 ## Buttons
 

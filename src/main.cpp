@@ -356,7 +356,7 @@ void loop()
   //Deal with incoming data
   incoming_protocol_request();
 
-  tension_update();
+
 
 
   //Handle Motion Data
@@ -366,11 +366,16 @@ void loop()
     //Not sure what to do
   }
 
+  //Handle Tension Strips
+  EVERY_N_MILLIS(16)  //60 times/sec    
+    tension_update();
 
   sampleCount++;
 
   EVERY_N_MILLIS(33)  //30 times/sec
   {
+
+
     //Handle Buttons
     handle_buttons();
     //See If we have to deal with state-changes
