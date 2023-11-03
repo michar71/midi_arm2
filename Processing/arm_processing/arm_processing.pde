@@ -680,28 +680,22 @@ void send_artnet()
     // fill dmx array
     int val = 0;
     
-
+    val = (int)map(accx*accy*accz,-8,8,0,255);    
+    dmxData[0] = (byte) val; 
+    //dmxData[0] = (byte) 255; 
 
     val =(int)map(cp,minp, maxp, 0,255);
     val = limit(val,0,255);
-    dmxData[0] = (byte) val;
+    dmxData[1] = (byte) val;
 
     val =(int)map(cr,minr, maxr, 0,255);
     val = limit(val,0,255);
-    dmxData[1] = (byte) val;
+    dmxData[2] = (byte) val;
     
     val =(int)map(cy,miny, maxy, 0,255);
     val = limit(val,0,255);
-    dmxData[2] = (byte) val;
-    
-    val = (int)map(accx,-4,4,0,255);    
     dmxData[3] = (byte) val;
-  
-    val = (int)map(accy,-4,4,0,255);    
-    dmxData[4] = (byte) val;
-    
-    val = (int)map(accz,-4,4,0,255);    
-    dmxData[5] = (byte) val;    
+
     
     // send dmx to localhost
     //artnet.unicastDmx("127.0.0.1", 0, 0, dmxData);
