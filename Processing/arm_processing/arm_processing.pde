@@ -1019,8 +1019,11 @@ void process_received_string(String myString)
       tension_ch1 = int(sensors[7]);   
       tension_ch2 = int(sensors[8]);  
       
-      tension_ch1 = int(map(tension_ch1,0,255,255,0));
-      tension_ch2 = int(map(tension_ch2,0,255,255,0));
+      
+      if (tension_ch1 >= 0)
+        tension_ch1 = int(map(tension_ch1,0,255,255,0));
+      if (tension_ch2 >= 0)  
+        tension_ch2 = int(map(tension_ch2,0,255,255,0));
       
       
       v2 = sensors[10];
