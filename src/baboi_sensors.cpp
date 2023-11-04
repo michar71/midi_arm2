@@ -192,7 +192,7 @@ void calibrate_tension(void)
 {
   int ii=0;
   //Check if we have a glove
-  for (ii=0;ii<50;ii++)
+  for (ii=0;ii<10;ii++)
   {
     tension_update();
     yield();
