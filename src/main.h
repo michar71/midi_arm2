@@ -19,8 +19,8 @@
 #define SCL 5
 
 #define DATA_PIN 39
-#define BUT_CTRL 3
-#define BUT_A 9
+#define BUT_CTRL 9
+#define BUT_A 3
 #define BUT_B 10
 #define OLD_BUT_B 11
 #define ANALOG_CH1 1
