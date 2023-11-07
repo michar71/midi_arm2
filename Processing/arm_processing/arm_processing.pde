@@ -85,6 +85,7 @@ boolean crossr = false;
 boolean crossy = false;
 
 boolean artnet_en =false;
+boolean network_en =false;
 
 int lastUpdate = 0;
 int lastSerial = 0;
@@ -95,7 +96,28 @@ int min_ver = 0;
 int maj_ver = 0;
 String deviceName = "UNKNOWN";
 boolean isValidDevice=false;
+PVector loc;
 
+
+
+PVector getWindowLocation(String renderer) 
+{
+  PVector l = new PVector();
+  if (renderer == P2D || renderer == P3D) 
+  {
+    com.jogamp.nativewindow.util.Point p = new com.jogamp.nativewindow.util.Point();
+    ((com.jogamp.newt.opengl.GLWindow)surface.getNative()).getLocationOnScreen(p);
+    l.x = p.getX();
+    l.y = p.getY();
+  } 
+  else if (renderer == JAVA2D) 
+  {
+    java.awt.Frame f =  (java.awt.Frame) ((processing.awt.PSurfaceAWT.SmoothCanvas) surface.getNative()).getFrame();
+    l.x = f.getX();
+    l.y = f.getY();
+  }
+  return l;
+}
 
 float fourBytesToFloat(byte b1, byte b2, byte b3, byte b4)
 {
@@ -286,6 +308,12 @@ void Artnet(boolean theFlag)
   
 }
 
+void Network(boolean theFlag) 
+{
+  network_en = theFlag;
+  save_settings();    
+}
+
 void setup() {
   size(400, 260,P3D);
   surface.setTitle("BABOI CONTROL");
@@ -347,11 +375,20 @@ void setup() {
     cp5.addToggle("Artnet")
      .setBroadcast(false)
      .setValue(artnet_en)
-     .setPosition(width-34,height - 40)
+     .setPosition(width-44,height - 60)
      .setSize(18,18)
      .setLabel("ArtNet")
      .setBroadcast(true)
      ;   
+     
+    cp5.addToggle("Network")
+     .setBroadcast(false)
+     .setValue(network_en)
+     .setPosition(width-44,height - 30)
+     .setSize(18,18)
+     .setLabel("Network")
+     .setBroadcast(true)
+     ;        
      
     // create a new button with name 'buttonA'
     /*
@@ -439,6 +476,7 @@ void load_settings()
       splity = json.getBoolean("splity");
       
       artnet_en = json.getBoolean("artnet");
+      network_en = json.getBoolean("network");
       
       winx = json.getInt("winx");        
       winy = json.getInt("winy");      
@@ -473,6 +511,7 @@ void save_settings()
   json.setBoolean("splity",splity);  
   
   json.setBoolean("artnet",artnet_en);
+  json.setBoolean("network",network_en);
 
   json.setInt("winx",winx);  
   json.setInt("winy",winy);  
@@ -889,13 +928,16 @@ void draw()
     line(width,0,0,height);
     text("NO CONNECTION",width/2,height/2);
     isConnected = try_connect_usb_modem();
-    if (isConnected == false)
-      isConnected = try_to_connect_wifi();
+    if (network_en)
+    {
+      if (isConnected == false)
+        isConnected = try_to_connect_wifi();
+    }
   }
-  
-    GLWindow glw = (GLWindow)surface.getNative();
-    winx = glw.getX();
-    winy = glw.getY();
+
+  loc = getWindowLocation(P3D);
+  winx = (int)loc.x;
+  winy = (int)loc.y;
 }
 
 void clear_cal_min_max()
