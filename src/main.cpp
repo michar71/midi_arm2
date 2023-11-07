@@ -322,24 +322,17 @@ void handle_buttons(void)
   {
     setState(STATE_CAL_GYRO);
   }
-  else if (button_res == VERY_LONG_PRESS)
-  {   
-    setState(STATE_CAL_MAG);
-  }
-  else if (button_res == VERY_VERY_LONG_PRESS)
-  {
-    setState(STATE_CAL_BUTTONS);
-  }
+
 
   int val = 0;
   val = touchRead(BUT_A);
-  if (val < settings.th_but_a)
+  if ((val < settings.th_but_a) && (val > (settings.th_but_a/100*60)))
     but_a_state = false;
   else if (val < TH_CUTOFF)
     but_a_state = true; 
 
   val = touchRead(BUT_B);  
-  if (val < settings.th_but_b)
+  if ((val < settings.th_but_b) && (val > (settings.th_but_b/100*60)))
     but_b_state = false;
   else if (val < TH_CUTOFF)
     but_b_state = true; 

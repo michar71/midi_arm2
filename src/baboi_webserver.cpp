@@ -90,8 +90,8 @@ void setup_settings_webpage()
     response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
     response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
     response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
-    response->printf("TENSION CH1 VAL: %d <br>",tension_get_ch1());      
-    response->printf("TENSION CH2 VAL: %d <br>",tension_get_ch2());      
+    response->printf("TENSION CH1 VAL: %d <br>",analogRead(ANALOG_CH1));      
+    response->printf("TENSION CH2 VAL: %d <br>",analogRead(ANALOG_CH2));      
     request->send(response);
   });
 }

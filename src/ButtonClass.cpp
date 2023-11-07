@@ -56,7 +56,7 @@ mode_button_e ButtonClass::check_button(void)
             button_time = millis();     
             return DOWN; 
         }
-        else if ((tb < touch_th) && (buttonPressed == true))
+        else if ((tb < touch_th) && (buttonPressed == true) && (tb > (touch_th/100*60)))
         {
             buttonPressed = false;
 

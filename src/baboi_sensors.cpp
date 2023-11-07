@@ -149,7 +149,7 @@ void tension_update(void)
   uint32_t s1;
   uint32_t s2;
 
-  //We alternagte between the two ADC's to reeuce timing overhead...
+  //We alternagte between the two ADC's to reduce timing overhead...
 
   if (cnt == 0)
   {
@@ -190,9 +190,11 @@ void tension_update(void)
 
 void calibrate_tension(void)
 {
+  float s1_avg;
+  float s2_avg;
   int ii=0;
   //Check if we have a glove
-  for (ii=0;ii<50;ii++)
+  for (ii=0;ii<10;ii++)
   {
     tension_update();
     yield();
@@ -203,23 +205,32 @@ void calibrate_tension(void)
 
   init_settings_tension();
 
-  for (ii=0;ii<1000;ii++)
+  s1_avg = analogRead(ANALOG_CH1);
+  s2_avg = analogRead(ANALOG_CH2);
+
+
+  for (ii=0;ii<500;ii++)
   {
     int16_t val;
     
-    val = analogRead(ANALOG_CH1);
+    s1_avg = (s1_avg*0.8) + (analogRead(ANALOG_CH1) * 0.2);
+
+    val = (uint16_t)s1_avg;
     if (val>settings.tension_ch1_max)
       settings.tension_ch1_max = val;
     else if (val<settings.tension_ch1_min)
       settings.tension_ch1_min = val;
 
-    val = analogRead(ANALOG_CH2);
+    delay(7); 
+
+    s2_avg = (s2_avg*0.8) + (analogRead(ANALOG_CH2) * 0.2);
+    val = (uint16_t)s2_avg;
     if (val>settings.tension_ch2_max)
       settings.tension_ch2_max = val;
     else if (val<settings.tension_ch2_min)
       settings.tension_ch2_min = val;
 
-    delay(5);
+    delay(7);
   }
 }
 
