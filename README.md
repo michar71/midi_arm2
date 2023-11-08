@@ -4,7 +4,7 @@
 1) Download .bin Firmware File
 1) Power Up BABOI
 2) Connect Computer o Phone to BABOI Access Point
-3) Go to webapge 192.168.0.1 in browser
+3) Go to webapge 192.168.1.1 in browser
 4) Select "Update"
 5) Select firmware File
 
@@ -53,4 +53,9 @@ B-Button
 - Button/Mag calibration can only be triggered from webpage.
 - If in doubt reset settings from webpage... (That will force a button recalibration on next start...)
 
+## Network
+- Enable Network support in App
+- Connect computer to "BABOI" access point
+- Web Page is available at 192.168.1.1
+- VPN/Firewall might enterfere. Traffic is on Port 2255. Connection is established via Broadcast, then communication switches to unicast. 
  
