@@ -93,8 +93,25 @@ void mpu_init_settings(void)
 
 void mpu_cal_gyro_accel(void)
 {
+    float roll;
+    float pitch;
+    float yaw;
+
     init_settings_acc_gyro();
     mpu.calibrateAccelGyro();
+    //run the MPU for a 3 Sec to get stable readings
+  for (int ii=0;ii<100;ii++)
+  {
+    mpu_update();
+    delay(10);
+  }
+
+    //Calculate offsets
+
+    settings.offset_roll = -mpu_GetCurrentRoll();
+    settings.offset_pitch = -mpu_GetCurrentPitch();
+    settings.offset_yaw = -mpu_GetCurrentYaw();
+
     mpu_store_data();
 }
 
@@ -107,35 +124,43 @@ void mpu_cal_mag(void)
 }
 
 
-  float mpu_GetCurrentYaw(void)
-  {
-    return mpu.getYaw()*DEG_TO_RAD;
-  }
 
-  float mpu_GetCurrentPitch(void)
-  {
-    return mpu.getPitch()*DEG_TO_RAD;
-  }
+//Need to fit the infite roational code here from the Kaslman filter processing
+//in the Processing sketch. Still doesn't solve windup from multiple roatations.
+//Maybe do that calculation after the offset...
 
-  float mpu_GetCurrentRoll(void)
-  {
-    return mpu.getRoll()*DEG_TO_RAD;
-  }
+float mpu_GetCurrentYaw(void)
+{
+  //return (mpu.getYaw() * DEG_TO_RAD) + settings.offset_yaw;
+  return (mpu.getYaw() * DEG_TO_RAD) ;
+}
 
-  float mpu_GetCurrentAX(void)
-  {
-    return mpu.getLinearAccX();
-  }
+float mpu_GetCurrentPitch(void)
+{
+  //return (mpu.getPitch() * DEG_TO_RAD) + settings.offset_pitch;
+  return (mpu.getPitch() * DEG_TO_RAD);
+}
 
-  float mpu_GetCurrentAY(void)  
-  {
-    return mpu.getLinearAccY();
-  }
+float mpu_GetCurrentRoll(void)
+{
+  //return (mpu.getRoll() * DEG_TO_RAD) + settings.offset_roll;
+  return (mpu.getRoll() * DEG_TO_RAD);  
+}
 
-  float mpu_GetCurrentAZ(void)
-  {
-    return mpu.getLinearAccZ();
-  }
+float mpu_GetCurrentAX(void)
+{
+  return mpu.getLinearAccX();
+}
+
+float mpu_GetCurrentAY(void)  
+{
+  return mpu.getLinearAccY();
+}
+
+float mpu_GetCurrentAZ(void)
+{
+  return mpu.getLinearAccZ();
+}
 
 
 bool mpu_update(void)
@@ -143,17 +168,25 @@ bool mpu_update(void)
     return mpu.update();
 }
 
+
+#define ADC_TH_LOW 3000
+
 void tension_update(void)
 {
   static uint8_t cnt = 0;
   uint32_t s1;
   uint32_t s2;
+  uint16_t val;
 
-  //We alternagte between the two ADC's to reduce timing overhead...
+  //We alternate between the two ADC's to reduce timing overhead...
 
   if (cnt == 0)
   {
-    adc_val[0][adc_index1]= analogRead(ANALOG_CH1);
+    val = analogRead(ANALOG_CH1);
+    if (val < ADC_TH_LOW)
+      return;
+
+    adc_val[0][adc_index1]= val;
     adc_index1++;
     if (adc_index1 == ADC_COUNT)
       adc_index1 = 0;
@@ -167,7 +200,11 @@ void tension_update(void)
   }
   else
   {
-    adc_val[1][adc_index2]= analogRead(ANALOG_CH2);
+    val = analogRead(ANALOG_CH2);
+    if (val < ADC_TH_LOW)
+      return;
+
+    adc_val[1][adc_index2]= val;
     adc_index2++;
     if (adc_index2 == ADC_COUNT)
       adc_index2 = 0;
@@ -205,15 +242,24 @@ void calibrate_tension(void)
 
   init_settings_tension();
 
-  s1_avg = analogRead(ANALOG_CH1);
-  s2_avg = analogRead(ANALOG_CH2);
+  do 
+    s1_avg = analogRead(ANALOG_CH1);
+  while (s1_avg<ADC_TH_LOW);
 
+  do
+    s2_avg = analogRead(ANALOG_CH2);
+  while (s2_avg<ADC_TH_LOW);
 
   for (ii=0;ii<500;ii++)
   {
     int16_t val;
+
+    //Filter out Random Outliers from ADC Glitches
+    val = analogRead(ANALOG_CH1);
+    if (val < ADC_TH_LOW)
+      break;
     
-    s1_avg = (s1_avg*0.8) + (analogRead(ANALOG_CH1) * 0.2);
+    s1_avg = (s1_avg*0.8) + (val * 0.2);
 
     val = (uint16_t)s1_avg;
     if (val>settings.tension_ch1_max)
@@ -223,7 +269,12 @@ void calibrate_tension(void)
 
     delay(7); 
 
-    s2_avg = (s2_avg*0.8) + (analogRead(ANALOG_CH2) * 0.2);
+    //Filter out random outliers fom ADC Glitches
+    val = analogRead(ANALOG_CH2);
+    if (val < ADC_TH_LOW)
+      break;
+
+    s2_avg = (s2_avg*0.8) + (val * 0.2);
     val = (uint16_t)s2_avg;
     if (val>settings.tension_ch2_max)
       settings.tension_ch2_max = val;

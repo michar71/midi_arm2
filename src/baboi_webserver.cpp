@@ -66,7 +66,11 @@ void setup_settings_webpage()
 
     response->printf("Gyro Bias X: %f <br>",settings.main_gyro_bias_x);
     response->printf("Gyro Bias Y: %f <br>",settings.main_gyro_bias_y);
-    response->printf("Gyro Bias Z: %f <br>",settings.main_gyro_bias_z);        
+    response->printf("Gyro Bias Z: %f <br>",settings.main_gyro_bias_z);   
+
+    response->printf("Offset Pitch: %f <br>",settings.offset_pitch);  
+    response->printf("Offset Roll: %f <br>",settings.offset_roll);  
+    response->printf("Offset Yaw: %f <br>",settings.offset_yaw);  
 
     response->printf("Mag Bias X: %f <br>",settings.main_mag_bias_x);    
     response->printf("Mag Bias Y: %f <br>",settings.main_mag_bias_y);    
@@ -92,6 +96,10 @@ void setup_settings_webpage()
     response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
     response->printf("TENSION CH1 VAL: %d <br>",analogRead(ANALOG_CH1));      
     response->printf("TENSION CH2 VAL: %d <br>",analogRead(ANALOG_CH2));      
+    response->printf("Current Pitch: %f <br>",mpu_GetCurrentPitch());  
+    response->printf("Current Roll: %f <br>",mpu_GetCurrentRoll());  
+    response->printf("Current Yaw: %f <br>",mpu_GetCurrentYaw());      
+
     request->send(response);
   });
 }

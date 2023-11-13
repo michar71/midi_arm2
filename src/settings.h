@@ -35,6 +35,9 @@ typedef struct{
     uint16_t tension_ch1_min;
     uint16_t tension_ch2_max;
     uint16_t tension_ch2_min;    
+    float offset_roll;
+    float offset_pitch;
+    float offset_yaw;
 }setup_t;
 
 

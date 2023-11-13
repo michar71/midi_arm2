@@ -91,6 +91,9 @@ void init_settings_acc_gyro()
   settings.main_gyro_bias_x = 0;
   settings.main_gyro_bias_y = 0;
   settings.main_gyro_bias_z = 0;
+  settings.offset_roll = 0;
+  settings.offset_pitch = 0;
+  settings.offset_yaw = 0;
 }
 
 void init_settings_mag()
