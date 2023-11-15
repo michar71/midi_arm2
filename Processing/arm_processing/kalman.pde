@@ -94,11 +94,11 @@ class kalman {
       float fake_value = measurement + offset;
       float filtered_value = getFilteredValue(fake_value);
       
-      while(filtered_value > PI)
-        filtered_value = filtered_value - (2*PI);
+      //while(filtered_value > PI)
+      //  filtered_value = filtered_value - (2*PI);
         
-      while (filtered_value < -PI)
-        filtered_value = filtered_value + (2*PI);
+      //while (filtered_value < -PI)
+      //  filtered_value = filtered_value + (2*PI);
         
       return filtered_value;  
     }

@@ -80,9 +80,9 @@ boolean splitr = false;
 boolean splity = false;
 
 
-boolean crossp = false;
-boolean crossr = false;
-boolean crossy = false;
+//boolean crossp = false;
+//boolean crossr = false;
+//boolean crossy = false;
 
 boolean artnet_en =false;
 boolean network_en =false;
@@ -467,9 +467,9 @@ void load_settings()
       maxy = json.getFloat("maxy");
       miny = json.getFloat("miny");      
 
-      crossp = json.getBoolean("crossp");
-      crossr = json.getBoolean("crossr");
-      crossy = json.getBoolean("crossy");
+//      crossp = json.getBoolean("crossp");
+//      crossr = json.getBoolean("crossr");
+//      crossy = json.getBoolean("crossy");
 
       splitp = json.getBoolean("splitp");
       splitr = json.getBoolean("splitr");
@@ -502,9 +502,9 @@ void save_settings()
   json.setFloat("maxy",maxy);
   json.setFloat("miny",miny);
   
-  json.setBoolean("crossp",crossp);
-  json.setBoolean("crossr",crossr);
-  json.setBoolean("crossy",crossy);
+//  json.setBoolean("crossp",crossp);
+//  json.setBoolean("crossr",crossr);
+//  json.setBoolean("crossy",crossy);
   
   json.setBoolean("splitp",splitp);    
   json.setBoolean("splitr",splitr);  
@@ -948,9 +948,9 @@ void clear_cal_min_max()
   maxr = -65535;  
   miny = 65535;
   maxy = -65535; 
-  crossp = false;
-  crossr = false;
-  crossy = false;  
+//  crossp = false;
+//  crossr = false;
+//  crossy = false;  
 }
 
 void calc_call_min_max()
@@ -969,6 +969,7 @@ void calc_call_min_max()
     maxy=cy;
     
   //Zero Crossover Detection
+  /*
   if (((minp <+ -3.1) || (maxp >= 3.1)) && (crossp == false))
   {
     crossp = true;
@@ -987,6 +988,7 @@ void calc_call_min_max()
     miny = 65535;
     maxy = -65535;  
   }  
+  */
 }
 
 void process_received_string(String myString)
@@ -1031,6 +1033,7 @@ void process_received_string(String myString)
       cy = y;
       cr = r;
       
+      /*
       if (crossp)
       {
         if (cp < 0)
@@ -1046,7 +1049,7 @@ void process_received_string(String myString)
         if (cy < 0)
           cy = cy + 2*PI;
       }   
-      
+      */
       
       accx = sensors[4];
       accy = sensors[5];
