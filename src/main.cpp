@@ -5,17 +5,26 @@
 #include "baboi_sensors.h"
 
 #ifdef WIFI
-  //#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-  #include <DNSServer.h>
+
+
   #include <WiFi.h>
+  #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager 
   #include <AsyncTCP.h>
   #include "baboi_webserver.h"
+ // #include <DNSServer.h>  //Do not include as it clashes with WifiManager
+  #include <ESPmDNS.h>
 
-  //WiFiManager wm;
   DNSServer dnsServer;
+  WiFiManager wm;
+
+  unsigned int  timeout   = 120; // seconds to run for
+  unsigned int  startTime = millis();
+  bool portalRunning      = false;
+  bool startAP            = false; // start AP and webserver if true, else start only webserver
 #endif
 
-String devicename = "BABOI";
+
+const char* devicename = "BABOI";
 int maj_ver = 1;
 int min_ver = 1;
 
@@ -98,44 +107,6 @@ void setup()
 
     init_sensors();
 
-  #ifdef WIFI
-    
-    
-    /*
-    WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP    
-    wm.setConfigPortalBlocking(false);
-    wm.setConfigPortalTimeout(60;)
-    //automatically connect using saved credentials if they exist
-    //If connection fails it starts an access point with the specified name
-    if(wm.autoConnect("BABOI"))
-    {
-        Serial.println("connected...yeey :)");
-    }
-    else 
-    {
-        Serial.println("Configportal running");
-    }
-    */
-
-    const char* ssid     = "BABOI";
-
-    WiFi.softAP(ssid,NULL,7);
-    IPAddress IP = WiFi.softAPIP();
-    delay(100);
-    Serial.println("Setting the AP");
-    IPAddress Ip(192, 168, 1, 1);    //set to IP Access Point same as gateway
-    IPAddress NMask(255, 255, 255, 0);
-    WiFi.softAPConfig(Ip, Ip, NMask);
-
-    dnsServer.start(53, "*", WiFi.softAPIP()); 
-
-    Serial.print("AP IP address: ");
-    Serial.println(IP);
-
-    init_webserver();
-    init_protocol();
-
-  #endif
 
   if (load_settings())
   {
@@ -177,6 +148,57 @@ void setup()
   }
 
 
+  #ifdef WIFI
+    
+    //Hmmmm Conceptually not sure how WifiMasnsger would work....
+    //After it connects to a network how do we know the IP adress? 
+    //How would we get to the config page afterwards?
+    
+    bool res = false;
+    if (settings.autoConnect)
+    {
+      res = wm.autoConnect(devicename); // anonymous ap
+      if(!res) 
+      {
+          Serial.println("Failed to connect");
+      } 
+      else 
+      {
+          //if you get here you have connected to the WiFi    
+          Serial.println("connected...yeey :)");
+      }   
+    }
+
+
+    if (!res)
+    {
+      WiFi.softAP(devicename,NULL,7);
+      IPAddress IP = WiFi.softAPIP();
+      delay(100);
+      Serial.println("Setting the AP");
+      IPAddress Ip(192, 168, 1, 1);    //set to IP Access Point same as gateway
+      IPAddress NMask(255, 255, 255, 0);
+      WiFi.softAPConfig(Ip, Ip, NMask);
+      Serial.print("AP IP address: ");
+      Serial.println(IP);
+    }
+
+
+    if (!MDNS.begin(devicename)) 
+    {
+        Serial.println("Error setting up MDNS responder!");
+    }
+    // Add service to MDNS-SD
+    MDNS.addService("http", "tcp", 80);
+
+    dnsServer.start(53, "*", WiFi.softAPIP()); 
+
+    init_webserver();
+    init_protocol();
+
+  #endif
+
+
   #ifdef DEBUG
     Serial.println("Setup Done...");
   #endif    
@@ -184,9 +206,43 @@ void setup()
   setState(STATE_WAITCONN);
 }
  
+/* 
+void doWiFiManager()
+{
+  // is auto timeout portal running
+  if(portalRunning){
+    wm.process(); // do processing
+
+    // check for timeout
+    if((millis()-startTime) > (timeout*1000)){
+      Serial.println("portaltimeout");
+      portalRunning = false;
+      if(startAP){
+        wm.stopConfigPortal();
+      }
+      else{
+        wm.stopWebPortal();
+      } 
+   }
+  }
+
+  // is configuration portal requested?
+  if(digitalRead(TRIGGER_PIN) == LOW && (!portalRunning)) {
+    if(startAP){
+      Serial.println("Button Pressed, Starting Config Portal");
+      wm.setConfigPortalBlocking(false);
+      wm.startConfigPortal();
+    }  
+    else{
+      Serial.println("Button Pressed, Starting Web Portal");
+      wm.startWebPortal();
+    }  
+    portalRunning = true;
+    startTime = millis();
+  }
+*/
 
 //We need to illimate high outliers...
-
 void calibrate_buttons()
 {
   uint16_t min[3] = {0xFFFF,0xFFFF,0xFFFF};
@@ -343,14 +399,11 @@ void loop()
   static uint16_t sampleCount = 0;
 #ifdef WIFI
   //wm.process();
-   dnsServer.processNextRequest();
+  dnsServer.processNextRequest();
 #endif
 
   //Deal with incoming data
   incoming_protocol_request();
-
-
-
 
   //Handle Motion Data
   if (mpu_update() == false) 

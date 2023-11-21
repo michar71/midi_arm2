@@ -128,6 +128,11 @@ void init_settings_but()
   settings.th_but_b = 0;    
 }
 
+void init_settings_other()
+{
+  settings.autoConnect = false;    
+}
+
 void save_settings()
 {
     uint16_t ii;

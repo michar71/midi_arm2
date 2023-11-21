@@ -38,6 +38,7 @@ typedef struct{
     float offset_roll;
     float offset_pitch;
     float offset_yaw;
+    bool autoConnect;
 }setup_t;
 
 
@@ -50,6 +51,7 @@ void init_settings_mag();
 void init_settings_acc_gyro();
 void init_settings_but();
 void init_settings_tension();
+void init_settings_other();
 void default_settings_but();
 
 

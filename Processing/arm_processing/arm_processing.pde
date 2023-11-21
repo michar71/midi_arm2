@@ -251,8 +251,12 @@ boolean try_to_connect_wifi()
     try
     {
 
-      SocketAddress all = new InetSocketAddress(InetAddress.getByName("192.168.1.1"),baboi_port);
-        udp.sendMessage(UDPHelper.bytesFromString(id_query),all);
+      //SocketAddress all = new InetSocketAddress(InetAddress.getByName("192.168.1.1"),baboi_port);
+      //udp.sendMessage(UDPHelper.bytesFromString(id_query),all);
+        
+      SocketAddress all = new InetSocketAddress(InetAddress.getByName("255.255.255.255"),baboi_port);
+      udp.sendMessage(UDPHelper.bytesFromString(id_query),all);   
+        
      } 
      catch(Exception e)
      {
@@ -411,9 +415,9 @@ void setup() {
   udp.setLocalPort(baboi_port);
   udp.startListening();
   
-  float p_noise = 2;
-  float s_noise = 32;//32
-  float e_error = 128;
+  float p_noise = 4;//2
+  float s_noise = 16;//32
+  float e_error = 128;//128
  
   KalFilterP = new kalman(p_noise,s_noise,e_error,0.0);
   KalFilterR = new kalman(p_noise,s_noise,e_error,0.0);  
@@ -718,29 +722,43 @@ void send_artnet()
 {
     // fill dmx array
     int val = 0;
-    
-    val = (int)map(accx*accy*accz,-8,8,0,255);    
-    dmxData[0] = (byte) val; 
-    //dmxData[0] = (byte) 255; 
 
-    val =(int)map(cp,minp, maxp, 0,255);
-    val = limit(val,0,255);
-    dmxData[1] = (byte) val;
+
 
     val =(int)map(cr,minr, maxr, 0,255);
     val = limit(val,0,255);
-    dmxData[2] = (byte) val;
+    dmxData[0] = (byte) val;
+    
+    val =(int)map(cp,minp, maxp, 255,0);
+    val = limit(val,0,255);
+    dmxData[1] = (byte) val;
     
     val =(int)map(cy,miny, maxy, 0,255);
     val = limit(val,0,255);
-    dmxData[3] = (byte) val;
+    dmxData[2] = (byte) val;
+    
+    val = (int)map(abs(accx),0,6,0,255);    
+    dmxData[3] = (byte) val; 
 
+    val = (int)map(abs(accy),0,6,0,255);    
+    dmxData[4] = (byte) val; 
+
+    val = (int)map(abs(accz),0,6,0,255);    
+    dmxData[5] = (byte) val; 
+
+    dmxData[6] = (byte) 0; 
+    dmxData[7] = (byte) 0; 
+    dmxData[8] = (byte) 0;   
+    
     
     // send dmx to localhost
     //artnet.unicastDmx("127.0.0.1", 0, 0, dmxData);
     
     //Fuckit... Jsut send it to everybody ;-)
-    artnet.broadcastDmx(0, 0, dmxData);
+    //artnet.broadcastDmx(0, 0, dmxData);
+    
+  // send dmx to localhost
+  artnet.unicastDmx("192.168.0.133",0, 1, dmxData);
 }
 
 void send_buttons()
