@@ -1,11 +1,14 @@
 version 2
 1
 2
-.dc R_sense1 1.2k 1.8k 10{return}.kicad adjustpaths{return}.save all{return}.probe alli
-2
+.dc R_sense1 1.9k 2.6k 10{return}.kicad adjustpaths{return}.save all{return}.probe alli
+3
 1
 V(ADC)
  
 1
 V(Net-_U1-+_)
+ 
+1
+V(Net-_U1--_)
  

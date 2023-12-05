@@ -317,7 +317,7 @@
       "meta": {
         "version": 0
       },
-      "model_mode": 0,
+      "model_mode": 4,
       "workbook_filename": "midi_arm_analog.wbk"
     },
     "page_layout_descr_file": "",
