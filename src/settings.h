@@ -39,6 +39,8 @@ typedef struct{
     float offset_pitch;
     float offset_yaw;
     bool autoConnect;
+    char ID[9];       //ID String, 8 Character + Zero
+    uint16_t pos;      //0 = right, 1 = left
 }setup_t;
 
 

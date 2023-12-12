@@ -1,0 +1,77 @@
+(footprint "LED_conn" (version 20221018) (generator pcbnew)
+  (layer "F.Cu")
+  (attr through_hole)
+  (fp_text reference "REF**" (at 1.27 0 unlocked) (layer "F.SilkS")
+      (effects (font (size 1 1) (thickness 0.15)))
+    (tstamp c6b6cc8a-3537-4058-89b0-b50712924a05)
+  )
+  (fp_text value "LED_conn" (at 2.54 15.24 unlocked) (layer "F.Fab")
+      (effects (font (size 1 1) (thickness 0.15)))
+    (tstamp ac41dd83-0262-4821-88d1-1fbde0c1d0ad)
+  )
+  (fp_text user "${REFERENCE}" (at 3.81 17.78 unlocked) (layer "F.Fab")
+      (effects (font (size 1 1) (thickness 0.15)))
+    (tstamp 697ee9ad-6c2a-4442-9d68-aab19e62886d)
+  )
+  (fp_poly
+    (pts
+      (xy 0.508 4.572)
+      (xy 2.794 4.572)
+      (xy 2.794 5.588)
+      (xy 0.508 5.588)
+    )
+
+    (stroke (width 0.2) (type solid)) (fill solid) (layer "F.Cu") (tstamp bf59129c-0a02-4d6e-9736-d8af30159c0f))
+  (fp_poly
+    (pts
+      (xy 0.508 7.112)
+      (xy 2.794 7.112)
+      (xy 2.794 8.128)
+      (xy 0.508 8.128)
+    )
+
+    (stroke (width 0.2) (type solid)) (fill solid) (layer "F.Cu") (tstamp 51d970dc-2fb4-4c1b-991a-3b91ced64cf5))
+  (fp_poly
+    (pts
+      (xy 0.508 9.652)
+      (xy 2.794 9.652)
+      (xy 2.794 10.668)
+      (xy 0.508 10.668)
+    )
+
+    (stroke (width 0.2) (type solid)) (fill solid) (layer "F.Cu") (tstamp 251d7bb1-bb12-4dfa-b86f-02750a70eb82))
+  (fp_rect (start -1.27 1.27) (end 7.62 13.97)
+    (stroke (width 0.12) (type default)) (fill none) (layer "F.SilkS") (tstamp 763b42af-87a2-4d71-9d07-9a06483fe39e))
+  (fp_poly
+    (pts
+      (xy 0.508 4.572)
+      (xy 2.794 4.572)
+      (xy 2.794 5.588)
+      (xy 0.508 5.588)
+    )
+
+    (stroke (width 0.12) (type solid)) (fill solid) (layer "F.Mask") (tstamp 6c4d24a3-4df7-4be1-a80e-b19ba072c79c))
+  (fp_poly
+    (pts
+      (xy 0.508 7.112)
+      (xy 2.794 7.112)
+      (xy 2.794 8.128)
+      (xy 0.508 8.128)
+    )
+
+    (stroke (width 0.12) (type solid)) (fill solid) (layer "F.Mask") (tstamp 8aeaebe7-077e-42fa-8afc-58da9507711b))
+  (fp_poly
+    (pts
+      (xy 0.508 9.652)
+      (xy 2.794 9.652)
+      (xy 2.794 10.668)
+      (xy 0.508 10.668)
+    )
+
+    (stroke (width 0.12) (type solid)) (fill solid) (layer "F.Mask") (tstamp 13c508aa-1161-4486-8e40-08a665f7b277))
+  (pad "" thru_hole circle (at 5.08 2.54) (size 1.524 1.524) (drill 0.762) (layers "*.Cu" "*.Mask") (tstamp 430ea964-0f4c-4999-8ddd-ac2ec4e59cb7))
+  (pad "" thru_hole circle (at 5.08 12.7) (size 1.524 1.524) (drill 0.762) (layers "*.Cu" "*.Mask") (tstamp 9d6c593d-117e-42e7-85b9-f18d7de9c349))
+  (pad "1" thru_hole circle (at 0 5.08) (size 1.524 1.524) (drill 0.762) (layers "*.Cu" "*.Mask") (tstamp 55edadd0-363c-4ef3-b82b-246276fd0f28))
+  (pad "2" thru_hole circle (at 0 7.62) (size 1.524 1.524) (drill 0.762) (layers "*.Cu" "*.Mask") (tstamp 9b7fd183-a532-4d64-84bf-0637f4edc0de))
+  (pad "3" thru_hole circle (at 0 10.16) (size 1.524 1.524) (drill 0.762) (layers "*.Cu" "*.Mask") (tstamp 696a0f3a-7141-47d1-ad1a-0e0866d7d347))
+)

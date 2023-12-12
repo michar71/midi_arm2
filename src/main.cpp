@@ -289,6 +289,7 @@ void calibrate_buttons()
 
 void process_state(void)
 {
+  setLED(0,0,0,0);
   switch(state)
   {
     case STATE_STARTUP:

@@ -25,29 +25,27 @@ return true;
 
 void CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *request) 
 {
-AsyncResponseStream *response = request->beginResponseStream("text/html");
-response->addHeader("Server","ESP BABOI Setup Page");
-response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title><style>");
-response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
-response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
-response->printf("</style></head><body>");  
-response->printf("<h1>BABOI FW V%d.%d Webserver running.</h1><br><p>",maj_ver,min_ver);
-response->print("This is our captive portal front page.");
-response->printf("You were trying to reach: http://%s%s", request->host().c_str(), request->url().c_str());
-response->printf("Try opening <a href='http://%s'>this link</a> instead<br><br>", WiFi.softAPIP().toString().c_str());
+  AsyncResponseStream *response = request->beginResponseStream("text/html");
+  response->addHeader("Server","ESP BABOI Setup Page");
+  response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title><style>");
+  response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+  response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+  response->printf("</style></head><body>");  
+  response->printf("<h1>BABOI FW V%d.%d Webserver running.</h1><br><p>",maj_ver,min_ver);
+  response->print("This is our captive portal front page.");
+  response->printf("You were trying to reach: http://%s%s", request->host().c_str(), request->url().c_str());
+  response->printf("Try opening <a href='http://%s'>this link</a> instead<br><br>", WiFi.softAPIP().toString().c_str());
 
-response->print("<a href=\"baboi.local/update\">Update</a><br><br>");
-response->print("<a href=\"baboi.local/settings\">Settings</a><br><br>");
-response->print("<a href=\"baboi.local/reset\">Reset Settings</a><br><br>");
-response->print("<a href=\"baboi.local/calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
-response->print("<a href=\"baboi.local/calmag\">Calibrate Magnetometer</a><br><br>");       
-response->print("<a href=\"baboi.local/calbuttons\">Calibrate Buttons</a><br><br>");     
-response->print("<a href=\"baboi.local/caltension\">Calibrate Glove</a><br><br>");      
-response->print("<a href=\"./wmen\">Enable Wifi Manager</a><br><br>");       
-response->print("<a href=\"./wmdis\">Disable Wifi Manager</a><br><br>");    
-response->printf("</p>");    
-response->print("</body></html>");
-request->send(response);
+  response->print("<a href=\"baboi.local/update\">Update</a><br><br>");
+  response->print("<a href=\"baboi.local/settings\">Settings</a><br><br>");
+  response->print("<a href=\"baboi.local/setup\">Setup</a><br><br>");
+  response->print("<a href=\"baboi.local/reset_q\">Reset Settings</a><br><br>");
+  response->print("<a href=\"baboi.local/cal_q\">Calibration</a><br><br>");    
+  response->print("<a href=\"./wmen\">Enable Wifi Manager</a><br><br>");       
+  response->print("<a href=\"./wmdis\">Disable Wifi Manager</a><br><br>");    
+  response->printf("</p>");    
+  response->print("</body></html>");
+  request->send(response);
 }
 
 
@@ -58,7 +56,8 @@ void notFound(AsyncWebServerRequest *request) {
 
 void setup_settings_webpage()
 {
-    server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
     AsyncResponseStream *response = request->beginResponseStream("text/html");
     response->addHeader("Server","ESP BABOI Settings Page");
     response->printf("<!DOCTYPE html><html><head><title>BABOI Settings</title><style>");
@@ -112,9 +111,12 @@ void setup_settings_webpage()
   });
 }
 
+
+
 void setup_main_webpage()
 {
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
     AsyncResponseStream *response = request->beginResponseStream("text/html");
     response->addHeader("Server","ESP BABOI Main Page");
     response->printf("<!DOCTYPE html><html><head><title>BABOI Main Page</title><style>");
@@ -124,13 +126,31 @@ void setup_main_webpage()
     response->printf("<h1>BABOI FW V%d.%d Webserver running.</h1><br><p>",maj_ver,min_ver);
     response->print("<a href=\"./update\">Update</a><br><br>");
     response->print("<a href=\"./settings\">Settings</a><br><br>");
-    response->print("<a href=\"./reset\">Reset Settings</a><br><br>");
-    response->print("<a href=\"./calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
-    response->print("<a href=\"./calmag\">Calibrate Magnetometer</a><br><br>");       
-    response->print("<a href=\"./calbuttons\">Calibrate Buttons</a><br><br>");     
-    response->print("<a href=\"./caltension\">Calibrate Glove</a><br><br>");          
+    response->print("<a href=\"./reset_q\">Reset Settings</a><br><br>");
+    response->print("<a href=\"baboi.local/setup\">Setup</a><br><br>");    
+    response->print("<a href=\"baboi.local/cal_q\">Calibration</a><br><br>");           
     response->print("<a href=\"./wmen\">Enable Wifi Manager</a><br><br>");       
     response->print("<a href=\"./wmdis\">Disable Wifi Manager</a><br><br>");         
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);
+  });
+}
+
+void setup_reset_question_webpage()
+{
+  server.on("/reset_q", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Reset Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Reset Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>Reset All Settings</h1><br><p>");
+    response->printf("Are you sure you want to reset all Settings?<br>");
+    response->print("<a href=\"./reset\">Yes, Continue</a><br><br>");
+    response->print("<a href=\"./\">Cancel</a><br><br>");       
     response->printf("</p>");    
     response->print("</body></html>");
     request->send(response);
@@ -140,18 +160,99 @@ void setup_main_webpage()
 void setup_reset_webpage()
 {
 
-   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
+   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request)
+   {
+    init_settings_acc_gyro();
+    init_settings_mag();
+    init_settings_but();
+    init_settings_other();
+    save_settings();
+    setLED(1,64,64,64);
+    delay(250);
+    setLED(0,0,0,0);
 
-      request->send(200, "text/plain", "Settings Reset");
-      init_settings_acc_gyro();
-      init_settings_mag();
-      init_settings_but();
-      init_settings_other();
-      save_settings();
-      setLED(1,64,64,64);
-      delay(250);
-      setLED(0,0,0,0);
-    });
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Reset Done Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Reset Done Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>Reset Done</h1><br><p>");
+    response->printf("All Settings have been reset to default. Cycle power to restart.<br>");
+    response->print("<a href=\"./\">Back</a><br><br>");       
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);      
+  });
+}
+
+void setup_setup_webpage()
+{
+   server.on("/setup", HTTP_GET, [](AsyncWebServerRequest *request)
+   {
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Setup Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Setup Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>Setup</h1><br><p>");
+    response->printf("<form action=\"/setup\" method=\"POST\">");
+    response->printf("<label for=\"ID\">BABOI ID (8 Characters):</label>");   
+    response->printf("<input type=\"text\" name=\"ID\" maxlength=\"8\" size=\"8\" value=\"%s\" <br>",settings.ID);   
+    response->printf("Position:<br>");
+    if (settings.pos = 0)
+    {
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\">");
+      response->printf("<label for=\"Left\">Left</label>");
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\"> checked");
+      response->printf("<label for=\"Right\">Right</label><br><br>");
+    }
+    else
+    {
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\"> checked");
+      response->printf("<label for=\"Left\">Left</label>");
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\">");
+      response->printf("<label for=\"Right\">Right</label><br><br>");
+    }
+    response->printf("<input type=\"submit\" value=\"SAVE\">");   
+    response->printf("</form>");    
+    response->print("<a href=\"./\">Back</a><br><br>");       
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);      
+  });
+}
+
+
+
+void setup_handle_setup()
+{
+ server.on("/setup", HTTP_POST, [](AsyncWebServerRequest *request) 
+ {
+    int params = request->params();
+    for(int i=0;i<params;i++){
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->isPost()){
+        // HTTP POST input1 value (direction)
+        if (p->name() == "ID") 
+        {
+          snprintf(settings.ID,8,p->value().c_str());
+        }
+        if (p->name() == "pos") {
+          if(p->value().c_str() == "Left")
+          {
+            settings.pos = 1;
+          }
+          else 
+          {
+            settings.pos = 0;
+          }
+        }        
+      }
+    }
+    save_settings();
+  });
 }
 
 void setup_wm_webpage()
@@ -172,37 +273,115 @@ void setup_wm_webpage()
   });  
 }
 
+
+void setup_cal_question_webpage()
+{
+  server.on("/cal_q", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Valibration Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Calibragtion Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>BABOI Calibration</h1><br><p>");
+    response->printf("Calibrate the Gyro and Accelerometer by keeping your arm on a flat surface during calibration.<br>");
+    response->print("<a href=\"./calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
+    response->printf("Calibrate the magnetometer by movinbg the baboi through all 3 axises in a figure-eight.<br>");
+    response->print("<a href=\"./calmag\">Calibrate Magnetometer</a><br><br>"); 
+    response->printf("Calibrate the touc-pad buttons by repeated touching them during calibration.<br>");    
+    response->print("<a href=\"./calbuttons\">Calibrate Buttons</a><br><br>");     
+    response->printf("Calibrate the Calibrate thew glove by repeatly flexing and stretching your fingers.<br>");
+    response->print("<a href=\"./caltension\">Calibrate Glove</a><br><br>");          
+    response->print("<br><a href=\"./\">Cancel</a><br><br>");   
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);
+  });
+}
+
 void setup_cal_gyro_acc_webpage()
 {
-  server.on("/calgyroacc", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Gyro/Accelerometer. But BABOI on flat surface and don't move during calibration.");
-    delay(1000);
+  server.on("/calgyroacc", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
     setState(STATE_CAL_GYRO);
+
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Calibrate Gyro/Acc Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Gyro/Acc Calibration Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>Gyro/Accelerometer calibration in Progress</h1><br><p>");
+    response->printf("Keep your arm on the falt suerface until the calibration light turns off.<br>");
+    response->print("<a href=\"./\">Back</a><br><br>");       
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);      
   });
 }
 
 void setup_cal_mag_webpage()
 {
-  server.on("/calmag", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Magnetometer. Move BABOI in a figure-8.");
-    delay(1000);
+  server.on("/calmag", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
     setState(STATE_CAL_MAG);   
+  
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Calibrate Magnetometer Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Magnetometer Calibration Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>Gyro/Magnetometer calibration in Progress</h1><br><p>");
+    response->printf("Continue moving the BABOLI in a figure-eight motion through all three axises until the calibration light turns off.<br>");
+    response->print("<a href=\"./\">Back</a><br><br>");       
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);        
   });
 }
 
 void setup_cal_buttons_webpage()
 {
-  server.on("/calbuttons", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Buttons. Touch all 3 buttons repeatatly.");
+  server.on("/calbuttons", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
     setState(STATE_CAL_BUTTONS); 
+
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Calibrate Buttons Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Touch-Button Calibration Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>Gyro/Touch-Button calibration in Progress</h1><br><p>");
+    response->printf("Continue pressing and releasing the touch-buttons until the calibration light turns off.<br>");
+    response->print("<a href=\"./\">Back</a><br><br>");       
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);    
+
   });
 }
 
 void setup_cal_tension_webpage()
 {
-  server.on("/caltension", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Calibrating Glove. Bend Fingers repeatedly.");
+  server.on("/caltension", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
     setState(STATE_CAL_TENSION); 
+  
+    AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->addHeader("Server","ESP BABOI Calibrate Glove Page");
+    response->printf("<!DOCTYPE html><html><head><title>BABOI Glove Calibration Page</title><style>");
+    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
+    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
+    response->printf("</style></head><body>");  
+    response->printf("<h1>Gyro/Glove calibration in Progress</h1><br><p>");
+    response->printf("Continue flexing and stretching your fingers until the calibration light turns off.<br>");
+    response->print("<a href=\"./\">Back</a><br><br>");       
+    response->printf("</p>");    
+    response->print("</body></html>");
+    request->send(response);     
   });
 }
 
@@ -215,14 +394,18 @@ void init_webserver()
 {
     //setup_captive_webpage();
     server.onNotFound(notFound);
+    setup_reset_question_webpage();
     setup_reset_webpage();
     setup_settings_webpage();
     setup_main_webpage();
+    setup_cal_question_webpage();
     setup_cal_gyro_acc_webpage();
     setup_cal_mag_webpage();
     setup_cal_buttons_webpage();
     setup_cal_tension_webpage();
     setup_wm_webpage();
+    setup_setup_webpage();
+    setup_handle_setup();
 
     AsyncElegantOTA.begin(&server);    // Start AsyncElegantOTA
     server.begin();
