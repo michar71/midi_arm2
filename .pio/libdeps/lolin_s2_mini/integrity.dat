@@ -1,4 +1,5 @@
-esphome/AsyncTCP-esphome@^2.0.1
-ottowinter/ESPAsyncWebServer-esphome@^3.1.0
 ayushsharma82/AsyncElegantOTA@^2.2.7
+esphome/AsyncTCP-esphome@^2.0.1
+adafruit/Adafruit ADS1X15@^2.4.2
+ottowinter/ESPAsyncWebServer-esphome@^3.1.0
 hideakitai/ArtNet@^0.2.12

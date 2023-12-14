@@ -43,11 +43,13 @@ float nro = 0;
 float nyo = 0;
 
 float accx,accy,accz;
-int tension_ch1,tension_ch2;
+int tension_ch1,tension_ch2,tension_ch3,tension_ch4;
 float minp,maxp,minr,maxr,miny,maxy;
 boolean isCal;
 boolean isMap;
 MidiBus myBus; // The MidiBus
+String ID;
+int pos;
 
 
 kalman KalFilterP;
@@ -471,10 +473,6 @@ void load_settings()
       maxy = json.getFloat("maxy");
       miny = json.getFloat("miny");      
 
-//      crossp = json.getBoolean("crossp");
-//      crossr = json.getBoolean("crossr");
-//      crossy = json.getBoolean("crossy");
-
       splitp = json.getBoolean("splitp");
       splitr = json.getBoolean("splitr");
       splity = json.getBoolean("splity");
@@ -506,10 +504,6 @@ void save_settings()
   json.setFloat("maxy",maxy);
   json.setFloat("miny",miny);
   
-//  json.setBoolean("crossp",crossp);
-//  json.setBoolean("crossr",crossr);
-//  json.setBoolean("crossy",crossy);
-  
   json.setBoolean("splitp",splitp);    
   json.setBoolean("splitr",splitr);  
   json.setBoolean("splity",splity);  
@@ -532,7 +526,7 @@ void show_map_text()
   text("Pitch=1,Roll=2,Yaw=3",20,height-64);
   text("P-Split=4,R-Split=5,=Y-Split=6",20,height-48);
   text("Button A=7,Button B=8",20,height-32);
-  text("Finger 1=9,Finger 2=0",20,height-16);
+  text("Finger 1=9,Finger 2=0, Finger 3 = -",20,height-16);
 }
 
 
@@ -712,10 +706,27 @@ void send_midi()
     myBus.sendControllerChange(change1);
   }
   
-  ControlChange change3 = new ControlChange(0, 9, tension_ch1/2);
-  myBus.sendControllerChange(change3);
-  ControlChange change4 = new ControlChange(0, 10, tension_ch2/2);
-  myBus.sendControllerChange(change4);
+  //Send Tension midi data... We only send it if it actually exists (not -1...)
+  if (tension_ch1 != -1)
+  {
+    ControlChange change = new ControlChange(0, 9, tension_ch1/2);
+    myBus.sendControllerChange(change);
+  }
+  if (tension_ch2 != -1)
+  {
+    ControlChange change = new ControlChange(0, 10, tension_ch2/2);
+    myBus.sendControllerChange(change);
+  }
+  if (tension_ch3 != -1)
+  {
+    ControlChange change = new ControlChange(0, 11, tension_ch3/2);
+    myBus.sendControllerChange(change);
+  }
+  if (tension_ch4 != -1)
+  {
+    ControlChange change = new ControlChange(0, 12, tension_ch4/2);
+    myBus.sendControllerChange(change);
+  }  
 }
 
 void send_artnet()
@@ -746,9 +757,39 @@ void send_artnet()
     val = (int)map(abs(accz),0,6,0,255);    
     dmxData[5] = (byte) val; 
 
-    dmxData[6] = (byte) 0; 
-    dmxData[7] = (byte) 0; 
-    dmxData[8] = (byte) 0;   
+    //Send glove data if it exists
+    if (tension_ch1 != -1)
+    {
+      dmxData[6] = (byte)tension_ch1;
+    }
+    else
+    {
+      dmxData[6] = (byte) 0; 
+    }
+    if (tension_ch2 != -1)
+    {
+      dmxData[7] = (byte)tension_ch2;
+    }
+    else
+    {
+      dmxData[7] = (byte) 0; 
+    }
+    if (tension_ch3 != -1)
+    {
+      dmxData[8] = (byte)tension_ch3;
+    }
+    else
+    {
+      dmxData[8] = (byte) 0; 
+    }
+    if (tension_ch4 != -1)
+    {
+      dmxData[9] = (byte)tension_ch4;
+    }
+    else
+    {
+      dmxData[9] = (byte) 0; 
+    }
     
     
     // send dmx to localhost
@@ -824,20 +865,32 @@ void draw_cube()
   rm = toMatrix(rm,qx,qy,qz,qw);
   applyMatrix(rm);
   */
-  if (tension_ch1 > 0)
+  if (tension_ch1 != -1)
   {
     translate(-180, 0, -100); 
     box(50, tension_ch1, 50);
     translate(180, 0, 100); 
   }
-  if (tension_ch2 > 0)
+  if (tension_ch2 != -1)
   {
     translate(180, 0, -100); 
     box(50, tension_ch2, 50);
     translate(-180, 0, 100); 
   }
   
-
+  if (tension_ch3 != -1)
+  {
+    translate(-180, 0, -200); 
+    box(50, tension_ch3, 50);
+    translate(180, 0, 200); 
+  }
+  if (tension_ch4 != -1)
+  {
+    translate(180, 0, -200); 
+    box(50, tension_ch4, 50);
+    translate(-180, 0, 200); 
+  }
+  
   drawDebugVectors();
   
   rotateY(y);//yaw
@@ -966,9 +1019,6 @@ void clear_cal_min_max()
   maxr = -65535;  
   miny = 65535;
   maxy = -65535; 
-//  crossp = false;
-//  crossr = false;
-//  crossy = false;  
 }
 
 void calc_call_min_max()
@@ -985,28 +1035,7 @@ void calc_call_min_max()
     miny = cy;
   if (maxy<cy)
     maxy=cy;
-    
-  //Zero Crossover Detection
-  /*
-  if (((minp <+ -3.1) || (maxp >= 3.1)) && (crossp == false))
-  {
-    crossp = true;
-    minp = 65535;
-    maxp = -65535;  
-  }  
-  if (((minr <= -3.1) || (maxr >= 3.1)) && (crossr == false))
-  {
-    crossr = true;
-    minr = 65535;
-    maxr = -65535;  
-  }
-  if (((miny <= -3.1) || (maxy >+ 3.1)) && (crossy == false))
-  {
-    crossy = true;
-    miny = 65535;
-    maxy = -65535;  
-  }  
-  */
+
 }
 
 void process_received_string(String myString)
@@ -1015,20 +1044,23 @@ void process_received_string(String myString)
   
   myString = trim(myString);
   String[] list = split(myString, ':');
+  //println(myString);
   
   if (list[0].contains(String.valueOf(ID_INFO)))
   {  
     deviceName = list[1];
     maj_ver = parseInt(list[2]);
     min_ver = parseInt(list[3]);
-    println(deviceName+":"+maj_ver+"."+min_ver);
+    ID = list[4];
+    pos = parseInt(list[5]);
+    println(deviceName+":"+maj_ver+"."+min_ver+" ID:"+ID+" POS:"+pos);
     isValidDevice = true;
     return;
   }
   else if (list[0].contains(String.valueOf(ID_DATA)))
   {
     float sensors[] = float(list);
-    v1 = sensors[9];
+    v1 = sensors[11];
     if (v1 == 0)
     {
       isLive = false;
@@ -1051,41 +1083,18 @@ void process_received_string(String myString)
       cy = y;
       cr = r;
       
-      /*
-      if (crossp)
-      {
-        if (cp < 0)
-          cp = cp + 2*PI;
-      }           
-      if (crossr)
-      {
-        if (cr < 0)
-          cr = cr + 2*PI;
-      }
-      if (crossy)
-      {
-        if (cy < 0)
-          cy = cy + 2*PI;
-      }   
-      */
-      
       accx = sensors[4];
       accy = sensors[5];
       accz = sensors[6];   
       
       tension_ch1 = int(sensors[7]);   
       tension_ch2 = int(sensors[8]);  
-      
-      
-      if (tension_ch1 >= 0)
-        tension_ch1 = int(map(tension_ch1,0,255,255,0));
-      if (tension_ch2 >= 0)  
-        tension_ch2 = int(map(tension_ch2,0,255,255,0));
-      
-      
-      v2 = sensors[10];
-      v3 = sensors[11];
-      v4 = sensors[12];  
+      tension_ch1 = int(sensors[9]);   
+      tension_ch2 = int(sensors[10]);  
+       
+      v2 = sensors[12];
+      v3 = sensors[13];
+      v4 = sensors[14];  
       
       
       if (v2 == 0)
@@ -1118,11 +1127,10 @@ void process_received_string(String myString)
     m[1] = sensors[8];
     m[2] = sensors[9];
     
-    //normalizeVectors();
   }
 
 
-  //println("roll: " + xx + " pitch: " + yy + " yaw: " + zz + "\n"); //debug
+  //println("roll: " + r + " pitch: " + p + " yaw: " + y + "\n"); //debug
   lastSerial = millis();
 
 }
@@ -1242,6 +1250,11 @@ void keyPressed()
           ControlChange change1 = new ControlChange(0, 10, 1);
           myBus.sendControllerChange(change1);
       }    
+      if (key =='-')
+      {
+          ControlChange change1 = new ControlChange(0, 11 , 1);
+          myBus.sendControllerChange(change1);
+      }         
     }
     else
     {

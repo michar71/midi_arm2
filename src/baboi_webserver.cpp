@@ -31,16 +31,16 @@ void CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *request)
   response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
   response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
   response->printf("</style></head><body>");  
-  response->printf("<h1>BABOI FW V%d.%d Webserver running.</h1><br><p>",maj_ver,min_ver);
+  response->printf("<h1>BABOI FW V%d.%d Webserver</h1><br><p>",maj_ver,min_ver);
   response->print("This is our captive portal front page.");
   response->printf("You were trying to reach: http://%s%s", request->host().c_str(), request->url().c_str());
   response->printf("Try opening <a href='http://%s'>this link</a> instead<br><br>", WiFi.softAPIP().toString().c_str());
 
-  response->print("<a href=\"baboi.local/update\">Update</a><br><br>");
-  response->print("<a href=\"baboi.local/settings\">Settings</a><br><br>");
-  response->print("<a href=\"baboi.local/setup\">Setup</a><br><br>");
-  response->print("<a href=\"baboi.local/reset_q\">Reset Settings</a><br><br>");
-  response->print("<a href=\"baboi.local/cal_q\">Calibration</a><br><br>");    
+  response->print("<a href=\"./update\">Update</a><br><br>");
+  response->print("<a href=\"./settings\">Settings</a><br><br>");
+  response->print("<a href=\"./setup\">Setup</a><br><br>");
+  response->print("<a href=\"./reset_q\">Reset Settings</a><br><br>");
+  response->print("<a href=\"./cal_q\">Calibration</a><br><br>");    
   response->print("<a href=\"./wmen\">Enable Wifi Manager</a><br><br>");       
   response->print("<a href=\"./wmdis\">Disable Wifi Manager</a><br><br>");    
   response->printf("</p>");    
@@ -90,18 +90,25 @@ void setup_settings_webpage()
     response->printf("Touch TH A: %d <br>",settings.th_but_a); 
     response->printf("Touch TH B: %d <br>",settings.th_but_b);    
 
-    response->printf("Tension Ch1 Min: %d <br>",settings.tension_ch1_min); 
-    response->printf("Tension Ch1 Max: %d <br>",settings.tension_ch1_max); 
-    response->printf("Tension Ch2 Min: %d <br>",settings.tension_ch2_min); 
-    response->printf("Tension Ch2 Max: %d <br>",settings.tension_ch2_max);         
+    response->printf("Tension Ch1 Min: %d <br>",settings.tension_min[0]); 
+    response->printf("Tension Ch1 Max: %d <br>",settings.tension_max[0]); 
+    response->printf("Tension Ch2 Min: %d <br>",settings.tension_min[1]); 
+    response->printf("Tension Ch2 Max: %d <br>",settings.tension_max[1]); 
+    response->printf("Tension Ch3 Min: %d <br>",settings.tension_min[2]); 
+    response->printf("Tension Ch3 Max: %d <br>",settings.tension_max[2]); 
+    response->printf("Tension Ch4 Min: %d <br>",settings.tension_min[3]); 
+    response->printf("Tension Ch4 Max: %d <br>",settings.tension_max[3]); 
+
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");
     response->printf("Free Heap: %d <br>",ESP.getFreeHeap());     
     response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
     response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
     response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
-    response->printf("TENSION CH1 VAL: %d <br>",analogRead(ANALOG_CH1));      
-    response->printf("TENSION CH2 VAL: %d <br>",analogRead(ANALOG_CH2));      
+    response->printf("TENSION CH1 VAL: %d <br>",ads1115_get_data(0));      
+    response->printf("TENSION CH2 VAL: %d <br>",ads1115_get_data(1));    
+    response->printf("TENSION CH3 VAL: %d <br>",ads1115_get_data(2));    
+    response->printf("TENSION CH4 VAL: %d <br>",ads1115_get_data(3));            
     response->printf("Current Pitch: %f <br>",mpu_GetCurrentPitch());  
     response->printf("Current Roll: %f <br>",mpu_GetCurrentRoll());  
     response->printf("Current Yaw: %f <br>",mpu_GetCurrentYaw());      
@@ -123,12 +130,12 @@ void setup_main_webpage()
     response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
-    response->printf("<h1>BABOI FW V%d.%d Webserver running.</h1><br><p>",maj_ver,min_ver);
+    response->printf("<h1>BABOI FW V%d.%d Webserver</h1><br><p>",maj_ver,min_ver);
     response->print("<a href=\"./update\">Update</a><br><br>");
     response->print("<a href=\"./settings\">Settings</a><br><br>");
     response->print("<a href=\"./reset_q\">Reset Settings</a><br><br>");
-    response->print("<a href=\"baboi.local/setup\">Setup</a><br><br>");    
-    response->print("<a href=\"baboi.local/cal_q\">Calibration</a><br><br>");           
+    response->print("<a href=\"./setup\">Setup</a><br><br>");    
+    response->print("<a href=\"./cal_q\">Calibration</a><br><br>");           
     response->print("<a href=\"./wmen\">Enable Wifi Manager</a><br><br>");       
     response->print("<a href=\"./wmdis\">Disable Wifi Manager</a><br><br>");         
     response->printf("</p>");    
@@ -200,24 +207,27 @@ void setup_setup_webpage()
     response->printf("<form action=\"/setup\" method=\"POST\">");
     response->printf("<label for=\"ID\">BABOI ID (8 Characters):</label>");   
     response->printf("<input type=\"text\" name=\"ID\" maxlength=\"8\" size=\"8\" value=\"%s\" <br>",settings.ID);   
-    response->printf("Position:<br>");
+
+
+    response->printf("<br><br>Position:<br>");
+
     if (settings.pos = 0)
     {
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\">");
-      response->printf("<label for=\"Left\">Left</label>");
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\"> checked");
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\"/>");
+      response->printf("<label for=\"Left\">Left</label/>");
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\" checked />");
       response->printf("<label for=\"Right\">Right</label><br><br>");
     }
     else
     {
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\"> checked");
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\" checked />");
       response->printf("<label for=\"Left\">Left</label>");
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\">");
+      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\" />");
       response->printf("<label for=\"Right\">Right</label><br><br>");
     }
     response->printf("<input type=\"submit\" value=\"SAVE\">");   
     response->printf("</form>");    
-    response->print("<a href=\"./\">Back</a><br><br>");       
+    response->print("<br><a href=\"./\">Back</a><br><br>");       
     response->printf("</p>");    
     response->print("</body></html>");
     request->send(response);      

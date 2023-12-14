@@ -1,11 +1,13 @@
 #include <arduino.h>
 #include "baboi_sensors.h"
 #include "MPU9250.h"
+#include <Adafruit_ADS1X15.h>
 #include "settings.h"
 #include "main.h"
 
 
 MPU9250 mpu;
+Adafruit_ADS1015 ads;     /* Use this for the 12-bit version */
 
 extern setup_t settings;
 
@@ -17,6 +19,14 @@ uint8_t adc_index2 = 0;
 uint16_t adc_ch1_avg = 0;
 uint16_t adc_ch2_avg = 0;
 
+bool hasGlove = false;
+
+
+#define ADS1115_ADDR  72      //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
+#define ADS1115_CH_COUNT 4
+bool ADS1115_data_ready = false;
+uint8_t curr_ch = 0;
+int16_t ads1115_data[ADS1115_CH_COUNT] = {0,0,0,0};
 
 
 void mpu_store_data(void)
@@ -169,123 +179,123 @@ bool mpu_update(void)
 }
 
 
-#define ADC_TH_LOW 3000
+//---------ADS1115 ADC ---------------
 
-void tension_update(void)
+IRAM_ATTR void ads1115_irq()
 {
-  static uint8_t cnt = 0;
-  uint32_t s1;
-  uint32_t s2;
-  uint16_t val;
+  ADS1115_data_ready = true;
+}
 
-  //We alternate between the two ADC's to reduce timing overhead...
 
-  if (cnt == 0)
+
+//Need to add downsampling to correct range here....
+bool ads1115_update()
+{
+  if (hasGlove)
   {
-    val = analogRead(ANALOG_CH1);
-    if (val < ADC_TH_LOW)
-      return;
-
-    adc_val[0][adc_index1]= val;
-    adc_index1++;
-    if (adc_index1 == ADC_COUNT)
-      adc_index1 = 0;
-
-    s1 = 0;
-    for (uint8_t ii=0;ii<ADC_COUNT;ii++)
+    if (ADS1115_data_ready)
     {
-      s1 = s1 + adc_val[0][ii];
+      //Read Data via I2C
+      //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
+      ads1115_data[curr_ch] = ads.getLastConversionResults();
+      
+      //Set Channel
+      curr_ch++;
+      if (curr_ch == ADS1115_CH_COUNT)
+        curr_ch = 0;
+
+      //Start Conversion
+      ADS1115_data_ready = false;
+      ads.startADCReading(MUX_BY_CHANNEL[curr_ch], false);
     }
-    adc_ch1_avg = s1/ADC_COUNT;    
+    else
+    {
+      return false;
+    }
   }
   else
   {
-    val = analogRead(ANALOG_CH2);
-    if (val < ADC_TH_LOW)
-      return;
-
-    adc_val[1][adc_index2]= val;
-    adc_index2++;
-    if (adc_index2 == ADC_COUNT)
-      adc_index2 = 0;
-
-    s2 = 0;
-    for (uint8_t ii=0;ii<ADC_COUNT;ii++)
-    {
-      s2 = s2 + adc_val[1][ii];
-    }
-    adc_ch2_avg = s2/ADC_COUNT;
+    return false;
   }
-
-  cnt++;
-  if (cnt>1)
-    cnt = 0;
-
-  //Add Kalman Filter here...
 }
 
+
+//Need to add calibration range adjustment here...
+int16_t ads1115_get_data(uint8_t ch)
+{
+  if (ch < ADS1115_CH_COUNT)
+    return ads1115_data[ch];
+  else
+    return 0;  
+}
+//------ END ADS1115 -----------------
+
+
+void glove_update(void)
+{
+    ads1115_update();
+}
+
+bool checkForGlove(void)
+{
+  return hasGlove;
+}
 
 void calibrate_tension(void)
 {
-  float s1_avg;
-  float s2_avg;
-  int ii=0;
-  //Check if we have a glove
-  for (ii=0;ii<10;ii++)
+  uint8_t ccurr_ch = 0;
+  if (hasGlove)
   {
-    tension_update();
-    yield();
-  }
-  //No glove found
-  if ((tension_get_ch1() < 0) || (tension_get_ch2() < 0))
-    return;
+    init_settings_tension();
 
-  init_settings_tension();
+    //Wait for ADC
+    while (ADS1115_data_ready == false)
+    {
+      delay(1);
+    }
 
-  do 
-    s1_avg = analogRead(ANALOG_CH1);
-  while (s1_avg<ADC_TH_LOW);
+    //Start ADC
+    ads.startADCReading(MUX_BY_CHANNEL[ccurr_ch], false);
 
-  do
-    s2_avg = analogRead(ANALOG_CH2);
-  while (s2_avg<ADC_TH_LOW);
 
-  for (ii=0;ii<500;ii++)
-  {
-    int16_t val;
+    //Read Raw Values and calulate min/max. Filter out outliers.
+    for (int ii=0;ii< 1000 ;ii++)
+    {
+      //Wait for ADC
+      while (ADS1115_data_ready == false)
+      {
+        delay(1);
+      }
 
-    //Filter out Random Outliers from ADC Glitches
-    val = analogRead(ANALOG_CH1);
-    if (val < ADC_TH_LOW)
-      break;
+      //Read ADC
+      int16_t val = ads.getLastConversionResults();
+
+      //#TODO define reasonable limits here to remove outliers
+
+      //Record new min/max
+      if (val > settings.tension_max[ccurr_ch])
+        settings.tension_max[ccurr_ch] = val;
+
+      if (val < settings.tension_min[ccurr_ch])
+        settings.tension_min[ccurr_ch] = val;
+
+      
+      //Move on to Next ADC
+      ccurr_ch++;
+      if (ccurr_ch == ADS1115_CH_COUNT)
+        ccurr_ch = 0;
+
+      //Start ADC
+      ADS1115_data_ready = false;
+      ads.startADCReading(MUX_BY_CHANNEL[ccurr_ch], false);
     
-    s1_avg = (s1_avg*0.8) + (val * 0.2);
-
-    val = (uint16_t)s1_avg;
-    if (val>settings.tension_ch1_max)
-      settings.tension_ch1_max = val;
-    else if (val<settings.tension_ch1_min)
-      settings.tension_ch1_min = val;
-
-    delay(7); 
-
-    //Filter out random outliers fom ADC Glitches
-    val = analogRead(ANALOG_CH2);
-    if (val < ADC_TH_LOW)
-      break;
-
-    s2_avg = (s2_avg*0.8) + (val * 0.2);
-    val = (uint16_t)s2_avg;
-    if (val>settings.tension_ch2_max)
-      settings.tension_ch2_max = val;
-    else if (val<settings.tension_ch2_min)
-      settings.tension_ch2_min = val;
-
-    delay(7);
+      //Wait a little bit
+      delay(4);
+    }
   }
 }
 
-int16_t tension_get_ch1(void)
+int16_t tension_get_ch(uint8_t ch)
 {
   int16_t val = 0;
   
@@ -294,7 +304,7 @@ int16_t tension_get_ch1(void)
   else
   {
     float res = 0;
-    res = map(adc_ch1_avg,settings.tension_ch1_min,settings.tension_ch1_max,0,255);
+    res = map(ads1115_data[ch],settings.tension_min[ch],settings.tension_max[ch],0,255);
     if (res<0)
       val = 0;
     else if (res>255)
@@ -305,29 +315,14 @@ int16_t tension_get_ch1(void)
   return val;
 }
 
-int16_t tension_get_ch2(void)
-{
-  int16_t val = 0;
-  
-  if (adc_ch2_avg < 2000)
-    val = -1;
-  else
-  {
-    float res = 0;
-    res = map(adc_ch2_avg,settings.tension_ch2_min,settings.tension_ch2_max,0,255);
-    if (res<0)
-      val = 0;
-    else if (res>255)
-      val = 255;
-    else
-      val = round(res);  
-  }  
-  return val;
-}
 
+
+
+//#TODO Chehck if we ca nget around these i2c scans... Take up a lot of time.....
 void init_sensors(void)
 {
     Wire.begin(SDA, SCL,1000000);
+
     i2c_scan(&Wire);
     
     if (!mpu.setup(0x68)) 
@@ -341,11 +336,34 @@ void init_sensors(void)
 
     delay(10);
 
-    //Setup analog pins
-    pinMode(ANALOG_CH1,ANALOG);
-    pinMode(ANALOG_CH2,ANALOG);
-    analogSetPinAttenuation(ANALOG_CH1,ADC_0db);
-    analogSetPinAttenuation(ANALOG_CH2,ADC_0db);    
+
+    //Instantiate glove wire interface
+    Wire1.begin(GLOVE_SDA, GLOVE_SCL,1000000);
+
+    i2c_scan(&Wire1);
+
+    if (!ads.begin(ADS1115_ADDR,&Wire1)) 
+    {
+      Serial.println("Failed to initialize ADS1115. No Glove.");
+      hasGlove = false;
+    }
+    else
+    {
+      Serial.println("ADS1115 Ready. Found Glove.");
+      hasGlove =true;
+
+      //Setup IRQ
+      pinMode(ADS1115_ALERT_PIN, INPUT);
+      // We get a falling edge every time a new sample is ready.
+      attachInterrupt(ADS1115_ALERT_PIN, ads1115_irq, FALLING);
+
+      //Start ADC
+
+      ads.setGain(GAIN_TWO);
+      ads.startADCReading(MUX_BY_CHANNEL[0], false);
+      curr_ch = 0;      
+    }
+    
 
 
   #ifdef DEBUG

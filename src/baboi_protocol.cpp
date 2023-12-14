@@ -1,6 +1,7 @@
 #include <arduino.h>
 #include "baboi_protocol.h"
 #include "baboi_sensors.h"
+#include "settings.h"
 #include "main.h"
 
 #ifdef WIFI
@@ -9,6 +10,7 @@
     AsyncUDP udp;
 #endif
 
+extern setup_t settings;
 
 t_comm_channel currentCommChannel = COMM_SERIAL;
 IPAddress comm_host_ip = IPAddress(0,0,0,0);
@@ -55,14 +57,26 @@ void build_processing_data(bool senddata)
   float ax_val = mpu_GetCurrentAX();
   float ay_val = mpu_GetCurrentAY();  
   float az_val = mpu_GetCurrentAZ();
-  int16_t tension_ch1 = tension_get_ch1();
-  int16_t tension_ch2 = tension_get_ch2();
+  int16_t tension_ch1 = -1;
+  int16_t tension_ch2 = -1;
+  int16_t tension_ch3 = -1;
+  int16_t tension_ch4 = -1;
+
+  if (checkForGlove())
+  {
+    tension_ch1 = tension_get_ch(0);
+    tension_ch2 = tension_get_ch(1);
+    tension_ch3 = tension_get_ch(2);
+    tension_ch4 = tension_get_ch(3);            
+  }
+
 
   if(senddata)
-    snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f:%d:%d",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val,tension_ch1,tension_ch2);
+    snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f:%d:%d:%d:%d",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val,tension_ch1,tension_ch2,tension_ch3,tension_ch4);
   else
-    snprintf(send_data,SEND_DATA_LENGTH,"%c:0:0:0:0:0:0:0:0",ID_DATA);
+    snprintf(send_data,SEND_DATA_LENGTH,"%c:0:0:0:0:0:0:0:0:0:0",ID_DATA);
 
+    //#TODO Combine into one bitmap
     if (state == STATE_LIVE)
       strcat(send_data,":1");
     else

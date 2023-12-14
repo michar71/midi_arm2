@@ -31,10 +31,8 @@ typedef struct{
     char16_t th_but_ctrl;
     char16_t th_but_a;
     char16_t th_but_b;
-    uint16_t tension_ch1_max;
-    uint16_t tension_ch1_min;
-    uint16_t tension_ch2_max;
-    uint16_t tension_ch2_min;    
+    int16_t tension_max[4];
+    int16_t tension_min[4];           
     float offset_roll;
     float offset_pitch;
     float offset_yaw;

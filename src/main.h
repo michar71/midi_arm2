@@ -18,13 +18,16 @@
 #define SDA 7
 #define SCL 5
 
+#define GLOVE_SDA 40
+#define GLOVE_SCL 21
+#define ADS1115_ALERT_PIN 37
+
 #define DATA_PIN 39
 #define BUT_CTRL 9
 #define BUT_A 3
 #define BUT_B 10
 #define OLD_BUT_B 11
-#define ANALOG_CH1 1
-#define ANALOG_CH2 2
+
 
 #define STATUS_LED LED_BUILTIN //Assuming D2 here...
 

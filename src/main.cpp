@@ -25,8 +25,8 @@
 
 
 const char* devicename = "BABOI";
-int maj_ver = 1;
-int min_ver = 1;
+int maj_ver = 2;
+int min_ver = 0;
 
 extern setup_t settings;
 
@@ -415,14 +415,14 @@ void loop()
 
   //Handle Tension Strips
   EVERY_N_MILLIS(16)  //60 times/sec    
-    tension_update();
+  {
+    glove_update();
+  }
 
   sampleCount++;
 
   EVERY_N_MILLIS(33)  //30 times/sec
   {
-
-
     //Handle Buttons
     handle_buttons();
     //See If we have to deal with state-changes

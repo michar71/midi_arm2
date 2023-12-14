@@ -60,13 +60,21 @@ void print_settings()
 
     Serial.println("");
     Serial.print("Tension Ch1 Min: ");
-    Serial.println(settings.tension_ch1_min);    
+    Serial.println(settings.tension_min[0]);    
     Serial.print("Tension Ch1 Max: ");
-    Serial.println(settings.tension_ch1_max);   
+    Serial.println(settings.tension_max[0]);   
     Serial.print("Tension Ch2 Min: ");
-    Serial.println(settings.tension_ch2_min);   
+    Serial.println(settings.tension_min[1]);    
     Serial.print("Tension Ch2 Max: ");
-    Serial.println(settings.tension_ch2_max);           
+    Serial.println(settings.tension_max[1]);   
+    Serial.print("Tension Ch3 Min: ");
+    Serial.println(settings.tension_min[2]);    
+    Serial.print("Tension Ch3 Max: ");
+    Serial.println(settings.tension_max[2]);   
+    Serial.print("Tension Ch4 Min: ");
+    Serial.println(settings.tension_min[3]);    
+    Serial.print("Tension Ch4 Max: ");
+    Serial.println(settings.tension_max[3]);           
     Serial.println("");        
 
 }
@@ -115,10 +123,11 @@ void default_settings_but()
 
 void init_settings_tension()
 {
-    settings.tension_ch1_max = 0;
-    settings.tension_ch1_min = 0XFFFF;
-    settings.tension_ch2_max = 0;
-    settings.tension_ch2_min = 0XFFFF;    
+    for (int ii=0;ii<4;ii++)
+    {
+      settings.tension_max[ii] = -32768;
+      settings.tension_min[ii] = 32767;
+    }
 }
 
 void init_settings_but()

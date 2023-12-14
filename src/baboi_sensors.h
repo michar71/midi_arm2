@@ -14,12 +14,18 @@ void mpu_cal_gyro_accel(void);
 void mpu_init_settings(void);
 void mpu_set_settings(void);
 void mpu_store_data(void);
+
+void glove_init();
+void ads1115_irq();
+bool ads1115_update();
+int16_t ads1115_get_data(uint8_t ch);
+void glove_update(void);
+bool checkForGlove(void);
+
 void i2c_scan(TwoWire* tw);
 void init_sensors(void);
 bool mpu_update(void);
-void tension_update(void);
-int16_t tension_get_ch1(void);
-int16_t tension_get_ch2(void);
+int16_t tension_get_ch(uint8_t ch);
 void calibrate_tension(void);
 
 #endif
