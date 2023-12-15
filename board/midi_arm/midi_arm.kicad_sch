@@ -2610,6 +2610,10 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid c6202f53-dbfc-449a-b6fc-e7eafb178256)
   )
+  (text "Bridge Pin 17 to GND for Touch Sensor ID" (at 194.31 129.032 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid f558dcdb-9c39-40e5-afaf-e8f98cf47e8c)
+  )
 
   (label "SCL" (at 161.29 97.79 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left bottom))

@@ -22,11 +22,13 @@ uint16_t adc_ch2_avg = 0;
 bool hasGlove = false;
 
 
-#define ADS1115_ADDR  72      //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
+#define ADS1115_ADDR  0x48     //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
 #define ADS1115_CH_COUNT 4
 bool ADS1115_data_ready = false;
 uint8_t curr_ch = 0;
 int16_t ads1115_data[ADS1115_CH_COUNT] = {0,0,0,0};
+
+#define MPU_ADDR 0x68
 
 
 void mpu_store_data(void)
@@ -45,7 +47,7 @@ void mpu_store_data(void)
     settings.main_mag_scale_z = mpu.getMagScaleZ();
 }
 
-void i2c_scan(TwoWire* tw)
+void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr)
 {
   byte error, address;
   int nDevices;
@@ -53,7 +55,11 @@ void i2c_scan(TwoWire* tw)
   Serial.println("Scanning...");
  
   nDevices = 0;
-  for(address = 1; address < 127; address++ )
+  if (startaddr<1)
+    startaddr = 1;
+  if (endaddr > 127)
+    endaddr = 127;  
+  for(address = startaddr; address < endaddr; address++ )
   {
     // The i2c_scanner uses the return value of
     // the Write.endTransmisstion to see if
@@ -323,11 +329,12 @@ void init_sensors(void)
 {
     Wire.begin(SDA, SCL,1000000);
 
-    i2c_scan(&Wire);
-    
-    if (!mpu.setup(0x68)) 
+    //Strange but needed
+    i2c_scan(&Wire,MPU_ADDR,127);
+
+    if (!mpu.setup(MPU_ADDR)) 
     { 
-        Serial.println("ERROR");
+        Serial.println("ERROR initalizing MPU!");
         setLED(0,64,0,0);
         delay(5000);
         while(1)
@@ -340,7 +347,8 @@ void init_sensors(void)
     //Instantiate glove wire interface
     Wire1.begin(GLOVE_SDA, GLOVE_SCL,1000000);
 
-    i2c_scan(&Wire1);
+    //TODO Chekc if needed here too...
+    i2c_scan(&Wire1,ADS1115_ADDR,127);
 
     if (!ads.begin(ADS1115_ADDR,&Wire1)) 
     {

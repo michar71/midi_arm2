@@ -41,8 +41,7 @@ public:
     mode_button_e check_button(void);
     void setTiming(uint16_t long_press_ms,uint16_t very_long_press_ms,uint16_t very_very_long_press_ms);
     void setTouchThreshold(uint16_t touch_th,uint16_t touch_cutoff);
-
-
+    void setTouchMode(bool touch);
 };
 
 

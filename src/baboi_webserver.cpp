@@ -1,6 +1,7 @@
 #include "baboi_webserver.h"
 #include "baboi_sensors.h"
 #include <AsyncElegantOTA.h>
+#include "main.h"
 
 
 extern setup_t settings;
@@ -10,7 +11,7 @@ extern int min_ver;
 
 AsyncWebServer server(80);
 
-CaptiveRequestHandler::CaptiveRequestHandler() 
+CaptiveRequestHandler::CaptiveRequestHandler()  
 {    
 }
 
@@ -65,6 +66,9 @@ void setup_settings_webpage()
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
     response->print("<h1>Settings</h1><br><p>");
+    response->printf("Has Toucpads: %d <br>",checkForTouchpad());
+    response->printf("Has Glove: %d <br>",checkForGlove());
+    
           
     response->printf("Acc Bias X: %f <br>",settings.main_acc_bias_x);
     response->printf("Acc Bias Y: %f <br>",settings.main_acc_bias_y);
@@ -86,10 +90,12 @@ void setup_settings_webpage()
     response->printf("Mag Scale Y: %f <br>",settings.main_mag_scale_y);   
     response->printf("Mag Scale Z: %f <br>",settings.main_mag_scale_z);   
 
-    response->printf("Touch TH CTRL: %d <br>",settings.th_but_ctrl); 
-    response->printf("Touch TH A: %d <br>",settings.th_but_a); 
-    response->printf("Touch TH B: %d <br>",settings.th_but_b);    
-
+    if (checkForTouchpad())
+    { 
+      response->printf("Touch TH CTRL: %d <br>",settings.th_but_ctrl); 
+      response->printf("Touch TH A: %d <br>",settings.th_but_a); 
+      response->printf("Touch TH B: %d <br>",settings.th_but_b);    
+    }
     response->printf("Tension Ch1 Min: %d <br>",settings.tension_min[0]); 
     response->printf("Tension Ch1 Max: %d <br>",settings.tension_max[0]); 
     response->printf("Tension Ch2 Min: %d <br>",settings.tension_min[1]); 
@@ -102,9 +108,12 @@ void setup_settings_webpage()
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");
     response->printf("Free Heap: %d <br>",ESP.getFreeHeap());     
-    response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
-    response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
-    response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
+    if (checkForTouchpad())
+    { 
+      response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
+      response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
+      response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
+    }
     response->printf("TENSION CH1 VAL: %d <br>",ads1115_get_data(0));      
     response->printf("TENSION CH2 VAL: %d <br>",ads1115_get_data(1));    
     response->printf("TENSION CH3 VAL: %d <br>",ads1115_get_data(2));    
@@ -298,9 +307,13 @@ void setup_cal_question_webpage()
     response->printf("Calibrate the Gyro and Accelerometer by keeping your arm on a flat surface during calibration.<br>");
     response->print("<a href=\"./calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
     response->printf("Calibrate the magnetometer by movinbg the baboi through all 3 axises in a figure-eight.<br>");
-    response->print("<a href=\"./calmag\">Calibrate Magnetometer</a><br><br>"); 
-    response->printf("Calibrate the touc-pad buttons by repeated touching them during calibration.<br>");    
-    response->print("<a href=\"./calbuttons\">Calibrate Buttons</a><br><br>");     
+    response->print("<a href=\"./calmag\">Calibrate Magnetometer</a><br><br>");
+    if (checkForTouchpad())
+    { 
+       response->printf("Calibrate the touchpad buttons by repeated touching them during calibration.<br>");    
+       response->print("<a href=\"./calbuttons\">Calibrate Buttons</a><br><br>");     
+    }
+    
     response->printf("Calibrate the Calibrate thew glove by repeatly flexing and stretching your fingers.<br>");
     response->print("<a href=\"./caltension\">Calibrate Glove</a><br><br>");          
     response->print("<br><a href=\"./\">Cancel</a><br><br>");   

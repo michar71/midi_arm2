@@ -36,10 +36,12 @@ bool but_a_state = false;
 bool but_b_state = false;
 bool but_c_state = false;
 
+bool hasTouchpads = false;
+
 // Define the array of leds
 CRGB leds[NUM_LEDS];
 
-ButtonClass but_ctrl(BUT_CTRL,true);
+ButtonClass but_ctrl(BUT_CTRL,false);
 
 t_state state = STATE_STARTUP;
 t_state lastState = STATE_STARTUP;
@@ -82,6 +84,7 @@ void setup()
     Serial.println("Startup...");
   #endif
     pinMode(STATUS_LED, OUTPUT);     
+    pinMode(ID_PIN,PULLUP);
         
     delay(10);
     settings_init();
@@ -89,6 +92,13 @@ void setup()
   #ifdef DEBUG
     Serial.println("Pin Setup Done...");
   #endif
+
+
+    if (digitalRead(ID_PIN) == LOW)
+    {
+      hasTouchpads = true;
+    }
+
 
     //Init and test LED's
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
@@ -112,7 +122,23 @@ void setup()
   {
     mpu_set_settings();
 
-    but_ctrl.setTouchThreshold(settings.th_but_ctrl,(uint16_t)TH_CUTOFF);
+    if (checkForTouchpad())
+    {
+      but_ctrl.setTouchMode(true);
+      but_ctrl.setTouchThreshold(settings.th_but_ctrl,(uint16_t)TH_CUTOFF);
+    }
+    else
+    {
+      but_ctrl.setTouchMode(false);
+      pinMode(BUT_CTRL,PULLUP);
+      pinMode(BUT_A,PULLUP);
+      pinMode(BUT_B,PULLUP);
+      pinMode(BUT_C,PULLUP);
+
+    }
+
+
+
     delay(120);
     setLED(0,0,64,0);
     delay(120);
@@ -206,41 +232,7 @@ void setup()
   setState(STATE_WAITCONN);
 }
  
-/* 
-void doWiFiManager()
-{
-  // is auto timeout portal running
-  if(portalRunning){
-    wm.process(); // do processing
 
-    // check for timeout
-    if((millis()-startTime) > (timeout*1000)){
-      Serial.println("portaltimeout");
-      portalRunning = false;
-      if(startAP){
-        wm.stopConfigPortal();
-      }
-      else{
-        wm.stopWebPortal();
-      } 
-   }
-  }
-
-  // is configuration portal requested?
-  if(digitalRead(TRIGGER_PIN) == LOW && (!portalRunning)) {
-    if(startAP){
-      Serial.println("Button Pressed, Starting Config Portal");
-      wm.setConfigPortalBlocking(false);
-      wm.startConfigPortal();
-    }  
-    else{
-      Serial.println("Button Pressed, Starting Web Portal");
-      wm.startWebPortal();
-    }  
-    portalRunning = true;
-    startTime = millis();
-  }
-*/
 
 //We need to illimate high outliers...
 void calibrate_buttons()
@@ -380,19 +372,45 @@ void handle_buttons(void)
     setState(STATE_CAL_GYRO);
   }
 
+  if (checkForTouchpad())
+  {
+    int val = 0;
+    val = touchRead(BUT_A);
+    if ((val < settings.th_but_a) && (val > (settings.th_but_a/100*60)))
+      but_a_state = false;
+    else if (val < TH_CUTOFF)
+      but_a_state = true; 
 
-  int val = 0;
-  val = touchRead(BUT_A);
-  if ((val < settings.th_but_a) && (val > (settings.th_but_a/100*60)))
-    but_a_state = false;
-  else if (val < TH_CUTOFF)
-    but_a_state = true; 
+    val = touchRead(BUT_B);  
+    if ((val < settings.th_but_b) && (val > (settings.th_but_b/100*60)))
+      but_b_state = false;
+    else if (val < TH_CUTOFF)
+      but_b_state = true; 
 
-  val = touchRead(BUT_B);  
-  if ((val < settings.th_but_b) && (val > (settings.th_but_b/100*60)))
-    but_b_state = false;
-  else if (val < TH_CUTOFF)
-    but_b_state = true; 
+    but_b_state = false;  
+  }
+  else
+  {
+    if (digitalRead(BUT_A) == LOW)
+      but_a_state = true; 
+    else
+      but_a_state = false; 
+
+    if (digitalRead(BUT_B) == LOW)
+      but_b_state = true; 
+    else
+      but_c_state = false; 
+
+    if (digitalRead(BUT_C) == LOW)
+      but_c_state = true; 
+    else
+      but_c_state = false;           
+  }
+}
+
+bool checkForTouchpad(void)
+{
+  return hasTouchpads;
 }
 
 void loop() 

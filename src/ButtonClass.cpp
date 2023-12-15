@@ -93,3 +93,8 @@ void ButtonClass::setTouchThreshold(uint16_t touch_th,uint16_t touch_cutoff)
     this->touch_th = touch_th;
     this->touch_cutoff = touch_cutoff;
 }
+
+void ButtonClass::setTouchMode(bool touch)
+{
+    this->isTouch = touch;
+}

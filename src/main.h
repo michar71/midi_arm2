@@ -22,11 +22,14 @@
 #define GLOVE_SCL 21
 #define ADS1115_ALERT_PIN 37
 
-#define DATA_PIN 39
+#define DATA_PIN 39  //LED Pin
 #define BUT_CTRL 9
 #define BUT_A 3
 #define BUT_B 10
-#define OLD_BUT_B 11
+#define BUT_C 2
+
+
+#define ID_PIN 17 //Pull to GND for Touch pads
 
 
 #define STATUS_LED LED_BUILTIN //Assuming D2 here...
@@ -59,6 +62,7 @@ typedef struct{
 void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b);
 void setState(t_state newState);
 void calibrate_buttons();
+bool checkForTouchpad(void);
 
 
 

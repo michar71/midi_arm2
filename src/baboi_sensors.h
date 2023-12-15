@@ -22,7 +22,7 @@ int16_t ads1115_get_data(uint8_t ch);
 void glove_update(void);
 bool checkForGlove(void);
 
-void i2c_scan(TwoWire* tw);
+void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr);
 void init_sensors(void);
 bool mpu_update(void);
 int16_t tension_get_ch(uint8_t ch);
