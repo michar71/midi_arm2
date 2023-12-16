@@ -6,10 +6,10 @@
   "winx": 328,
   "splitp": false,
   "minp": -0.6281144618988037,
-  "network": true,
+  "network": false,
   "minr": -0.915180504322052,
   "miny": 1.1579060554504395,
-  "artnet": true,
+  "artnet": false,
   "maxr": 0.9374527335166931,
   "maxp": 0.46054479479789734
 }

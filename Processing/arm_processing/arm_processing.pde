@@ -321,16 +321,19 @@ void Network(boolean theFlag)
 }
 
 void setup() {
+  load_settings();
+   
   size(400, 260,P3D);
   surface.setTitle("BABOI CONTROL");
   surface.setResizable(false);
   
+  frameRate(30);
   
   cp5 = new ControlP5(this);
   prepareExitHandler();
  
-    load_settings();
-    //setLocation(winx, winy);
+ 
+
     
   
   // create a new button with name 'buttonA'
@@ -424,8 +427,6 @@ void setup() {
   KalFilterP = new kalman(p_noise,s_noise,e_error,0.0);
   KalFilterR = new kalman(p_noise,s_noise,e_error,0.0);  
   KalFilterY = new kalman(p_noise,s_noise,e_error,0.0);  
-  
-  smooth();
 }
 
 int c;
@@ -1044,15 +1045,15 @@ void process_received_string(String myString)
   
   myString = trim(myString);
   String[] list = split(myString, ':');
-  println(myString);
+  //println(myString);
   
   if (list[0].contains(String.valueOf(ID_INFO)))
   {  
     deviceName = list[1];
     maj_ver = parseInt(list[2]);
     min_ver = parseInt(list[3]);
-    ID = list[4];
-    pos = parseInt(list[5]);
+    //ID = list[4];
+    //pos = parseInt(list[5]);
     println(deviceName+":"+maj_ver+"."+min_ver+" ID:"+ID+" POS:"+pos);
     isValidDevice = true;
     return;
@@ -1132,7 +1133,6 @@ void process_received_string(String myString)
 
   //println("roll: " + r + " pitch: " + p + " yaw: " + y + "\n"); //debug
   lastSerial = millis();
-
 }
 
 
