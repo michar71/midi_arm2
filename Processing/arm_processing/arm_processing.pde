@@ -1044,7 +1044,7 @@ void process_received_string(String myString)
   
   myString = trim(myString);
   String[] list = split(myString, ':');
-  //println(myString);
+  println(myString);
   
   if (list[0].contains(String.valueOf(ID_INFO)))
   {  
