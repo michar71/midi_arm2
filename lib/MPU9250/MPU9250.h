@@ -121,7 +121,7 @@ class MPU9250_ {
     // Other settings
     bool has_connected {false};
     bool b_ahrs {true};
-    bool b_verbose {false};
+    bool b_verbose {true};
     bool soft_gyro_cal {true};
 
     // I2C
@@ -204,7 +204,9 @@ public:
     }
 
     bool isConnectedMPU9250() {
+        Serial.println("Trying to get MPU9250 WHOAMI");
         byte c = read_byte(mpu_i2c_addr, WHO_AM_I_MPU9250);
+        Serial.println("Got WHOAMI");
         if (b_verbose) {
             Serial.print("MPU9250 WHO AM I = ");
             Serial.println(c, HEX);
@@ -216,7 +218,9 @@ public:
     }
 
     bool isConnectedAK8963() {
+        Serial.println("Trying to get AK8963WHOAMI");
         byte c = read_byte(AK8963_ADDRESS, AK8963_WHO_AM_I);
+        Serial.println("Got WHOAMI");
         if (b_verbose) {
             Serial.print("AK8963 WHO AM I = ");
             Serial.println(c, HEX);

@@ -31,7 +31,7 @@ int min_ver = 0;
 extern setup_t settings;
 
 
-int led_state = LOW;    // the current state of LED
+
 bool but_a_state = false;
 bool but_b_state = false;
 bool but_c_state = false;
@@ -57,8 +57,9 @@ void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b)
 }
 
 
-void toggle_led(void)
+void toggle_status_led(void)
 {
+    static int led_state = LOW;    // the current state of LED
     led_state = !led_state;
     digitalWrite(STATUS_LED, led_state);
 }
@@ -84,10 +85,9 @@ void setup()
     Serial.println("Startup...");
   #endif
     pinMode(STATUS_LED, OUTPUT);     
-    pinMode(ID_PIN,PULLUP);
+    pinMode(ID_PIN,INPUT_PULLUP);
         
-    delay(10);
-    settings_init();
+
     
   #ifdef DEBUG
     Serial.println("Pin Setup Done...");
@@ -97,20 +97,31 @@ void setup()
     if (digitalRead(ID_PIN) == LOW)
     {
       hasTouchpads = true;
+ #ifdef DEBUG      
+      Serial.println("Touchpads Enabled");
+#endif
     }
+
+    delay(10);
+    settings_init();
 
 
     //Init and test LED's
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
+   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
+
 
     setLED(0,64,0,0);
-    delay(200);
+    setLED(1,64,0,0);
+    delay(100);
     setLED(0,0,64,0);
-    delay(200);    
+    setLED(1,0,64,0);
+    delay(100);    
     setLED(0,0,0,64);
-    delay(200);
+    setLED(1,0,0,64);
+    delay(100);
     setLED(0,0,0,0); 
-
+    setLED(1,0,0,0); 
+    
   #ifdef DEBUG
     Serial.println("LED Setup Done...");
   #endif
@@ -126,33 +137,33 @@ void setup()
     {
       but_ctrl.setTouchMode(true);
       but_ctrl.setTouchThreshold(settings.th_but_ctrl,(uint16_t)TH_CUTOFF);
+
+      if ((settings.th_but_ctrl == 0) || (settings.th_but_a == 0) || (settings.th_but_b == 0)|| (settings.th_but_c == 0) || (settings.th_but_ctrl == 65535) || (settings.th_but_a == 65535) || (settings.th_but_b == 65535) || (settings.th_but_c == 65535))
+      {
+  #ifdef DEBUG
+        Serial.println("orced Touchpad Calibration!");
+  #endif      
+        setLED(1,255,0,255);
+        calibrate_buttons();
+        delay(1000);          
+        save_settings();  
+    }
+
     }
     else
     {
       but_ctrl.setTouchMode(false);
-      pinMode(BUT_CTRL,PULLUP);
-      pinMode(BUT_A,PULLUP);
-      pinMode(BUT_B,PULLUP);
-      pinMode(BUT_C,PULLUP);
+      pinMode(BUT_CTRL,INPUT_PULLUP);
+      pinMode(BUT_A,INPUT_PULLUP);
+      pinMode(BUT_B,INPUT_PULLUP);
+      pinMode(BUT_C,INPUT_PULLUP);
 
     }
-
-
 
     delay(120);
     setLED(0,0,64,0);
     delay(120);
     setLED(0,0,0,0);
-
-
-    if ((settings.th_but_ctrl == 0) || (settings.th_but_a == 0) || (settings.th_but_b == 0) || (settings.th_but_ctrl == 65535) || (settings.th_but_a == 65535) || (settings.th_but_b == 65535))
-    {
-      setLED(1,255,0,255);
-      calibrate_buttons();
-      delay(1000);          
-      save_settings();  
-    }
-
 
 #ifdef DEBUG
   Serial.println("Sensor Calib Load Done...");
@@ -237,8 +248,8 @@ void setup()
 //We need to illimate high outliers...
 void calibrate_buttons()
 {
-  uint16_t min[3] = {0xFFFF,0xFFFF,0xFFFF};
-  uint16_t max[3] = {0,0,0};
+  uint16_t min[4] = {0xFFFF,0xFFFF,0xFFFF,0xFFFF};
+  uint16_t max[4] = {0,0,0,0};
   uint16_t val = 0;
 
   //Do cal for 15 sec
@@ -260,13 +271,21 @@ void calibrate_buttons()
       if (val < min[1])
         min[1] = val;
     }
-    val = touchRead(BUT_CTRL);
+    val = touchRead(BUT_C);
     if (val<TH_CUTOFF)
     {
       if (val > max[2])
         max[2] = val;
       if (val < min[2])
         min[2] = val;
+    }    
+    val = touchRead(BUT_CTRL);
+    if (val<TH_CUTOFF)
+    {
+      if (val > max[3])
+        max[3] = val;
+      if (val < min[3])
+        min[3] = val;
     }
     delay(20);
   }
@@ -274,7 +293,8 @@ void calibrate_buttons()
   //(Is this a good idea? Do we need to exclude outlieers?)
   settings.th_but_a = min[0] + ((max[0] - min[0])/3*2);
   settings.th_but_b = min[1] + ((max[1] - min[1])/3*2);
-  settings.th_but_ctrl = min[2] + ((max[2] - min[2])/3*2);    
+  settings.th_but_c = min[2] + ((max[2] - min[2])/3*2);
+  settings.th_but_ctrl = min[3] + ((max[2] - min[3])/3*2);    
   but_ctrl.setTouchThreshold(settings.th_but_ctrl,TH_CUTOFF);
 }
 
@@ -387,7 +407,11 @@ void handle_buttons(void)
     else if (val < TH_CUTOFF)
       but_b_state = true; 
 
-    but_b_state = false;  
+    val = touchRead(BUT_C);  
+    if ((val < settings.th_but_c) && (val > (settings.th_but_c/100*60)))
+      but_c_state = false;
+    else if (val < TH_CUTOFF)
+      but_c_state = true; 
   }
   else
   {
@@ -399,7 +423,7 @@ void handle_buttons(void)
     if (digitalRead(BUT_B) == LOW)
       but_b_state = true; 
     else
-      but_c_state = false; 
+      but_b_state = false; 
 
     if (digitalRead(BUT_C) == LOW)
       but_c_state = true; 
@@ -452,7 +476,7 @@ void loop()
   //Heartbeat
   EVERY_N_SECONDS(1)
   {
-    toggle_led();
+    toggle_status_led();
   }
 }
 

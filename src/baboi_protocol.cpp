@@ -144,7 +144,6 @@ void send_info_data(void)
         AsyncUDPMessage message;
         message.printf("%s",send_data);    
         udp.broadcastTo(message, UDP_BROADCAST_PORT);
-        //udp.sendTo(message,comm_host_ip,UDP_BROADCAST_PORT); 
         delay(20);
     }
 #endif 

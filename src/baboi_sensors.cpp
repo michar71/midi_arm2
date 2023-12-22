@@ -348,7 +348,7 @@ void init_sensors(void)
     Wire1.begin(GLOVE_SDA, GLOVE_SCL,1000000);
 
     //TODO Chekc if needed here too...
-    i2c_scan(&Wire1,ADS1115_ADDR,127);
+    //i2c_scan(&Wire1,ADS1115_ADDR,127);
 
     if (!ads.begin(ADS1115_ADDR,&Wire1)) 
     {

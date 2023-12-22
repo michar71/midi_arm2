@@ -1,45 +1,44 @@
 #include "ButtonClass.h" 
-#include <math.h>
 #include "Arduino.h"
+
 
 ButtonClass::ButtonClass(uint8_t pin, bool isTouch)
 {
     this->isTouch = isTouch;
-    buttonID = pin;
+    this->buttonID = pin;
 }
 
 mode_button_e ButtonClass::check_button(void)
 {
-    static bool buttonPressed = false;
-    static unsigned long button_time = 0;
+
 
     if (isTouch == false)
     {
         //New Button Press
-        if ((LOW == digitalRead(buttonID)) && (buttonPressed == false))
+        if ((LOW == digitalRead(buttonID)) && (this->buttonPressed == false))
         {
-            buttonPressed = true;
-            button_time = millis();     
+            this->buttonPressed = true;
+            this->button_time = millis();  
             return DOWN; 
         }
-        else if ((HIGH == digitalRead(buttonID)) && (buttonPressed == true))
+        else if ((HIGH == digitalRead(buttonID)) && (this->buttonPressed == true))
         {
-            buttonPressed = false;
+            this->buttonPressed = false;
 
-            if ((millis() - button_time) > very_very_long_press_ms)
+            if ((millis() - this->button_time) > very_very_long_press_ms)
             {        
                 return VERY_VERY_LONG_PRESS;
             }        
-            else if ((millis() - button_time) > very_long_press_ms)
+            else if ((millis() - this->button_time) > very_long_press_ms)
             {        
                 return VERY_LONG_PRESS;
             }
-            else if ((millis() - button_time) > long_press_ms)
+            else if ((millis() - this->button_time) > long_press_ms)
             {         
                 return LONG_PRESS;
             }
-        else 
-            {            
+            else 
+            {          
                 return SHORT_PRESS;
             }
         }
@@ -48,31 +47,31 @@ mode_button_e ButtonClass::check_button(void)
     else
     {
         //New Button Press
-        uint16_t tb = touchRead(buttonID);
+        uint16_t tb = touchRead(this->buttonID);
 
-        if ((tb > touch_th) && (buttonPressed == false) && (tb < touch_cutoff))
+        if ((tb > this->touch_th) && (this->buttonPressed == false) && (tb < this->touch_cutoff))
         {
-            buttonPressed = true;
-            button_time = millis();     
+            this->buttonPressed = true;
+            this->button_time = millis();     
             return DOWN; 
         }
-        else if ((tb < touch_th) && (buttonPressed == true) && (tb > (touch_th/100*60)))
+        else if ((tb < this->touch_th) && (this->buttonPressed == true) && (tb > (this->touch_th/100*60)))
         {
-            buttonPressed = false;
+            this->buttonPressed = false;
 
-            if ((millis() - button_time) > very_very_long_press_ms)
+            if ((millis() - this->button_time) > this->very_very_long_press_ms)
             {        
                 return VERY_VERY_LONG_PRESS;
             }        
-            else if ((millis() - button_time) > very_long_press_ms)
+            else if ((millis() - this->button_time) >this-> very_long_press_ms)
             {        
                 return VERY_LONG_PRESS;
             }
-            else if ((millis() - button_time) > long_press_ms)
+            else if ((millis() - this->button_time) > this->long_press_ms)
             {         
                 return LONG_PRESS;
             }
-        else 
+            else 
             {            
                 return SHORT_PRESS;
             }

@@ -6,6 +6,7 @@
 #define TOUCH_TH_CTRL 23000
 #define TOUCH_TH_A 41000
 #define TOUCH_TH_B 27000
+#define TOUCH_TH_C 30000
 
 setup_t settings;
 
@@ -57,6 +58,8 @@ void print_settings()
     Serial.println(settings.th_but_a);
     Serial.print("Touch TH B: ");
     Serial.println(settings.th_but_b);    
+    Serial.print("Touch TH C: ");
+    Serial.println(settings.th_but_c);    
 
     Serial.println("");
     Serial.print("Tension Ch1 Min: ");
@@ -118,7 +121,8 @@ void default_settings_but()
 {
   settings.th_but_ctrl = TOUCH_TH_CTRL;
   settings.th_but_a = TOUCH_TH_A;
-  settings.th_but_b = TOUCH_TH_B;    
+  settings.th_but_b = TOUCH_TH_B;   
+  settings.th_but_c = TOUCH_TH_C;   
 }
 
 void init_settings_tension()
@@ -134,7 +138,8 @@ void init_settings_but()
 {
   settings.th_but_ctrl = 0;
   settings.th_but_a = 0;
-  settings.th_but_b = 0;    
+  settings.th_but_b = 0;   
+  settings.th_but_c = 0; 
 }
 
 void init_settings_other()

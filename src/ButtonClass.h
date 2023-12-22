@@ -30,6 +30,8 @@ class ButtonClass {
 private:
     uint16_t buttonID;
     bool isTouch;
+    bool buttonPressed = false;
+    unsigned long button_time = 0;
 
     uint16_t long_press_ms = LONG_PRESS_MS;
     uint16_t very_long_press_ms = VERY_LONG_PRESS_MS;

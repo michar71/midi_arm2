@@ -66,7 +66,7 @@ void setup_settings_webpage()
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
     response->print("<h1>Settings</h1><br><p>");
-    response->printf("Has Toucpads: %d <br>",checkForTouchpad());
+    response->printf("Has Touchpads: %d <br>",checkForTouchpad());
     response->printf("Has Glove: %d <br>",checkForGlove());
     
           
@@ -95,6 +95,7 @@ void setup_settings_webpage()
       response->printf("Touch TH CTRL: %d <br>",settings.th_but_ctrl); 
       response->printf("Touch TH A: %d <br>",settings.th_but_a); 
       response->printf("Touch TH B: %d <br>",settings.th_but_b);    
+      response->printf("Touch TH C: %d <br>",settings.th_but_c);  
     }
     response->printf("Tension Ch1 Min: %d <br>",settings.tension_min[0]); 
     response->printf("Tension Ch1 Max: %d <br>",settings.tension_max[0]); 
@@ -113,6 +114,14 @@ void setup_settings_webpage()
       response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
       response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
       response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
+      response->printf("BUTTON C VAL: %d <br>",touchRead(BUT_C));        
+    }
+    else
+    {
+      response->printf("BUTTON CTRL VAL: %d <br>",digitalRead(BUT_CTRL));  
+      response->printf("BUTTON A VAL: %d <br>",digitalRead(BUT_A));  
+      response->printf("BUTTON B VAL: %d <br>",digitalRead(BUT_B));  
+      response->printf("BUTTON C VAL: %d <br>",digitalRead(BUT_C));     
     }
     response->printf("TENSION CH1 VAL: %d <br>",ads1115_get_data(0));      
     response->printf("TENSION CH2 VAL: %d <br>",ads1115_get_data(1));    
