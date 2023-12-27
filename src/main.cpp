@@ -4,6 +4,14 @@
 #include "baboi_protocol.h"
 #include "baboi_sensors.h"
 
+
+#ifdef CORE_DEBUG_LEVEL
+#undef CORE_DEBUG_LEVEL
+#endif
+
+#define CORE_DEBUG_LEVEL 3
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+
 #ifdef WIFI
 
 
@@ -104,7 +112,20 @@ void setup()
 
     delay(10);
     settings_init();
-
+/*
+    pinMode(GLOVE_SCL,OUTPUT);
+    pinMode(GLOVE_SDA,OUTPUT);
+    while(1)
+    {
+      digitalWrite(GLOVE_SCL,HIGH);
+      digitalWrite(GLOVE_SDA,HIGH);
+      delay(50);
+      digitalWrite(GLOVE_SCL,LOW);
+      digitalWrite(GLOVE_SDA,LOW);
+      delay(50);
+      toggle_status_led();
+    }
+*/
 
     //Init and test LED's
    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
@@ -147,7 +168,7 @@ void setup()
         calibrate_buttons();
         delay(1000);          
         save_settings();  
-    }
+      }
 
     }
     else
@@ -172,6 +193,8 @@ void setup()
   else
   {
     mpu_init_settings();
+    init_settings_but();
+    init_settings_other();
     save_settings();
     delay(400);
     setLED(0,64,0,0);

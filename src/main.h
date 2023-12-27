@@ -19,7 +19,9 @@
 #define SCL 5
 
 #define GLOVE_SDA 40
-#define GLOVE_SCL 21
+#define GLOVE_SCL_OLD 21
+#define GLOVE_SCL 34
+
 #define ADS1115_ALERT_PIN 37
 
 #define DATA_PIN 39  //LED Pin

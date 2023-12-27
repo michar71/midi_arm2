@@ -23,10 +23,10 @@ bool hasGlove = false;
 
 
 #define ADS1115_ADDR  0x48     //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
-#define ADS1115_CH_COUNT 4
+#define ADS1115_CH_COUNT 3
 bool ADS1115_data_ready = false;
 uint8_t curr_ch = 0;
-int16_t ads1115_data[ADS1115_CH_COUNT] = {0,0,0,0};
+int16_t ads1115_data[ADS1115_CH_COUNT] = {0,0,0};
 
 #define MPU_ADDR 0x68
 
@@ -77,9 +77,11 @@ void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr)
  
       nDevices++;
     }
-    else if (error==4)
+    else
     {
-      Serial.print("Unknown error at address 0x");
+      Serial.print("Error ");
+      Serial.print(error);
+      Serial.print(" at address 0x");
       if (address<16)
         Serial.print("0");
       Serial.println(address,HEX);
@@ -204,7 +206,7 @@ bool ads1115_update()
       //Read Data via I2C
       //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
       ads1115_data[curr_ch] = ads.getLastConversionResults();
-      
+
       //Set Channel
       curr_ch++;
       if (curr_ch == ADS1115_CH_COUNT)
@@ -213,6 +215,7 @@ bool ads1115_update()
       //Start Conversion
       ADS1115_data_ready = false;
       ads.startADCReading(MUX_BY_CHANNEL[curr_ch], false);
+      return true;
     }
     else
     {
@@ -225,6 +228,50 @@ bool ads1115_update()
   }
 }
 
+
+bool ads1115_update_manual()
+{
+    if (hasGlove)
+  {
+    if (ads.conversionComplete())
+    {
+      //Read Data via I2C
+      //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
+      ads1115_data[curr_ch] = ads.getLastConversionResults();
+     
+      /*
+      Serial.print("ADV:");
+      Serial.print(ads1115_data[0]);
+      Serial.print("/");
+      Serial.print(ads1115_data[1]);
+      Serial.print("/");
+      Serial.print(ads1115_data[2]);
+      Serial.print("/");
+      Serial.print(ads1115_data[3]);              
+      Serial.println("");
+      */
+
+      //Set Channel
+      curr_ch++;
+      if (curr_ch == ADS1115_CH_COUNT)
+        curr_ch = 0;
+
+      //Start Conversion
+      ADS1115_data_ready = false;
+      ads.startADCReading(MUX_BY_CHANNEL[curr_ch], false);
+
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
 
 //Need to add calibration range adjustment here...
 int16_t ads1115_get_data(uint8_t ch)
@@ -239,7 +286,8 @@ int16_t ads1115_get_data(uint8_t ch)
 
 void glove_update(void)
 {
-    ads1115_update();
+    //ads1115_update();
+    ads1115_update_manual();
 }
 
 bool checkForGlove(void)
@@ -250,25 +298,18 @@ bool checkForGlove(void)
 void calibrate_tension(void)
 {
   uint8_t ccurr_ch = 0;
+
   if (hasGlove)
   {
     init_settings_tension();
 
-    //Wait for ADC
-    while (ADS1115_data_ready == false)
-    {
-      delay(1);
-    }
-
-    //Start ADC
-    ads.startADCReading(MUX_BY_CHANNEL[ccurr_ch], false);
-
-
     //Read Raw Values and calulate min/max. Filter out outliers.
-    for (int ii=0;ii< 1000 ;ii++)
+    for (int ii=0;ii< 500 ;ii++)
     {
+      //Start ADC
+      ads.startADCReading(MUX_BY_CHANNEL[ccurr_ch], false);
       //Wait for ADC
-      while (ADS1115_data_ready == false)
+      while (ads.conversionComplete() == false)
       {
         delay(1);
       }
@@ -291,12 +332,15 @@ void calibrate_tension(void)
       if (ccurr_ch == ADS1115_CH_COUNT)
         ccurr_ch = 0;
 
-      //Start ADC
-      ADS1115_data_ready = false;
-      ads.startADCReading(MUX_BY_CHANNEL[ccurr_ch], false);
-    
       //Wait a little bit
-      delay(4);
+      delay(2);
+    }
+
+    //We create some dead band around the middle for bertter range control.
+    for(int ii=0;ii<ADS1115_CH_COUNT;ii++)
+    {
+      //settings.tension_min[ii] = (int16_t)((float)settings.tension_min[ii] * 1.2);
+      //settings.tension_max[ii] = (int16_t)((float)settings.tension_max[ii] * 0.8);
     }
   }
 }
@@ -305,29 +349,21 @@ int16_t tension_get_ch(uint8_t ch)
 {
   int16_t val = 0;
   
-  if (adc_ch1_avg < 2000)
-    val = -1;
+  float res = 0;
+  res = map(ads1115_data[ch],settings.tension_min[ch],settings.tension_max[ch],0,255);
+  if (res<0)
+    val = 0;
+  else if (res>255)
+    val = 255;
   else
-  {
-    float res = 0;
-    res = map(ads1115_data[ch],settings.tension_min[ch],settings.tension_max[ch],0,255);
-    if (res<0)
-      val = 0;
-    else if (res>255)
-      val = 255;
-    else
-      val = round(res);  
-  }  
+    val = round(res);  
   return val;
 }
 
 
-
-
-//#TODO Chehck if we ca nget around these i2c scans... Take up a lot of time.....
 void init_sensors(void)
 {
-    Wire.begin(SDA, SCL,1000000);
+    Wire.begin(SDA, SCL,4000000);
 
     //Strange but needed
     i2c_scan(&Wire,MPU_ADDR,127);
@@ -338,17 +374,26 @@ void init_sensors(void)
         setLED(0,64,0,0);
         delay(5000);
         while(1)
-        {}
+        {
+          //NOTHING EWE CAN DO HERE>>> MAYBE PROPAGATE TO HOST SW? 
+        }
     }    
 
     delay(10);
 
+    //Just toggle I2C 
+
 
     //Instantiate glove wire interface
-    Wire1.begin(GLOVE_SDA, GLOVE_SCL,1000000);
 
-    //TODO Chekc if needed here too...
-    //i2c_scan(&Wire1,ADS1115_ADDR,127);
+    //HACKALERT!!!! Pin21 seems to have issues for I2C?
+    //Moving it over to 34 and set 21 has input to not interfere...
+    pinMode(GLOVE_SCL_OLD,INPUT);
+    Wire1.begin(GLOVE_SDA, GLOVE_SCL,1000000);
+    Wire1.setTimeOut(1);
+
+    //TODO Check if needed here too...
+    i2c_scan(&Wire1,ADS1115_ADDR,127);
 
     if (!ads.begin(ADS1115_ADDR,&Wire1)) 
     {
@@ -361,18 +406,16 @@ void init_sensors(void)
       hasGlove =true;
 
       //Setup IRQ
-      pinMode(ADS1115_ALERT_PIN, INPUT);
+      //pinMode(ADS1115_ALERT_PIN, INPUT);
       // We get a falling edge every time a new sample is ready.
-      attachInterrupt(ADS1115_ALERT_PIN, ads1115_irq, FALLING);
+      //attachInterrupt(ADS1115_ALERT_PIN, ads1115_irq, FALLING);
 
       //Start ADC
-
       ads.setGain(GAIN_TWO);
+      ads.setDataRate(RATE_ADS1115_475SPS);
+      curr_ch = 0;   
       ads.startADCReading(MUX_BY_CHANNEL[0], false);
-      curr_ch = 0;      
     }
-    
-
 
   #ifdef DEBUG
     Serial.println("Sensor Setup Done...");

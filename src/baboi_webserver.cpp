@@ -97,6 +97,7 @@ void setup_settings_webpage()
       response->printf("Touch TH B: %d <br>",settings.th_but_b);    
       response->printf("Touch TH C: %d <br>",settings.th_but_c);  
     }
+
     response->printf("Tension Ch1 Min: %d <br>",settings.tension_min[0]); 
     response->printf("Tension Ch1 Max: %d <br>",settings.tension_max[0]); 
     response->printf("Tension Ch2 Min: %d <br>",settings.tension_min[1]); 
@@ -105,6 +106,12 @@ void setup_settings_webpage()
     response->printf("Tension Ch3 Max: %d <br>",settings.tension_max[2]); 
     response->printf("Tension Ch4 Min: %d <br>",settings.tension_min[3]); 
     response->printf("Tension Ch4 Max: %d <br>",settings.tension_max[3]); 
+
+    response->printf("TENSION CH1 OUT: %d <br>",tension_get_ch(0));      
+    response->printf("TENSION CH2 OUT: %d <br>",tension_get_ch(1));    
+    response->printf("TENSION CH3 OUT: %d <br>",tension_get_ch(2));    
+    response->printf("TENSION CH4 OUT: %d <br>",tension_get_ch(3));   
+
 
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");
@@ -130,6 +137,7 @@ void setup_settings_webpage()
     response->printf("Current Pitch: %f <br>",mpu_GetCurrentPitch());  
     response->printf("Current Roll: %f <br>",mpu_GetCurrentRoll());  
     response->printf("Current Yaw: %f <br>",mpu_GetCurrentYaw());      
+    response->print("<a href=\"./\">Back</a><br><br>");       
     response->printf("</p>");    
     response->print("</body></html>");
     request->send(response);
