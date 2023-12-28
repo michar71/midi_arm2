@@ -443,8 +443,8 @@
       "idf": "",
       "netlist": "",
       "specctra_dsn": "",
-      "step": "",
-      "vrml": ""
+      "step": "midi_arm.step",
+      "vrml": "midi_arm.wrl"
     },
     "page_layout_descr_file": ""
   },

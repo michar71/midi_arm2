@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Layer_1"
+   data-name="Layer 1"
+   width="12.995616cm"
+   height="4.0143595cm"
+   viewBox="0 0 368.59705 113.79165"
+   version="1.1"
+   sodipodi:docname="Babo1 Glove Strip v2.6.svg"
+   inkscape:version="1.2.1 (9c6d41e4, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview12853"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="cm"
+     showgrid="false"
+     inkscape:zoom="2.0902083"
+     inkscape:cx="209.54849"
+     inkscape:cy="75.829762"
+     inkscape:window-width="2256"
+     inkscape:window-height="1269"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Layer_1" />
+  <defs
+     id="defs12844">
+    <style
+       id="style12842">
+      .cls-1 {
+        fill: none;
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: 0.1px;
+      }
+    </style>
+  </defs>
+  <path
+     class="cls-1"
+     d="m 15.167025,101.30932 a 66.55,66.55 0 0 0 38.380003,12.12 l 254.790002,0.27 c 0,0 17.72,0 17.72,-17.720001 0,-17.72 -17.75,-17.71 -17.75,-17.71 l -233.370002,-0.38 c 0,0 -21.26,0 -21.26,-21.26 0,-21.26 21.26,-21.26 21.26,-21.26 l 275.890002,0.27 c 0,0 17.72,0 17.72,-17.54 0,-17.90000041 -17.72,-17.90000041 -17.72,-17.90000041 l -297.420002,-0.26 A 66.6,66.6 0 0 0 15.227025,11.939319 l -11.9099999,8.33 a 7.68,7.68 0 0 0 -1.84,10.73 v 0 a 7.66,7.66 0 0 0 10.5599999,1.87 l 14.27,-9.76 a 51.71,51.71 0 0 1 29.190003,-9 l 295.330002,0.27 c 0,0 3.55,0 3.55,3.54 0,3.54 -3.55,3.54 -3.55,3.54 0,0 -196.7,-0.32 -269.000002,-0.33 a 163.57,163.57 0 0 0 -22.77,1.59 46.41,46.41 0 0 0 -6,1.3 l -17.86,5 c -5.83,1.64 -16.950003,7 -16.950003,13 v 29.16 c 0,6.07 11.120003,11.39 17.000003,13 l 17.87,5 a 48.08,48.08 0 0 0 6,1.29 163.44,163.44 0 0 0 22.54,1.56 l 226.650002,0.38 c 0,0 3.55,0 3.55,3.54 0,3.54 -3.55,3.55 -3.55,3.55 l -252.810002,-0.38 a 51.71,51.71 0 0 1 -29.190003,-9 l -14.27,-9.76 a 7.66,7.66 0 0 0 -10.5599999,1.86 v 0 a 7.66,7.66 0 0 0 1.83,10.72 z"
+     id="path12848"
+     style="stroke:#ff0000;stroke-opacity:1" />
+</svg>

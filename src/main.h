@@ -4,8 +4,7 @@
 #define main_h
 
 #include <Arduino.h>
-#include <FastLED.h>
-
+#include "FastLED.h"
 
 #define DEBUG
 #define WIFI
@@ -36,9 +35,6 @@
 
 #define STATUS_LED LED_BUILTIN //Assuming D2 here...
 
-// How many leds in your strip?
-#define NUM_LEDS 2
-
 
 typedef enum{
     STATE_STARTUP,
@@ -61,10 +57,11 @@ typedef struct{
 
 
 
-void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b);
 void setState(t_state newState);
 void calibrate_buttons();
 bool checkForTouchpad(void);
+void toggle_status_led(void);
+
 
 
 

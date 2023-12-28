@@ -1,6 +1,7 @@
 #include <arduino.h>
 #include "baboi_protocol.h"
 #include "baboi_sensors.h"
+#include "baboi_led.h"
 #include "settings.h"
 #include "main.h"
 

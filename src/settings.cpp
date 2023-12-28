@@ -48,7 +48,7 @@ void print_settings()
     Serial.println(settings.main_mag_scale_x);
     Serial.print("Mag Scale Y: ");
     Serial.println(settings.main_mag_scale_y);
-    Serial.print("Mag Scale Z X: ");
+    Serial.print("Mag Scale Z: ");
     Serial.println(settings.main_mag_scale_z);    
     Serial.println("");    
 

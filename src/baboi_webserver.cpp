@@ -1,5 +1,6 @@
 #include "baboi_webserver.h"
 #include "baboi_sensors.h"
+#include "baboi_led.h"
 #include <AsyncElegantOTA.h>
 #include "main.h"
 

@@ -3,7 +3,7 @@
 #include "settings.h"
 #include "baboi_protocol.h"
 #include "baboi_sensors.h"
-
+#include "baboi_led.h"
 
 #ifdef CORE_DEBUG_LEVEL
 #undef CORE_DEBUG_LEVEL
@@ -38,31 +38,16 @@ int min_ver = 0;
 
 extern setup_t settings;
 
-
-
 bool but_a_state = false;
 bool but_b_state = false;
 bool but_c_state = false;
 
 bool hasTouchpads = false;
 
-// Define the array of leds
-CRGB leds[NUM_LEDS];
-
 ButtonClass but_ctrl(BUT_CTRL,false);
 
 t_state state = STATE_STARTUP;
 t_state lastState = STATE_STARTUP;
-
-
-void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b)
-{
-    // Turn the LED on, then pause
-  leds[led].r= r/6;
-  leds[led].g= g/6;
-  leds[led].b= b/6;
-  FastLED.show();
-}
 
 
 void toggle_status_led(void)
@@ -112,36 +97,10 @@ void setup()
 
     delay(10);
     settings_init();
-/*
-    pinMode(GLOVE_SCL,OUTPUT);
-    pinMode(GLOVE_SDA,OUTPUT);
-    while(1)
-    {
-      digitalWrite(GLOVE_SCL,HIGH);
-      digitalWrite(GLOVE_SDA,HIGH);
-      delay(50);
-      digitalWrite(GLOVE_SCL,LOW);
-      digitalWrite(GLOVE_SDA,LOW);
-      delay(50);
-      toggle_status_led();
-    }
-*/
 
-    //Init and test LED's
-   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
+    led_init();
+    led_test();
 
-
-    setLED(0,64,0,0);
-    setLED(1,64,0,0);
-    delay(100);
-    setLED(0,0,64,0);
-    setLED(1,0,64,0);
-    delay(100);    
-    setLED(0,0,0,64);
-    setLED(1,0,0,64);
-    delay(100);
-    setLED(0,0,0,0); 
-    setLED(1,0,0,0); 
     
   #ifdef DEBUG
     Serial.println("LED Setup Done...");
@@ -494,6 +453,9 @@ void loop()
     process_state();
 
     sampleCount = 0;
+
+    //Handle Show Leds
+    handle_led();
   }
   
   //Heartbeat

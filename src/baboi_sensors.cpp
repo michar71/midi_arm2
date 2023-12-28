@@ -1,5 +1,6 @@
 #include <arduino.h>
 #include "baboi_sensors.h"
+#include "baboi_led.h"
 #include "MPU9250.h"
 #include <Adafruit_ADS1X15.h>
 #include "settings.h"
@@ -372,17 +373,24 @@ void init_sensors(void)
     { 
         Serial.println("ERROR initalizing MPU!");
         setLED(0,64,0,0);
-        delay(5000);
-        while(1)
-        {
-          //NOTHING EWE CAN DO HERE>>> MAYBE PROPAGATE TO HOST SW? 
-        }
     }    
 
-    delay(10);
-
-    //Just toggle I2C 
-
+    //Just toggle I2C lines to test continuity
+    /*
+    pinMode(GLOVE_SDA,OUTPUT);
+    pinMode(GLOVE_SCL,OUTPUT);
+    while(1)
+    {
+      digitalWrite(GLOVE_SDA,HIGH);
+      digitalWrite(GLOVE_SCL,HIGH);
+      delay(50);
+  
+      digitalWrite(GLOVE_SDA,LOW);
+      digitalWrite(GLOVE_SCL,LOW);
+      delay(50);
+      toggle_status_led();
+    }
+    */
 
     //Instantiate glove wire interface
 
@@ -390,7 +398,7 @@ void init_sensors(void)
     //Moving it over to 34 and set 21 has input to not interfere...
     pinMode(GLOVE_SCL_OLD,INPUT);
     Wire1.begin(GLOVE_SDA, GLOVE_SCL,1000000);
-    Wire1.setTimeOut(1);
+
 
     //TODO Check if needed here too...
     i2c_scan(&Wire1,ADS1115_ADDR,127);
