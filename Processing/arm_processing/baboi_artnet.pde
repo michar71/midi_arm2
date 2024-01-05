@@ -40,24 +40,27 @@ class baboi_artnet{
 
 
     val =(int)map(bpr.cr,bsr.minr, bsr.maxr, 0,255);
-    val = limit(val,0,255);
+    val = (int)constrain(val,0,255);
     dmxData[0] = (byte) val;
     
     val =(int)map(bpr.cp,bsr.minp, bsr.maxp, 255,0);
-    val = limit(val,0,255);
+    val = (int)constrain(val,0,255);
     dmxData[1] = (byte) val;
     
     val =(int)map(bpr.cy,bsr.miny, bsr.maxy, 0,255);
-    val = limit(val,0,255);
+    val = (int)constrain(val,0,255);
     dmxData[2] = (byte) val;
     
     val = (int)map(abs(bpr.accx),0,6,0,255);    
+    val = (int)constrain(val,0,255);
     dmxData[3] = (byte) val; 
 
     val = (int)map(abs(bpr.accy),0,6,0,255);    
+    val = (int)constrain(val,0,255);
     dmxData[4] = (byte) val; 
 
-    val = (int)map(abs(bpr.accz),0,6,0,255);    
+    val = (int)map(abs(bpr.accz),0,6,0,255);
+    val = (int)constrain(val,0,255);
     dmxData[5] = (byte) val; 
 
     //Send glove data if it exists

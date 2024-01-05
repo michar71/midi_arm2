@@ -59,10 +59,6 @@ int lastUpdate = 0;
 int lastSerial = 0;
 
 
-
-
-
-
 PVector getWindowLocation(String renderer) 
 {
   PVector l = new PVector();
@@ -260,17 +256,29 @@ void Network(boolean theFlag)
   bs.save_settings();    
 }
 
+
+void settings()
+{
+  bs = new baboi_settings();
+  bs.load_settings();
+   
+  if (bs.use2D)
+    size(400, 260,P2D);
+  else
+    size(400, 260,P3D);
+}
+
+
 void setup() {
    bp = new baboi_protocol();
-   bs = new baboi_settings();
+   
    bm = new baboi_midi(bp,bs);
    ba = new baboi_artnet(bp,bs);
 
   
   
-  bs.load_settings();
-   
-  size(400, 260,P3D);
+ //<>// //<>//
+  
   surface.setTitle("BABOI CONTROL");
   surface.setResizable(false);
   
@@ -279,11 +287,8 @@ void setup() {
   cp5 = new ControlP5(this);
   prepareExitHandler();
  
- 
 
-    
-  
-  // create a new button with name 'buttonA'
+  //Create UI
   cp5.addButton("Range")
      .setBroadcast(false)
      .setValue(0)
@@ -292,7 +297,6 @@ void setup() {
      .setBroadcast(true)
      ;
   
-  // and add another 2 buttons
   cp5.addButton("Map")
      .setBroadcast(false)
      .setValue(100)
@@ -346,11 +350,6 @@ void setup() {
      .setBroadcast(true)
      ;        
      
-
-     
-  //Create Midi Class Here
-   
-  //create Artnet Class here
   
   udp = new UDPHelper(this);
   udp.setLocalPort(baboi_port);
@@ -365,12 +364,9 @@ void setup() {
   KalFilterY = new kalman(p_noise,s_noise,e_error,0.0);  
 }
 
-int c;
+//int c;
 
 
-
-// function colorA will receive changes from 
-// controller with name colorA
 public void Range(int theValue) {
         if (isCal)
         {
@@ -384,8 +380,8 @@ public void Range(int theValue) {
         }
 }
 
-// function colorB will receive changes from 
-// controller with name colorB
+
+
 public void Map(int theValue) {
         if (isCal == false)
         isMap = !isMap;
@@ -533,6 +529,12 @@ void draw_cube()
 }
 
 
+void draw_horizon()
+{
+  text("T1:"+nf(bp.tension_ch1,0,2),5,70);
+  text("T2:"+nf(bp.tension_ch2,0,2),5,82);
+  text("T3:"+nf(bp.tension_ch3,0,2),5,94);
+}
 
 
 void check_timeout()
@@ -575,7 +577,14 @@ void draw()
     
   if (isConnected)
   {
-    draw_cube();
+    if (bs.use2D)
+    {
+      draw_horizon();
+    }
+    else
+    {
+      draw_cube();
+    }
     draw_labels();
   
     if (isCal)

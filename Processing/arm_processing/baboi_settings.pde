@@ -13,6 +13,7 @@ boolean artnet_en =false;
 boolean network_en =false;
 int winx;
 int winy;
+boolean use2D = false;
 
  public void load_settings()
 {
@@ -44,7 +45,19 @@ int winy;
     catch (Exception e)
     { //Print the type of error
       println("Error loading Preset", e);
-      return;  //Tried to connect but no success... Maybe already used?
+    }
+    
+    try
+    {
+      use2D = json.getBoolean("use2D");
+      if (use2D)
+        println("Force 2D Renderer");
+      else
+        println("Using 3D");
+    }
+    catch (Exception e)
+    { //Print the type of error
+      println("Using 3D");
     }
       
   }
