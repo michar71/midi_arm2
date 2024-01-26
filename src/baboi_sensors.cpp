@@ -24,10 +24,10 @@ bool hasGlove = false;
 
 
 #define ADS1115_ADDR  0x48     //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
-#define ADS1115_CH_COUNT 3
+#define ADS1115_CH_COUNT 4
 bool ADS1115_data_ready = false;
 uint8_t curr_ch = 0;
-int16_t ads1115_data[ADS1115_CH_COUNT] = {0,0,0};
+int16_t ads1115_data[ADS1115_CH_COUNT];
 
 #define MPU_ADDR 0x68
 
@@ -240,7 +240,7 @@ bool ads1115_update_manual()
       //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
       ads1115_data[curr_ch] = ads.getLastConversionResults();
      
-      /*
+      
       Serial.print("ADV:");
       Serial.print(ads1115_data[0]);
       Serial.print("/");
@@ -250,7 +250,7 @@ bool ads1115_update_manual()
       Serial.print("/");
       Serial.print(ads1115_data[3]);              
       Serial.println("");
-      */
+      
 
       //Set Channel
       curr_ch++;
@@ -371,33 +371,18 @@ void init_sensors(void)
 
     if (!mpu.setup(MPU_ADDR)) 
     { 
-        Serial.println("ERROR initalizing MPU!");
+        Serial.println("ailed to initialize MPU9250. No Gyro/Acc/Mag.");
         setLED(0,64,0,0);
     }    
 
-    //Just toggle I2C lines to test continuity
-    /*
-    pinMode(GLOVE_SDA,OUTPUT);
-    pinMode(GLOVE_SCL,OUTPUT);
-    while(1)
-    {
-      digitalWrite(GLOVE_SDA,HIGH);
-      digitalWrite(GLOVE_SCL,HIGH);
-      delay(50);
-  
-      digitalWrite(GLOVE_SDA,LOW);
-      digitalWrite(GLOVE_SCL,LOW);
-      delay(50);
-      toggle_status_led();
-    }
-    */
+    delay(1000);
 
     //Instantiate glove wire interface
 
     //HACKALERT!!!! Pin21 seems to have issues for I2C?
     //Moving it over to 34 and set 21 has input to not interfere...
-    pinMode(GLOVE_SCL_OLD,INPUT);
-    Wire1.begin(GLOVE_SDA, GLOVE_SCL,1000000);
+    //pinMode(GLOVE_SCL_OLD,INPUT);
+    Wire1.begin(GLOVE_SDA, GLOVE_SCL,4000000);
 
 
     //TODO Check if needed here too...
@@ -419,8 +404,8 @@ void init_sensors(void)
       //attachInterrupt(ADS1115_ALERT_PIN, ads1115_irq, FALLING);
 
       //Start ADC
-      ads.setGain(GAIN_TWO);
-      ads.setDataRate(RATE_ADS1115_475SPS);
+      ads.setGain(GAIN_FOUR);
+      ads.setDataRate(RATE_ADS1115_128SPS);
       curr_ch = 0;   
       ads.startADCReading(MUX_BY_CHANNEL[0], false);
     }

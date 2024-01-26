@@ -67,8 +67,8 @@ void build_processing_data(bool senddata)
   {
     tension_ch1 = tension_get_ch(0);
     tension_ch2 = tension_get_ch(1);
-    tension_ch3 = tension_get_ch(2);
-    tension_ch4 = -1;            
+    tension_ch3 = -1; //tension_get_ch(2);
+    tension_ch4 = -1; //tension_get_ch(3);          
   }
 
 

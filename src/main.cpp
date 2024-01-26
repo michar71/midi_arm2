@@ -189,15 +189,17 @@ void setup()
     }
 
 
+    //Not configurede? Just create Access Point....
     if (!res)
     {
-      WiFi.softAP(devicename,NULL,7);
-      IPAddress IP = WiFi.softAPIP();
-      delay(100);
-      Serial.println("Setting the AP");
+      Serial.print("Setting the AP:");
+      Serial.println(devicename);
       IPAddress Ip(192, 168, 1, 1);    //set to IP Access Point same as gateway
       IPAddress NMask(255, 255, 255, 0);
       WiFi.softAPConfig(Ip, Ip, NMask);
+      WiFi.softAP(devicename,NULL,7);
+      delay(100);
+      IPAddress IP = WiFi.softAPIP();   
       Serial.print("AP IP address: ");
       Serial.println(IP);
     }
@@ -438,7 +440,7 @@ void loop()
   }
 
   //Handle Tension Strips
-  EVERY_N_MILLIS(16)  //60 times/sec    
+  //EVERY_N_MILLIS(16)  //60 times/sec    
   {
     glove_update();
   }

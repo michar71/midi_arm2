@@ -505,6 +505,9 @@ void draw_cube()
     translate(-180, 0, 100); 
   }
   
+  
+  //Hard-Disable Ch 3/4 for the moment
+  /*
   if (bp.tension_ch3 != -1)
   {
     translate(-180, 0, -200); 
@@ -517,7 +520,7 @@ void draw_cube()
     box(50, bp.tension_ch4, 50);
     translate(-180, 0, 200); 
   }
-  
+  */
   
   rotateY(y);//yaw
   rotateX(p);//pitch

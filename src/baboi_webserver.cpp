@@ -354,7 +354,7 @@ void setup_cal_gyro_acc_webpage()
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
     response->printf("<h1>Gyro/Accelerometer calibration in Progress</h1><br><p>");
-    response->printf("Keep your arm on the falt suerface until the calibration light turns off.<br>");
+    response->printf("Keep your arm on the flat surface until the calibration light turns off.<br>");
     response->print("<a href=\"./\">Back</a><br><br>");       
     response->printf("</p>");    
     response->print("</body></html>");

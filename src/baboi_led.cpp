@@ -7,6 +7,17 @@
 CRGB leds[NUM_LEDS];
 
 
+typedef enum{
+  LED_NONE,
+  LED_CYLON,
+  LED_ACC,
+  LED_GYRO,
+  LED_ACC_GYRO,
+  LED_ARTNET
+}T_LED_PROGRAM;
+
+T_LED_PROGRAM current_led_program = LED_NONE;        
+
 void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b)
 {
     // Turn the LED on, then pause
@@ -77,10 +88,27 @@ void led_control(byte r, byte g, byte b, byte start, byte end)
 void handle_led(void)
 {
     //Do LED Stuff
-    byte r = (byte)round(map(mpu_GetCurrentYaw(),-PI,PI,0,255));
-    byte g = (byte)round(map(mpu_GetCurrentPitch(),-PI,PI,0,255));
-    byte b = (byte)round(map(mpu_GetCurrentRoll(),-PI,PI,0,255));
-    led_control(r, g, b, 0, NUM_STRIP);
+    switch (current_led_program)
+    {
+      case LED_NONE:
+      {
+        led_control(0, 0, 0, 0, NUM_STRIP);        
+        break;
+      }
+      case LED_GYRO:
+      {
+        byte r = (byte)round(map(mpu_GetCurrentYaw(),-PI,PI,0,255));
+        byte g = (byte)round(map(mpu_GetCurrentPitch(),-PI,PI,0,255));
+        byte b = (byte)round(map(mpu_GetCurrentRoll(),-PI,PI,0,255));
+        led_control(r, g, b, 0, NUM_STRIP);
+        break;
+      }
+    }
+}
+
+void set_led_program(int prog)
+{
+  current_led_program = (T_LED_PROGRAM)prog;
 }
 
 void led_init(void)

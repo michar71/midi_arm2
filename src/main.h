@@ -18,8 +18,8 @@
 #define SCL 5
 
 #define GLOVE_SDA 40
-#define GLOVE_SCL_OLD 21
-#define GLOVE_SCL 34
+//#define GLOVE_SCL_OLD 21   //Old SCL Pin
+#define GLOVE_SCL 21
 
 #define ADS1115_ALERT_PIN 37
 
