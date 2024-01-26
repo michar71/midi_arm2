@@ -121,7 +121,7 @@ void setup()
       if ((settings.th_but_ctrl == 0) || (settings.th_but_a == 0) || (settings.th_but_b == 0)|| (settings.th_but_c == 0) || (settings.th_but_ctrl == 65535) || (settings.th_but_a == 65535) || (settings.th_but_b == 65535) || (settings.th_but_c == 65535))
       {
   #ifdef DEBUG
-        Serial.println("orced Touchpad Calibration!");
+        Serial.println("Forced Touchpad Calibration!");
   #endif      
         setLED(1,255,0,255);
         calibrate_buttons();

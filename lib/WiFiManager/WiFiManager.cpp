@@ -2319,6 +2319,10 @@ void WiFiManager::handleExit() {
   server->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate")); // @HTTPHEAD send cache
   HTTPSend(page);
   delay(2000);
+
+  //Patch Close Webserver so we release the port
+  stopConfigPortal();
+  delay(2000);
   abort = true;
 }
 

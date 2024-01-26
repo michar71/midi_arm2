@@ -332,8 +332,11 @@ void setup_cal_question_webpage()
        response->print("<a href=\"./calbuttons\">Calibrate Buttons</a><br><br>");     
     }
     
-    response->printf("Calibrate the Calibrate thew glove by repeatly flexing and stretching your fingers.<br>");
-    response->print("<a href=\"./caltension\">Calibrate Glove</a><br><br>");          
+    if (checkForGlove())
+    {
+      response->printf("Calibrate the Calibrate thew glove by repeatly flexing and stretching your fingers.<br>");
+      response->print("<a href=\"./caltension\">Calibrate Glove</a><br><br>");          
+    }
     response->print("<br><a href=\"./\">Cancel</a><br><br>");   
     response->printf("</p>");    
     response->print("</body></html>");
