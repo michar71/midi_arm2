@@ -43,8 +43,12 @@ bool but_b_state = false;
 bool but_c_state = false;
 
 bool hasTouchpads = false;
+bool touchpadsForStrips = true;   //Use Touchpads A/B/C in Analog Mode   as input for strips....
 
-ButtonClass but_ctrl(BUT_CTRL,false);
+ButtonClass but_ctrl(BUT_CTRL,false,false);
+ButtonClass but_a(BUT_A,false,false);
+ButtonClass but_b(BUT_B,false,false);
+ButtonClass but_c(BUT_C,false,false);
 
 t_state state = STATE_STARTUP;
 t_state lastState = STATE_STARTUP;
@@ -94,6 +98,13 @@ void setup()
       Serial.println("Touchpads Enabled");
 #endif
     }
+    else
+    {
+      hasTouchpads = false;
+ #ifdef DEBUG      
+      Serial.println("Buttons Enabled");
+#endif
+    }
 
     delay(10);
     settings_init();
@@ -101,6 +112,69 @@ void setup()
     led_init();
     led_test();
 
+    if (checkForTouchpad())
+    {
+      but_ctrl.setTouchMode(true);
+      but_a.setTouchMode(true);
+      but_b.setTouchMode(true);
+      but_c.setTouchMode(true);            
+
+      but_ctrl.setTouchThresholds(TOUCH_TH_CTRL-20000,TOUCH_TH_CTRL+20000);
+      but_a.setTouchThresholds(TOUCH_TH_A-20000,TOUCH_TH_A+20000);
+      but_b.setTouchThresholds(TOUCH_TH_B-20000,TOUCH_TH_B+20000);
+      but_c.setTouchThresholds(TOUCH_TH_C-20000,TOUCH_TH_C+20000);
+
+
+      //Reset everything if all buttons are pressed...
+      if ((but_ctrl.check_button() == DOWN) && (but_a.check_button() == DOWN) && (but_b.check_button() == DOWN) && (but_c.check_button() == DOWN))
+      {
+        init_settings_acc_gyro();
+        init_settings_mag();
+        init_settings_but();
+        init_settings_other();
+        save_settings();
+        setLED(1,64,64,64);
+        delay(250);
+        setLED(0,0,0,0);
+      }    
+    }
+    else
+    {
+      but_ctrl.setTouchMode(false);
+      pinMode(BUT_CTRL,INPUT_PULLUP);
+      pinMode(BUT_A,INPUT_PULLUP);
+      pinMode(BUT_B,INPUT_PULLUP);
+      pinMode(BUT_C,INPUT_PULLUP);
+      delay(1);
+      //Reset everything if all buttons are down
+      if ((digitalRead(BUT_A) == LOW) && (digitalRead(BUT_A) == LOW) && (digitalRead(BUT_A) == LOW) && (digitalRead(BUT_A) == LOW))
+      {
+        init_settings_acc_gyro();
+        init_settings_mag();
+        init_settings_but();
+        init_settings_other();
+        save_settings();
+        setLED(1,64,64,64);
+        delay(250);
+        setLED(0,0,0,0);
+      }      
+    }
+
+    //SPECIAL CASE TEST ONLY
+    if (CheckTouchpadsForStrips())
+    {
+      but_a.setTouchMode(true);
+      but_b.setTouchMode(true);
+      but_c.setTouchMode(true);            
+
+      but_a.setTouchThresholds(0xffff,0);
+      but_b.setTouchThresholds(0xffff,0);
+      but_c.setTouchThresholds(0xffff,0);
+
+      but_a.setAutocal(true);
+      but_b.setAutocal(true);
+      but_c.setAutocal(true);            
+    }
     
   #ifdef DEBUG
     Serial.println("LED Setup Done...");
@@ -111,14 +185,19 @@ void setup()
 
   if (load_settings())
   {
-    mpu_set_settings();
+    if (checkForGyro())
+    {
+      mpu_set_settings();
+    }
 
     if (checkForTouchpad())
     {
-      but_ctrl.setTouchMode(true);
-      but_ctrl.setTouchThreshold(settings.th_but_ctrl,(uint16_t)TH_CUTOFF);
+      but_a.setTouchThresholds(settings.th_but_a_min,settings.th_but_a_max);
+      but_b.setTouchThresholds(settings.th_but_b_min,settings.th_but_b_max);
+      but_c.setTouchThresholds(settings.th_but_c_min,settings.th_but_c_max);        
+      but_ctrl.setTouchThresholds(settings.th_but_ctrl_min,settings.th_but_ctrl_max);
 
-      if ((settings.th_but_ctrl == 0) || (settings.th_but_a == 0) || (settings.th_but_b == 0)|| (settings.th_but_c == 0) || (settings.th_but_ctrl == 65535) || (settings.th_but_a == 65535) || (settings.th_but_b == 65535) || (settings.th_but_c == 65535))
+      if ((settings.th_but_ctrl_max == 0) || (settings.th_but_a_max == 0) || (settings.th_but_b_max == 0)|| (settings.th_but_c_max == 0) || (settings.th_but_ctrl_min == 65535) || (settings.th_but_a_min == 65535) || (settings.th_but_b_min == 65535) || (settings.th_but_c_min == 65535))
       {
   #ifdef DEBUG
         Serial.println("Forced Touchpad Calibration!");
@@ -128,18 +207,7 @@ void setup()
         delay(1000);          
         save_settings();  
       }
-
     }
-    else
-    {
-      but_ctrl.setTouchMode(false);
-      pinMode(BUT_CTRL,INPUT_PULLUP);
-      pinMode(BUT_A,INPUT_PULLUP);
-      pinMode(BUT_B,INPUT_PULLUP);
-      pinMode(BUT_C,INPUT_PULLUP);
-
-    }
-
     delay(120);
     setLED(0,0,64,0);
     delay(120);
@@ -275,11 +343,18 @@ void calibrate_buttons()
   }
   //Take average of min/max
   //(Is this a good idea? Do we need to exclude outlieers?)
-  settings.th_but_a = min[0] + ((max[0] - min[0])/3*2);
-  settings.th_but_b = min[1] + ((max[1] - min[1])/3*2);
-  settings.th_but_c = min[2] + ((max[2] - min[2])/3*2);
-  settings.th_but_ctrl = min[3] + ((max[2] - min[3])/3*2);    
-  but_ctrl.setTouchThreshold(settings.th_but_ctrl,TH_CUTOFF);
+  settings.th_but_a_min = min[0];
+  settings.th_but_a_max = max[0];
+  settings.th_but_a_min = min[1];
+  settings.th_but_a_max = max[1];
+  settings.th_but_a_min = min[2];
+  settings.th_but_a_max = max[2];
+  settings.th_but_ctrl_min = min[3];    
+  settings.th_but_ctrl_max = max[3];    
+  but_a.setTouchThresholds(settings.th_but_a_min,settings.th_but_a_max);
+  but_b.setTouchThresholds(settings.th_but_b_min,settings.th_but_b_max);
+  but_c.setTouchThresholds(settings.th_but_c_min,settings.th_but_c_max);        
+  but_ctrl.setTouchThresholds(settings.th_but_ctrl_min,settings.th_but_ctrl_max);
 }
 
 
@@ -378,24 +453,17 @@ void handle_buttons(void)
 
   if (checkForTouchpad())
   {
-    int val = 0;
-    val = touchRead(BUT_A);
-    if ((val < settings.th_but_a) && (val > (settings.th_but_a/100*60)))
       but_a_state = false;
-    else if (val < TH_CUTOFF)
-      but_a_state = true; 
+      if (but_a.check_button() == DOWN)
+        but_a_state = true; 
 
-    val = touchRead(BUT_B);  
-    if ((val < settings.th_but_b) && (val > (settings.th_but_b/100*60)))
       but_b_state = false;
-    else if (val < TH_CUTOFF)
-      but_b_state = true; 
+      if (but_b.check_button() == DOWN)
+        but_b_state = true; 
 
-    val = touchRead(BUT_C);  
-    if ((val < settings.th_but_c) && (val > (settings.th_but_c/100*60)))
-      but_c_state = false;
-    else if (val < TH_CUTOFF)
-      but_c_state = true; 
+      but_b_state = false;
+      if (but_b.check_button() == DOWN)
+        but_b_state = true; 
   }
   else
   {
@@ -421,6 +489,23 @@ bool checkForTouchpad(void)
   return hasTouchpads;
 }
 
+
+bool CheckTouchpadsForStrips(void)
+{
+  return touchpadsForStrips;
+}
+
+uint16_t getTouchAnalogValue(uint8_t pad)
+{
+  if (pad == 2)
+    return but_c.getTouchAnalog(255);
+  else if (pad == 1)
+    return but_b.getTouchAnalog(255);
+  else
+    return but_a.getTouchAnalog(255);        
+}
+
+
 void loop() 
 {
   static uint16_t sampleCount = 0;
@@ -433,14 +518,18 @@ void loop()
   incoming_protocol_request();
 
   //Handle Motion Data
-  if (mpu_update() == false) 
+  if (checkForGyro())
   {
-    //MPU ERROR
-    //Not sure what to do
+    if (mpu_update() == false) 
+    {
+      //MPU ERROR
+      //Not sure what to do
+    }
   }
 
   //Handle Tension Strips
   //EVERY_N_MILLIS(16)  //60 times/sec    
+  if (checkForGlove())
   {
     glove_update();
   }

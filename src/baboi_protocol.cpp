@@ -52,12 +52,23 @@ extern int min_ver;
 
 void build_processing_data(bool senddata)
 {
-  float yaw_val = mpu_GetCurrentYaw();
-  float pitch_val = mpu_GetCurrentPitch();
-  float roll_val = mpu_GetCurrentRoll();  
-  float ax_val = mpu_GetCurrentAX();
-  float ay_val = mpu_GetCurrentAY();  
-  float az_val = mpu_GetCurrentAZ();
+  float yaw_val = 0;
+  float pitch_val = 0;
+  float roll_val = 0;
+  float ax_val = 0;
+  float ay_val = 0;
+  float az_val = 0;
+
+  if (checkForGyro())
+  {
+    yaw_val = mpu_GetCurrentYaw();
+    pitch_val = mpu_GetCurrentPitch();
+    roll_val = mpu_GetCurrentRoll();  
+    ax_val = mpu_GetCurrentAX();
+    ay_val = mpu_GetCurrentAY();  
+    az_val = mpu_GetCurrentAZ();
+  }
+
   int16_t tension_ch1 = -1;
   int16_t tension_ch2 = -1;
   int16_t tension_ch3 = -1;
@@ -69,6 +80,19 @@ void build_processing_data(bool senddata)
     tension_ch2 = tension_get_ch(1);
     tension_ch3 = -1; //tension_get_ch(2);
     tension_ch4 = -1; //tension_get_ch(3);          
+  }
+
+  //Special Case for tresting !!!!
+  if(CheckTouchpadsForStrips())
+  {
+    tension_ch1 = getTouchAnalogValue(0);
+    tension_ch2 = getTouchAnalogValue(1);
+    tension_ch3 = getTouchAnalogValue(2);      
+    Serial.print(tension_ch1);
+    Serial.print("/");  
+    Serial.print(tension_ch2);
+    Serial.print("/");  
+    Serial.println(tension_ch3);          
   }
 
 

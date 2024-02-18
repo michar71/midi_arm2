@@ -21,6 +21,7 @@ uint16_t adc_ch1_avg = 0;
 uint16_t adc_ch2_avg = 0;
 
 bool hasGlove = false;
+bool hasGyro = false;
 
 
 #define ADS1115_ADDR  0x48     //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
@@ -77,6 +78,18 @@ void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr)
       Serial.println("  !");
  
       nDevices++;
+    }
+
+    else if (error == 5)
+    {
+      Serial.print("Timeout Error on Bus");
+      Serial.print(error);
+      Serial.print(" at address 0x");
+      if (address<16)
+        Serial.print("0");
+      Serial.println(address,HEX);
+      Serial.print("Aborting Scan");
+      return;
     }
     else
     {
@@ -143,11 +156,6 @@ void mpu_cal_mag(void)
 }
 
 
-
-//Need to fit the infite roational code here from the Kaslman filter processing
-//in the Processing sketch. Still doesn't solve windup from multiple roatations.
-//Maybe do that calculation after the offset...
-
 float mpu_GetCurrentYaw(void)
 {
   //return (mpu.getYaw() * DEG_TO_RAD) + settings.offset_yaw;
@@ -200,7 +208,7 @@ IRAM_ATTR void ads1115_irq()
 //Need to add downsampling to correct range here....
 bool ads1115_update()
 {
-  if (hasGlove)
+  if (checkForGlove())
   {
     if (ADS1115_data_ready)
     {
@@ -232,7 +240,6 @@ bool ads1115_update()
 
 bool ads1115_update_manual()
 {
-    if (hasGlove)
   {
     if (ads.conversionComplete())
     {
@@ -268,10 +275,6 @@ bool ads1115_update_manual()
       return false;
     }
   }
-  else
-  {
-    return false;
-  }
 }
 
 //Need to add calibration range adjustment here...
@@ -296,11 +299,17 @@ bool checkForGlove(void)
   return hasGlove;
 }
 
+bool checkForGyro(void)
+{
+  return hasGyro;
+}
+
+
 void calibrate_tension(void)
 {
   uint8_t ccurr_ch = 0;
 
-  if (hasGlove)
+  if (checkForGlove())
   {
     init_settings_tension();
 
@@ -337,7 +346,7 @@ void calibrate_tension(void)
       delay(2);
     }
 
-    //We create some dead band around the middle for bertter range control.
+    //We create some dead band around the middle for better range control.
     for(int ii=0;ii<ADS1115_CH_COUNT;ii++)
     {
       //settings.tension_min[ii] = (int16_t)((float)settings.tension_min[ii] * 1.2);
@@ -364,51 +373,46 @@ int16_t tension_get_ch(uint8_t ch)
 
 void init_sensors(void)
 {
-    Wire.begin(SDA, SCL,4000000);
+  //Stantiate Gyro interface
+  //------------------------
+  Wire.begin(SDA, SCL,4000000);
+  //Strange but needed
+  i2c_scan(&Wire,MPU_ADDR,127);
+  if (!mpu.setup(MPU_ADDR)) 
+  { 
+      Serial.println("Failed to initialize MPU9250. No Gyro/Acc/Mag.");
+      setLED(0,64,0,0);
+      hasGyro = false;
+  }    
+  hasGyro = true;
+  delay(200);
 
-    //Strange but needed
-    i2c_scan(&Wire,MPU_ADDR,127);
+  //Instantiate glove wire interface
+  //--------------------------------
+  Wire1.begin(GLOVE_SDA, GLOVE_SCL,4000000);
+  //TODO Check if needed here too...
+  i2c_scan(&Wire1,ADS1115_ADDR,127);
+  if (!ads.begin(ADS1115_ADDR,&Wire1)) 
+  {
+    Serial.println("Failed to initialize ADS1115. No Glove.");
+    hasGlove = false;
+  }
+  else
+  {
+    Serial.println("ADS1115 Ready. Found Glove.");
+    hasGlove =true;
 
-    if (!mpu.setup(MPU_ADDR)) 
-    { 
-        Serial.println("ailed to initialize MPU9250. No Gyro/Acc/Mag.");
-        setLED(0,64,0,0);
-    }    
+    //Setup IRQ
+    //pinMode(ADS1115_ALERT_PIN, INPUT);
+    // We get a falling edge every time a new sample is ready.
+    //attachInterrupt(ADS1115_ALERT_PIN, ads1115_irq, FALLING);
 
-    delay(1000);
-
-    //Instantiate glove wire interface
-
-    //HACKALERT!!!! Pin21 seems to have issues for I2C?
-    //Moving it over to 34 and set 21 has input to not interfere...
-    //pinMode(GLOVE_SCL_OLD,INPUT);
-    Wire1.begin(GLOVE_SDA, GLOVE_SCL,4000000);
-
-
-    //TODO Check if needed here too...
-    i2c_scan(&Wire1,ADS1115_ADDR,127);
-
-    if (!ads.begin(ADS1115_ADDR,&Wire1)) 
-    {
-      Serial.println("Failed to initialize ADS1115. No Glove.");
-      hasGlove = false;
-    }
-    else
-    {
-      Serial.println("ADS1115 Ready. Found Glove.");
-      hasGlove =true;
-
-      //Setup IRQ
-      //pinMode(ADS1115_ALERT_PIN, INPUT);
-      // We get a falling edge every time a new sample is ready.
-      //attachInterrupt(ADS1115_ALERT_PIN, ads1115_irq, FALLING);
-
-      //Start ADC
-      ads.setGain(GAIN_FOUR);
-      ads.setDataRate(RATE_ADS1115_128SPS);
-      curr_ch = 0;   
-      ads.startADCReading(MUX_BY_CHANNEL[0], false);
-    }
+    //Start ADC
+    ads.setGain(GAIN_FOUR);
+    ads.setDataRate(RATE_ADS1115_128SPS);
+    curr_ch = 0;   
+    ads.startADCReading(MUX_BY_CHANNEL[0], false);
+  }
 
   #ifdef DEBUG
     Serial.println("Sensor Setup Done...");

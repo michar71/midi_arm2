@@ -22,6 +22,7 @@ bool ads1115_update_manual();
 int16_t ads1115_get_data(uint8_t ch);
 void glove_update(void);
 bool checkForGlove(void);
+bool checkForGyro(void);
 
 void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr);
 void init_sensors(void);

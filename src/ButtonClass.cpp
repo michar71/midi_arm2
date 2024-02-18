@@ -1,11 +1,21 @@
 #include "ButtonClass.h" 
 #include "Arduino.h"
 
+//Advanced auto Cal for touch
 
-ButtonClass::ButtonClass(uint8_t pin, bool isTouch)
+//Start with an inital Threshold (calibration?) Value
+//Update Min/Max Over Time, put threshold in the middle
+//Smooth out Min/Max by removing outliers through filter
+//Allow to store/set min/max
+//Q: Should we reset things at some point so they can use downwards again?
+//Maybe rectec outliers at some point?
+
+ButtonClass::ButtonClass(uint8_t pin, bool isTouch,bool isAutoCalc)
 {
     this->isTouch = isTouch;
     this->buttonID = pin;
+    this->autocal = isAutoCalc;
+    this->touch_th =  (this->min_touch + this->max_touch) / 2;
 }
 
 mode_button_e ButtonClass::check_button(void)
@@ -49,7 +59,20 @@ mode_button_e ButtonClass::check_button(void)
         //New Button Press
         uint16_t tb = touchRead(this->buttonID);
 
-        if ((tb > this->touch_th) && (this->buttonPressed == false) && (tb < this->touch_cutoff))
+        //Record min/max
+        if (tb < this->min_touch)
+            this->min_touch = tb;
+        else if (tb>this->max_touch)
+            this->max_touch = tb;
+
+        //Recalulate the middle threshold
+        if (this->autocal)
+        {
+            this->touch_th = (this->min_touch + this->max_touch) / 2;
+        }    
+
+
+        if ((tb > this->touch_th) && (this->buttonPressed == false))
         {
             this->buttonPressed = true;
             this->button_time = millis();     
@@ -87,13 +110,43 @@ void ButtonClass::setTiming(uint16_t long_press_ms,uint16_t very_long_press_ms,u
     this->very_very_long_press_ms = very_very_long_press_ms;
 }
 
-void ButtonClass::setTouchThreshold(uint16_t touch_th,uint16_t touch_cutoff)
+void ButtonClass::setTouchThresholds(uint16_t touch_th_low,uint16_t touch_th_high)
 {
-    this->touch_th = touch_th;
-    this->touch_cutoff = touch_cutoff;
+    this->min_touch = touch_th_low;
+    this->max_touch = touch_th_high;
+    this->touch_th =  (this->min_touch + this->max_touch) / 2;
 }
 
 void ButtonClass::setTouchMode(bool touch)
 {
     this->isTouch = touch;
+}
+
+void ButtonClass::setAutocal(bool a)
+{
+    this->autocal = a;
+}
+
+
+uint16_t ButtonClass::getTouchThresholdHigh(void)
+{
+    return this->max_touch;
+}
+
+uint16_t ButtonClass::getTouchThresholdLow(void)
+{
+    return this->min_touch;
+}
+
+uint16_t ButtonClass::getTouchAnalog(uint16_t max)
+{
+    uint16_t tb = touchRead(this->buttonID);
+    //Record min/max
+    if (tb < this->min_touch)
+        this->min_touch = tb;
+    else if (tb>this->max_touch)
+        this->max_touch = tb;    
+
+    int32_t val = (int32_t)map(tb,this->min_touch,this->max_touch,0,max); 
+    return (uint16_t)val;
 }

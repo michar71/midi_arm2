@@ -10,7 +10,10 @@
 #define WIFI
 
 #define TH_CUTOFF 20000
-
+#define TOUCH_TH_CTRL 23000
+#define TOUCH_TH_A 41000
+#define TOUCH_TH_B 27000
+#define TOUCH_TH_C 30000
 
 //Pin Stuff
 //---------
@@ -60,7 +63,9 @@ typedef struct{
 void setState(t_state newState);
 void calibrate_buttons();
 bool checkForTouchpad(void);
+bool CheckTouchpadsForStrips(void);
 void toggle_status_led(void);
+uint16_t getTouchAnalogValue(uint8_t pad);
 
 
 

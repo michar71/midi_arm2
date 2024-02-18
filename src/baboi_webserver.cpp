@@ -69,7 +69,7 @@ void setup_settings_webpage()
     response->print("<h1>Settings</h1><br><p>");
     response->printf("Has Touchpads: %d <br>",checkForTouchpad());
     response->printf("Has Glove: %d <br>",checkForGlove());
-    
+    response->printf("Has Gyeo: %d <br>",checkForGyro());
           
     response->printf("Acc Bias X: %f <br>",settings.main_acc_bias_x);
     response->printf("Acc Bias Y: %f <br>",settings.main_acc_bias_y);
@@ -93,10 +93,14 @@ void setup_settings_webpage()
 
     if (checkForTouchpad())
     { 
-      response->printf("Touch TH CTRL: %d <br>",settings.th_but_ctrl); 
-      response->printf("Touch TH A: %d <br>",settings.th_but_a); 
-      response->printf("Touch TH B: %d <br>",settings.th_but_b);    
-      response->printf("Touch TH C: %d <br>",settings.th_but_c);  
+      response->printf("Touch TH CTRL min: %d <br>",settings.th_but_ctrl_min); 
+      response->printf("Touch TH A min: %d <br>",settings.th_but_a_min); 
+      response->printf("Touch TH B min: %d <br>",settings.th_but_b_min);    
+      response->printf("Touch TH C min: %d <br>",settings.th_but_c_min);  
+      response->printf("Touch TH CTRL max: %d <br>",settings.th_but_ctrl_max); 
+      response->printf("Touch TH A max: %d <br>",settings.th_but_a_max); 
+      response->printf("Touch TH B max: %d <br>",settings.th_but_b_max);    
+      response->printf("Touch TH C max: %d <br>",settings.th_but_c_max);      
     }
 
     response->printf("Tension Ch1 Min: %d <br>",settings.tension_min[0]); 
@@ -116,7 +120,8 @@ void setup_settings_webpage()
 
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");
-    response->printf("Free Heap: %d <br>",ESP.getFreeHeap());     
+    response->printf("Free Heap: %d <br>",ESP.getFreeHeap());   
+
     if (checkForTouchpad())
     { 
       response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  

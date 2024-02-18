@@ -36,14 +36,20 @@ private:
     uint16_t long_press_ms = LONG_PRESS_MS;
     uint16_t very_long_press_ms = VERY_LONG_PRESS_MS;
     uint16_t very_very_long_press_ms = VERY_VERY_LONG_PRESS_MS;
-    uint16_t touch_th = TOUCH_THRESHOLD;
-    uint16_t touch_cutoff = TOUCH_CUTOFF;
+    uint16_t min_touch = TOUCH_CUTOFF;
+    uint16_t max_touch = 0;
+    uint16_t touch_th = 0;
+    bool autocal = false;
 public:
-    ButtonClass(uint8_t pin, bool isTouch = false);
+    ButtonClass(uint8_t pin, bool isTouch = false,bool isAutoCalc = false);
     mode_button_e check_button(void);
     void setTiming(uint16_t long_press_ms,uint16_t very_long_press_ms,uint16_t very_very_long_press_ms);
-    void setTouchThreshold(uint16_t touch_th,uint16_t touch_cutoff);
+    void setTouchThresholds(uint16_t touch_th_low,uint16_t touch_th_high);
+    uint16_t getTouchThresholdHigh(void);
+    uint16_t getTouchThresholdLow(void);
+    uint16_t getTouchAnalog(uint16_t max);
     void setTouchMode(bool touch);
+    void setAutocal(bool a);
 };
 
 
