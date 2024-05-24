@@ -145,7 +145,7 @@ void send_processing_data(bool senddata)
 
 void build_info_data(void)
 {
-  snprintf(send_data,SEND_DATA_LENGTH,"%c:%s:%d:%d",ID_INFO,devicename,maj_ver,min_ver);
+  snprintf(send_data,SEND_DATA_LENGTH,"%c:%s:%d:%d:%d",ID_INFO,devicename,maj_ver,min_ver,BABOI_HW_VER);
 }
 
 void send_info_data(void)

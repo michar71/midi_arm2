@@ -25,10 +25,16 @@ bool hasGyro = false;
 
 
 #define ADS1115_ADDR  0x48     //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
-#define ADS1115_CH_COUNT 4
-bool ADS1115_data_ready = false;
+#if BABOI_HW_VER == 2
+#define ADC_CH_COUNT 4
+#endif
+
+#if BABOI_HW_VER == 3
+#define ADC_CH_COUNT 2
+#endif
+
 uint8_t curr_ch = 0;
-int16_t ads1115_data[ADS1115_CH_COUNT];
+int16_t adc_data[ADC_CH_COUNT];
 
 #define MPU_ADDR 0x68
 
@@ -195,78 +201,83 @@ bool mpu_update(void)
     return mpu.update();
 }
 
+//ESP32-C3 ADC Continous read control
+//------------------------------------
+ #if BABOI_HW_VER == 3
+#include <driver/adc.h>   // Analog to digital converter APIs
 
+
+void ESP32_C3_ADC_SETUP(void)
+{
+    adc1_config_width((adc_bits_width_t)1); //10 bit.... Who knows why the define doesn't work....
+    adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_0);
+    adc1_config_channel_atten(ADC1_CHANNEL_1, ADC_ATTEN_DB_0);
+}
+
+
+
+ #endif 
 //---------ADS1115 ADC ---------------
 
-IRAM_ATTR void ads1115_irq()
+
+bool is_adc_data_ready(void)
 {
-  ADS1115_data_ready = true;
+ #if BABOI_HW_VER == 2
+  return ads.conversionComplete();
+ #endif
+
+ #if BABOI_HW_VER == 3
+   return true;
+ #endif 
+}
+
+void startADCConversion(uint8_t ch)
+{
+ #if BABOI_HW_VER == 2
+     ads.startADCReading(MUX_BY_CHANNEL[ch], false);
+ #endif 
+
+ #if BABOI_HW_VER == 3
+ #endif
+}
+
+int32_t getADCValue(uint8_t ch)
+{
+ #if BABOI_HW_VER == 2
+    return ads.getLastConversionResults();
+ #endif  
+
+ #if BABOI_HW_VER == 3
+    if (ch == 1)
+       return adc1_get_raw(ADC1_CHANNEL_1);
+    else 
+      return adc1_get_raw(ADC1_CHANNEL_0);
+ #endif 
 }
 
 
-
-//Need to add downsampling to correct range here....
-bool ads1115_update()
+bool adc_update_manual()
 {
-  if (checkForGlove())
-  {
-    if (ADS1115_data_ready)
+    if (is_adc_data_ready())
     {
       //Read Data via I2C
       //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
-      ads1115_data[curr_ch] = ads.getLastConversionResults();
-
-      //Set Channel
-      curr_ch++;
-      if (curr_ch == ADS1115_CH_COUNT)
-        curr_ch = 0;
-
-      //Start Conversion
-      ADS1115_data_ready = false;
-      ads.startADCReading(MUX_BY_CHANNEL[curr_ch], false);
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-  }
-  else
-  {
-    return false;
-  }
-}
-
-
-bool ads1115_update_manual()
-{
-  {
-    if (ads.conversionComplete())
-    {
-      //Read Data via I2C
-      //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
-      ads1115_data[curr_ch] = ads.getLastConversionResults();
+      adc_data[curr_ch] = getADCValue(curr_ch);
      
-      
-      Serial.print("ADV:");
-      Serial.print(ads1115_data[0]);
-      Serial.print("/");
-      Serial.print(ads1115_data[1]);
-      Serial.print("/");
-      Serial.print(ads1115_data[2]);
-      Serial.print("/");
-      Serial.print(ads1115_data[3]);              
-      Serial.println("");
-      
-
+      /*
+      Serial.print("ADC ");
+      Serial.print(curr_ch);
+      Serial.print(":");
+      Serial.println(adc_data[curr_ch]);
+      */
+     
       //Set Channel
       curr_ch++;
-      if (curr_ch == ADS1115_CH_COUNT)
+      if (curr_ch == ADC_CH_COUNT)
         curr_ch = 0;
 
       //Start Conversion
-      ADS1115_data_ready = false;
-      ads.startADCReading(MUX_BY_CHANNEL[curr_ch], false);
+      startADCConversion(curr_ch);
 
       return true;
     }
@@ -274,24 +285,22 @@ bool ads1115_update_manual()
     {
       return false;
     }
-  }
 }
 
 //Need to add calibration range adjustment here...
-int16_t ads1115_get_data(uint8_t ch)
+int16_t adc_get_data(uint8_t ch)
 {
-  if (ch < ADS1115_CH_COUNT)
-    return ads1115_data[ch];
+  if (ch < ADC_CH_COUNT)
+    return adc_data[ch];
   else
-    return 0;  
+    return -1;  
 }
 //------ END ADS1115 -----------------
 
 
 void glove_update(void)
 {
-    //ads1115_update();
-    ads1115_update_manual();
+    adc_update_manual();
 }
 
 bool checkForGlove(void)
@@ -317,15 +326,15 @@ void calibrate_tension(void)
     for (int ii=0;ii< 500 ;ii++)
     {
       //Start ADC
-      ads.startADCReading(MUX_BY_CHANNEL[ccurr_ch], false);
+      startADCConversion(curr_ch);
       //Wait for ADC
-      while (ads.conversionComplete() == false)
+      while (is_adc_data_ready() == false)
       {
         delay(1);
       }
 
       //Read ADC
-      int16_t val = ads.getLastConversionResults();
+      int16_t val = adc_get_data(curr_ch);
 
       //#TODO define reasonable limits here to remove outliers
 
@@ -339,7 +348,7 @@ void calibrate_tension(void)
       
       //Move on to Next ADC
       ccurr_ch++;
-      if (ccurr_ch == ADS1115_CH_COUNT)
+      if (ccurr_ch == ADC_CH_COUNT)
         ccurr_ch = 0;
 
       //Wait a little bit
@@ -347,7 +356,7 @@ void calibrate_tension(void)
     }
 
     //We create some dead band around the middle for better range control.
-    for(int ii=0;ii<ADS1115_CH_COUNT;ii++)
+    for(int ii=0;ii<ADC_CH_COUNT;ii++)
     {
       //settings.tension_min[ii] = (int16_t)((float)settings.tension_min[ii] * 1.2);
       //settings.tension_max[ii] = (int16_t)((float)settings.tension_max[ii] * 0.8);
@@ -360,7 +369,7 @@ int16_t tension_get_ch(uint8_t ch)
   int16_t val = 0;
   
   float res = 0;
-  res = map(ads1115_data[ch],settings.tension_min[ch],settings.tension_max[ch],0,255);
+  res = map(adc_data[ch],settings.tension_min[ch],settings.tension_max[ch],0,255);
   if (res<0)
     val = 0;
   else if (res>255)
@@ -373,9 +382,9 @@ int16_t tension_get_ch(uint8_t ch)
 
 void init_sensors(void)
 {
-  //Stantiate Gyro interface
+  //Instantiate Gyro interface
   //------------------------
-  Wire.begin(SDA, SCL,4000000);
+  Wire.begin(SDA, SCL,900000);
   //Strange but needed
   i2c_scan(&Wire,MPU_ADDR,127);
   if (!mpu.setup(MPU_ADDR)) 
@@ -387,6 +396,8 @@ void init_sensors(void)
   hasGyro = true;
   delay(200);
 
+
+  #if BABOI_HW_VER == 2
   //Instantiate glove wire interface
   //--------------------------------
   Wire1.begin(GLOVE_SDA, GLOVE_SCL,4000000);
@@ -413,6 +424,22 @@ void init_sensors(void)
     curr_ch = 0;   
     ads.startADCReading(MUX_BY_CHANNEL[0], false);
   }
+#endif
+
+#if BABOI_HW_VER == 3
+  //Setup Glove ADC's
+  //-----------------
+
+
+  //Set pions to analog
+  pinMode(ADC1_CH0,ANALOG);
+  pinMode(ADC1_CH1,ANALOG);
+  ESP32_C3_ADC_SETUP();
+  //Set up ADC's?
+  hasGlove =true;
+
+  Serial.println("Glove ADC Setup done.");
+#endif
 
   #ifdef DEBUG
     Serial.println("Sensor Setup Done...");

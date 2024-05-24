@@ -33,7 +33,7 @@
 
 
 const char* devicename = "BABOI";
-int maj_ver = 2;
+int maj_ver = 3;
 int min_ver = 0;
 
 extern setup_t settings;
@@ -43,7 +43,7 @@ bool but_b_state = false;
 bool but_c_state = false;
 
 bool hasTouchpads = false;
-bool touchpadsForStrips = true;   //Use Touchpads A/B/C in Analog Mode   as input for strips....
+bool touchpadsForStrips = false;   //Use Touchpads A/B/C in Analog Mode   as input for strips....
 
 ButtonClass but_ctrl(BUT_CTRL,false,false);
 ButtonClass but_a(BUT_A,false,false);
@@ -72,9 +72,12 @@ void setup()
 {
     setState(STATE_STARTUP);
     Serial.begin(230400);	
-    setCpuFrequencyMhz(240);
-
-
+    #if BABOI_HW_VER == 2
+      setCpuFrequencyMhz(240);
+    #endif
+    #if BABOI_HW_VER == 3
+      setCpuFrequencyMhz(160);
+    #endif
     
   #ifdef DEBUG
     delay(2000);
@@ -84,7 +87,6 @@ void setup()
     pinMode(STATUS_LED, OUTPUT);     
     pinMode(ID_PIN,INPUT_PULLUP);
         
-
     
   #ifdef DEBUG
     Serial.println("Pin Setup Done...");
@@ -111,9 +113,15 @@ void setup()
 
     led_init();
     led_test();
+#ifdef DEBUG
+  Serial.println("Sensor Calib Load Done...");
+#endif   
 
     if (checkForTouchpad())
     {
+  #ifdef DEBUG
+      Serial.println("Using Touch Pads");
+  #endif          
       but_ctrl.setTouchMode(true);
       but_a.setTouchMode(true);
       but_b.setTouchMode(true);
@@ -133,13 +141,19 @@ void setup()
         init_settings_but();
         init_settings_other();
         save_settings();
-        setLED(1,64,64,64);
+        setLED(1,64,64,64,true);
         delay(250);
-        setLED(0,0,0,0);
+        setLED(0,0,0,0,true);
+  #ifdef DEBUG
+        Serial.println("Full Reset Done");
+  #endif        
       }    
     }
     else
     {
+  #ifdef DEBUG
+      Serial.println("Using Hard Buttons");
+  #endif          
       but_ctrl.setTouchMode(false);
       pinMode(BUT_CTRL,INPUT_PULLUP);
       pinMode(BUT_A,INPUT_PULLUP);
@@ -154,15 +168,21 @@ void setup()
         init_settings_but();
         init_settings_other();
         save_settings();
-        setLED(1,64,64,64);
+        setLED(1,64,64,64,true);
         delay(250);
-        setLED(0,0,0,0);
+        setLED(0,0,0,0,true);
+  #ifdef DEBUG
+        Serial.println("Full Reset Done");
+  #endif           
       }      
     }
 
     //SPECIAL CASE TEST ONLY
     if (CheckTouchpadsForStrips())
     {
+  #ifdef DEBUG
+      Serial.println("Using Pressure-Sensitive Touchpads...");
+  #endif       
       but_a.setTouchMode(true);
       but_b.setTouchMode(true);
       but_c.setTouchMode(true);            
@@ -173,7 +193,8 @@ void setup()
 
       but_a.setAutocal(true);
       but_b.setAutocal(true);
-      but_c.setAutocal(true);            
+      but_c.setAutocal(true);    
+             
     }
     
   #ifdef DEBUG
@@ -185,6 +206,9 @@ void setup()
 
   if (load_settings())
   {
+  #ifdef DEBUG
+    Serial.println("Settings Loaded");
+  #endif    
     if (checkForGyro())
     {
       mpu_set_settings();
@@ -202,20 +226,15 @@ void setup()
   #ifdef DEBUG
         Serial.println("Forced Touchpad Calibration!");
   #endif      
-        setLED(1,255,0,255);
+        setLED(1,255,0,255,true);
         calibrate_buttons();
         delay(1000);          
         save_settings();  
       }
     }
+    setLED(0,0,64,0,true);
     delay(120);
-    setLED(0,0,64,0);
-    delay(120);
-    setLED(0,0,0,0);
-
-#ifdef DEBUG
-  Serial.println("Sensor Calib Load Done...");
-#endif      
+    setLED(0,0,0,0,true);
   }
   else
   {
@@ -223,13 +242,12 @@ void setup()
     init_settings_but();
     init_settings_other();
     save_settings();
+    setLED(0,64,0,0,true);
     delay(400);
-    setLED(0,64,0,0);
-    delay(400);
-    setLED(0,0,0,0);
+    setLED(0,0,0,0,true);    
 
 #ifdef DEBUG
-  Serial.println("Sensor Calib Load Failed...");
+  Serial.println("Sensor Calib Load Failed, resetting settings to defaults.");
   print_settings();
 #endif
   }
@@ -237,7 +255,7 @@ void setup()
 
   #ifdef WIFI
     
-    //Hmmmm Conceptually not sure how WifiMasnsger would work....
+    //Hmmmm Conceptually not sure how WifiMansger would work....
     //After it connects to a network how do we know the IP adress? 
     //How would we get to the config page afterwards?
     
@@ -297,13 +315,14 @@ void setup()
  
 
 
-//We need to illimate high outliers...
+//We need to eliminate high outliers...
 void calibrate_buttons()
 {
   uint16_t min[4] = {0xFFFF,0xFFFF,0xFFFF,0xFFFF};
   uint16_t max[4] = {0,0,0,0};
   uint16_t val = 0;
 
+ #if BABOI_HW_VER == 2
   //Do cal for 15 sec
   for (int ii=0;ii<400;ii++)
   {
@@ -341,6 +360,8 @@ void calibrate_buttons()
     }
     delay(20);
   }
+
+  #endif
   //Take average of min/max
   //(Is this a good idea? Do we need to exclude outlieers?)
   settings.th_but_a_min = min[0];
@@ -516,7 +537,6 @@ void loop()
 
   //Deal with incoming data
   incoming_protocol_request();
-
   //Handle Motion Data
   if (checkForGyro())
   {
@@ -545,10 +565,10 @@ void loop()
 
     sampleCount = 0;
 
-    //Handle Show Leds
     handle_led();
+    updateLED();
   }
-  
+
   //Heartbeat
   EVERY_N_SECONDS(1)
   {

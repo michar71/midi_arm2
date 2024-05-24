@@ -15,11 +15,8 @@ void mpu_init_settings(void);
 void mpu_set_settings(void);
 void mpu_store_data(void);
 
-void glove_init();
-void ads1115_irq();
-bool ads1115_update();
-bool ads1115_update_manual();
-int16_t ads1115_get_data(uint8_t ch);
+bool adc_update_manual();
+int16_t adc_get_data(uint8_t ch);
 void glove_update(void);
 bool checkForGlove(void);
 bool checkForGyro(void);

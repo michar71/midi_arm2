@@ -124,10 +124,12 @@ void setup_settings_webpage()
 
     if (checkForTouchpad())
     { 
+     #if BABOI_HW_VER == 2  
       response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
       response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
       response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
       response->printf("BUTTON C VAL: %d <br>",touchRead(BUT_C));        
+    #endif
     }
     else
     {
@@ -136,10 +138,10 @@ void setup_settings_webpage()
       response->printf("BUTTON B VAL: %d <br>",digitalRead(BUT_B));  
       response->printf("BUTTON C VAL: %d <br>",digitalRead(BUT_C));     
     }
-    response->printf("TENSION CH1 VAL: %d <br>",ads1115_get_data(0));      
-    response->printf("TENSION CH2 VAL: %d <br>",ads1115_get_data(1));    
-    response->printf("TENSION CH3 VAL: %d <br>",ads1115_get_data(2));    
-    response->printf("TENSION CH4 VAL: %d <br>",ads1115_get_data(3));            
+    response->printf("TENSION CH1 VAL: %d <br>",adc_get_data(0));      
+    response->printf("TENSION CH2 VAL: %d <br>",adc_get_data(1));    
+    response->printf("TENSION CH3 VAL: %d <br>",adc_get_data(2));    
+    response->printf("TENSION CH4 VAL: %d <br>",adc_get_data(3));            
     response->printf("Current Pitch: %f <br>",mpu_GetCurrentPitch());  
     response->printf("Current Roll: %f <br>",mpu_GetCurrentRoll());  
     response->printf("Current Yaw: %f <br>",mpu_GetCurrentYaw());      

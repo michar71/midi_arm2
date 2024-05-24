@@ -12,9 +12,9 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/Users/michael/Documents/GitHub/midi_arm2/.pio/build/lolin_s2_mini/firmware.elf",
-            "projectEnvName": "lolin_s2_mini",
-            "toolchainBinDir": "/Users/michael/.platformio/packages/toolchain-xtensa-esp32s2/bin",
+            "executable": "/Users/michael/Documents/GitHub/midi_arm2/.pio/build/lolin_c3_mini/firmware.elf",
+            "projectEnvName": "lolin_c3_mini",
+            "toolchainBinDir": "/Users/michael/.platformio/packages/toolchain-riscv32-esp/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -25,18 +25,18 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/Users/michael/Documents/GitHub/midi_arm2/.pio/build/lolin_s2_mini/firmware.elf",
-            "projectEnvName": "lolin_s2_mini",
-            "toolchainBinDir": "/Users/michael/.platformio/packages/toolchain-xtensa-esp32s2/bin",
+            "executable": "/Users/michael/Documents/GitHub/midi_arm2/.pio/build/lolin_c3_mini/firmware.elf",
+            "projectEnvName": "lolin_c3_mini",
+            "toolchainBinDir": "/Users/michael/.platformio/packages/toolchain-riscv32-esp/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "/Users/michael/Documents/GitHub/midi_arm2/.pio/build/lolin_s2_mini/firmware.elf",
-            "projectEnvName": "lolin_s2_mini",
-            "toolchainBinDir": "/Users/michael/.platformio/packages/toolchain-xtensa-esp32s2/bin",
+            "executable": "/Users/michael/Documents/GitHub/midi_arm2/.pio/build/lolin_c3_mini/firmware.elf",
+            "projectEnvName": "lolin_c3_mini",
+            "toolchainBinDir": "/Users/michael/.platformio/packages/toolchain-riscv32-esp/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
         }

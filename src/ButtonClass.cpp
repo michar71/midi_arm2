@@ -57,8 +57,11 @@ mode_button_e ButtonClass::check_button(void)
     else
     {
         //New Button Press
+#if BABOI_HW_VER == 2        
         uint16_t tb = touchRead(this->buttonID);
-
+#else
+        uint16_t tb = 0;
+#endif
         //Record min/max
         if (tb < this->min_touch)
             this->min_touch = tb;
@@ -140,7 +143,11 @@ uint16_t ButtonClass::getTouchThresholdLow(void)
 
 uint16_t ButtonClass::getTouchAnalog(uint16_t max)
 {
+#if BABOI_HW_VER == 2        
     uint16_t tb = touchRead(this->buttonID);
+#else
+    uint16_t tb = 0;
+#endif
     //Record min/max
     if (tb < this->min_touch)
         this->min_touch = tb;

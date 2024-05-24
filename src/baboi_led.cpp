@@ -18,36 +18,38 @@ typedef enum{
 
 T_LED_PROGRAM current_led_program = LED_NONE;        
 
-void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b)
+void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b,bool update)
 {
-    // Turn the LED on, then pause
-  leds[led].r= r/6;
-  leds[led].g= g/6;
-  leds[led].b= b/6;
-  FastLED.show();
+  leds[led].r= r;
+  leds[led].g= g;
+  leds[led].b= b;
+  if (update)
+    FastLED.show();
 }
+
+
 
 
 void led_test(void)
 {
   for(int ii=0;ii<NUM_LEDS;ii++)
   {
-    setLED(ii,64,0,0);
+    setLED(ii,255,0,0,true);
   }
   delay(100);
   for(int ii=0;ii<NUM_LEDS;ii++)
   {
-    setLED(ii,0,64,0);
+    setLED(ii,0,255,0,true);
   }
   delay(100);
   for(int ii=0;ii<NUM_LEDS;ii++)
   {
-    setLED(ii,0,0,64);
+    setLED(ii,0,0,255,true);
   }
   delay(100);
   for(int ii=0;ii<NUM_LEDS;ii++)
   {
-    setLED(ii,0,0,0);
+    setLED(ii,0,0,0,true);
   }
 }
 
@@ -67,9 +69,10 @@ void led_sweep(void)
 void led_control(byte r, byte g, byte b, byte start, byte end)
 {
   start = start + 2;
-  end = end + 2;
   if (end > NUM_STRIP-1)
     end = NUM_LEDS-1;
+  end = end + 2;
+
 
   for(int ii=2;ii<=start-1;ii++)
   {
@@ -115,4 +118,9 @@ void led_init(void)
 {
     //Init and test LED's
    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
+}
+
+void updateLED(void)
+{
+  FastLED.show(127);
 }

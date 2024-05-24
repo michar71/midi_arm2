@@ -1,17 +1,48 @@
-version 2
-1
-2
-.dc R_sense1 5k 6k 10{return}.kicad adjustpaths{return}.save all{return}.probe alli
-4
-1
-V(ADC)
- 
-1
-V(Net-_R1-Pad1_)
- 
-1
-V(Net-_U1-+_)
- 
-1
-V(Vcc)
- 
+{
+  "last_sch_text_sim_command": "",
+  "tabs": [
+    {
+      "analysis": "DC",
+      "commands": [
+        ".dc RS1 5k 6k 10",
+        ".kicad adjustpaths",
+        ".save all",
+        ".probe alli",
+        ".probe allp"
+      ],
+      "dottedSecondary": false,
+      "margins": {
+        "bottom": 45,
+        "left": 70,
+        "right": 70,
+        "top": 30
+      },
+      "measurements": [],
+      "showGrid": true,
+      "traces": [
+        {
+          "color": "rgb(228, 26, 28)",
+          "signal": "V(ADC)",
+          "trace_type": 1
+        },
+        {
+          "color": "rgb(77, 175, 74)",
+          "signal": "V(Net-_U1-+_)",
+          "trace_type": 1
+        },
+        {
+          "color": "rgb(255, 127, 0)",
+          "signal": "V(Net-_U1--_)",
+          "trace_type": 2049
+        },
+        {
+          "color": "rgb(152, 78, 163)",
+          "signal": "V(Vcc)",
+          "trace_type": 1
+        }
+      ]
+    }
+  ],
+  "user_defined_signals": [],
+  "version": 6
+}
