@@ -6,7 +6,7 @@
 #define ID_QUERY 'Q'  //Info Query
 #define ID_INFO 'I'   //Answer to Query
 #define ID_SETUP 'S'  //Setup Parameters
-#define IF_PING 'P'   //Timeout Ping from Host 
+#define ID_PING 'P'   //Timeout Ping from Host 
 
 typedef enum{
     COMM_SERIAL,
@@ -23,6 +23,7 @@ void build_info_data(void);
 void send_info_data(void);
 bool process_incoming_data(t_comm_channel commChannel);
 void incoming_protocol_request(void);
+bool checkCommTimeout(void);
 void init_protocol(void);
 
 #endif

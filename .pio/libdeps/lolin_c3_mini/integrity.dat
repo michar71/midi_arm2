@@ -1,5 +1,6 @@
-hideakitai/ArtNet@^0.4.4
-ottowinter/ESPAsyncWebServer-esphome@^3.1.0
 adafruit/Adafruit ADS1X15@^2.4.2
+ottowinter/ESPAsyncWebServer-esphome@^3.1.0
+fastled/FastLED@^3.6.0
 esphome/AsyncTCP-esphome@^2.0.1
+hideakitai/ArtNet@^0.4.4
 ayushsharma82/AsyncElegantOTA@^2.2.7

@@ -325,7 +325,7 @@ void calibrate_tension(void)
     init_settings_tension();
 
     //Read Raw Values and calulate min/max. Filter out outliers.
-    for (int ii=0;ii< 800 ;ii++)
+    for (int ii=0;ii< 1000 ;ii++)
     {
       //Start ADC
       startADCConversion(ccurr_ch);
@@ -362,7 +362,7 @@ void calibrate_tension(void)
         ccurr_ch = 0;
 
       //Wait a little bit
-      delay(4);
+      delay(5);
     }
 
     //We create some dead band around the middle for better range control.

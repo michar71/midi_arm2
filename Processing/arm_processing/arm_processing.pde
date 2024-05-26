@@ -57,7 +57,7 @@ boolean isValidDevice=false;
 
 int lastUpdate = 0;
 int lastSerial = 0;
-
+int lastPing = 0;
 
 PVector getWindowLocation(String renderer) 
 {
@@ -348,9 +348,24 @@ void setup() {
      .setSize(18,18)
      .setLabel("Network")
      .setBroadcast(true)
-     ;        
+     ;      
      
-  
+     cp5.addButton("CalB")
+     .setBroadcast(false)
+     .setValue(0)
+     .setPosition(5,height-20)
+     .setSize(50,18)
+     .setBroadcast(true)
+     ; 
+     
+     cp5.addButton("CalG")
+     .setBroadcast(false)
+     .setValue(0)
+     .setPosition(60,height-20)
+     .setSize(50,18)
+     .setBroadcast(true)
+     ; 
+     
   udp = new UDPHelper(this);
   udp.setLocalPort(baboi_port);
   udp.startListening();
@@ -387,6 +402,18 @@ public void Map(int theValue) {
         isMap = !isMap;
 }
 
+
+public void CalG(int theValue)
+{
+  if (isConnected)
+    bp.sendSetupRequest(0);
+}
+
+public void CalB(int theValue)
+{
+  if (isConnected)
+    bp.sendSetupRequest(0);
+}
 
 void show_map_text()
 {
@@ -539,6 +566,16 @@ void draw_horizon()
   text("T3:"+nf(bp.tension_ch3,0,2),5,94);
 }
 
+void send_ping()
+{
+  int pingRate = 1000;
+  int current_time = millis();
+  if ((current_time - lastPing) > pingRate)
+  {
+    lastPing = millis();
+    bp.sendPing();
+  }
+}
 
 void check_timeout()
 {
@@ -614,6 +651,8 @@ void draw()
         }
       }
     }
+    if (isConnected)
+      send_ping();
     if (isConnected)
       check_timeout();  
   }

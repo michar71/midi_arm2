@@ -15,6 +15,7 @@ extern setup_t settings;
 
 t_comm_channel currentCommChannel = COMM_SERIAL;
 IPAddress comm_host_ip = IPAddress(0,0,0,0);
+long lastPing = 0;
 
 
 /*Combined use of Serial and Wifi
@@ -46,6 +47,7 @@ extern int min_ver;
 //Device Name 'BABOI'
 //Device FW Major
 //Device FW Minor
+//Device HW Version
 //Unique Device ID (0..255), 0 = Single, 1 = left, 2 = right
 
 
@@ -191,7 +193,24 @@ bool process_incoming_data(t_comm_channel commChannel)
     }
     else if (receive_data[0] == ID_SETUP)
     {
+        if (receive_data[2] = '0')
+        {
+          setState(STATE_CAL_GYRO);
+        }
+        else if (receive_data[2] = '1')
+        {
+          setState(STATE_CAL_TENSION);
+        }
+        else
+        {
+
+        }
         return true;
+    }
+    else if (receive_data[0] == ID_PING)
+    {
+      lastPing = millis();
+      return true;
     }
     return false;
 }
@@ -228,6 +247,14 @@ void incoming_protocol_request(void)
         complete = false;
     }
   } 
+}
+bool checkCommTimeout(void)
+{
+  const uint16_t timeout = 1200; //Longer then the 1 sec intervall on the host...
+  if (millis() - lastPing > timeout)
+    return true;
+  else 
+    return false;  
 }
 
 #ifdef WIFI

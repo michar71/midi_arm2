@@ -24,10 +24,8 @@ void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b,bool update)
   leds[led].g= g;
   leds[led].b= b;
   if (update)
-    FastLED.show();
+    FastLED.show(63);
 }
-
-
 
 
 void led_test(void)
@@ -122,5 +120,5 @@ void led_init(void)
 
 void updateLED(void)
 {
-  FastLED.show(127);
+  FastLED.show(63);
 }

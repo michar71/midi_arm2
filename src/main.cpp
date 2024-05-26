@@ -567,6 +567,13 @@ void loop()
     sampleCount = 0;
 
     handle_led();
+   
+    //Check if we have a comm timeout
+    if (checkCommTimeout())
+      setLED(0,64,0,0);
+    else
+      setLED(0,0,64,0);  
+
     updateLED();
   }
 

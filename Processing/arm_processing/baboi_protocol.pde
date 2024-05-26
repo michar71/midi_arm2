@@ -7,8 +7,9 @@ class baboi_protocol{
 char ID_DATA = 'D';   //Mition Data
 char ID_QUERY = 'Q';  //Info Query
 char ID_INFO = 'I';   //Answer to Query
-char ID_SETUP = 'S';  //Setup Parameters
+char ID_SETUP = 'S';  //Setup Parameters (S:0 = Acc/Gyro Cal, S:1 = Glove Cal
 char ID_PING = 'P';  //PING to reset timeout counter in uC 
+
   
 //Put all parsed values here
 float cp,cr,cy;
@@ -26,10 +27,9 @@ String deviceName = "UNKNOWN";
 
 
 
-
-  public void bsabvoi_protocol()
-  {
-  }
+public void bsabvoi_protocol()
+{
+}
   
 
 public String build_query()
@@ -118,6 +118,16 @@ public void process_received_string(String myString)
   lastSerial = millis();
 }
 
-  
+void sendPing()
+{
+    String Ping = String.format("%c\n", ID_PING);
+    myPort.write(Ping);
+}
+
+void sendSetupRequest(int setupID)
+{
+    String Setup = String.format("%c:%d\n", ID_SETUP,setupID);
+    myPort.write(Setup);
+}
   
 }

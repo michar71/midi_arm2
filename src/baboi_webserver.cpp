@@ -330,7 +330,7 @@ void setup_cal_question_webpage()
     response->printf("<h1>BABOI Calibration</h1><br><p>");
     response->printf("Calibrate the Gyro and Accelerometer by keeping your arm on a flat surface during calibration.<br>");
     response->print("<a href=\"./calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
-    response->printf("Calibrate the magnetometer by movinbg the baboi through all 3 axises in a figure-eight.<br>");
+    response->printf("Calibrate the magnetometer by moving the baboi through all 3 axises in a figure-eight.<br>");
     response->print("<a href=\"./calmag\">Calibrate Magnetometer</a><br><br>");
     if (checkForTouchpad())
     { 
@@ -383,7 +383,7 @@ void setup_cal_mag_webpage()
     response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
-    response->printf("<h1>Gyro/Magnetometer calibration in Progress</h1><br><p>");
+    response->printf("<h1>Magnetometer calibration in Progress</h1><br><p>");
     response->printf("Continue moving the BABOLI in a figure-eight motion through all three axises until the calibration light turns off.<br>");
     response->print("<a href=\"./\">Back</a><br><br>");       
     response->printf("</p>");    
@@ -404,7 +404,7 @@ void setup_cal_buttons_webpage()
     response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
-    response->printf("<h1>Gyro/Touch-Button calibration in Progress</h1><br><p>");
+    response->printf("<h1>Touch-Button calibration in Progress</h1><br><p>");
     response->printf("Continue pressing and releasing the touch-buttons until the calibration light turns off.<br>");
     response->print("<a href=\"./\">Back</a><br><br>");       
     response->printf("</p>");    
@@ -426,7 +426,7 @@ void setup_cal_tension_webpage()
     response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
-    response->printf("<h1>Gyro/Glove calibration in Progress</h1><br><p>");
+    response->printf("<h1>Glove calibration in Progress</h1><br><p>");
     response->printf("Continue flexing and stretching your fingers until the calibration light turns off.<br>");
     response->print("<a href=\"./\">Back</a><br><br>");       
     response->printf("</p>");    
