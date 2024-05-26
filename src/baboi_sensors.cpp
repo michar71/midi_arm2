@@ -348,8 +348,6 @@ void calibrate_tension(void)
       //#TODO define reasonable limits here to remove outliers
 
 
-      Serial.println(val);
-
       //Record new min/max
       if (val > settings.tension_max[ccurr_ch])
         settings.tension_max[ccurr_ch] = val;
