@@ -799,12 +799,6 @@
 		(uuid "56b277cb-75c2-4502-a665-4dbf951b8cc7")
 	)
 	(junction
-		(at 95.25 83.82)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "5821eb85-cc7f-4c50-bef9-ea847f9fc7e6")
-	)
-	(junction
 		(at 60.96 46.99)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -881,16 +875,6 @@
 			(type default)
 		)
 		(uuid "238a9d0e-b1bf-404b-92ab-7a5cd71dccc5")
-	)
-	(wire
-		(pts
-			(xy 83.82 83.82) (xy 87.63 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3e2d05a1-c267-4fa1-a269-7c4bf187f876")
 	)
 	(wire
 		(pts
@@ -974,16 +958,6 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 83.82) (xy 95.25 96.52)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "78ab497f-d54c-4bef-903d-54e85de7318c")
-	)
-	(wire
-		(pts
 			(xy 109.22 57.15) (xy 124.46 57.15)
 		)
 		(stroke
@@ -1001,16 +975,6 @@
 			(type default)
 		)
 		(uuid "87634f21-e369-429f-b215-a5898fc2d3df")
-	)
-	(wire
-		(pts
-			(xy 91.44 83.82) (xy 95.25 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "897adbfc-97fe-4e3d-a457-768d29c7c86c")
 	)
 	(wire
 		(pts
@@ -1034,7 +998,7 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 64.77) (xy 95.25 83.82)
+			(xy 95.25 64.77) (xy 95.25 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1242,7 +1206,7 @@
 		)
 		(uuid "f7285601-f026-43f4-971d-0f5c5efb29e6")
 	)
-	(text "RS1 to vary from 5k to 6k after tuning"
+	(text "RS1 to vary from 10k to 20k after tuning -> Voltage output = 0-1.3V"
 		(exclude_from_sim no)
 		(at 74.93 110.49 0)
 		(effects
@@ -1478,7 +1442,7 @@
 				)
 			)
 		)
-		(property "Value" "1000"
+		(property "Value" "0"
 			(at 80.01 81.0838 90)
 			(effects
 				(font
@@ -1668,7 +1632,7 @@
 				)
 			)
 		)
-		(property "Value" "100"
+		(property "Value" "0"
 			(at 80.01 68.3838 90)
 			(effects
 				(font
@@ -1737,7 +1701,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "0"
+		(property "Value" "10000"
 			(at 67.818 79.9521 0)
 			(effects
 				(font
@@ -1871,7 +1835,7 @@
 				)
 			)
 		)
-		(property "Value" "28000"
+		(property "Value" "51000"
 			(at 90.17 68.3838 90)
 			(effects
 				(font
@@ -1940,7 +1904,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5500"
+		(property "Value" "33000"
 			(at 57.658 55.8221 0)
 			(effects
 				(font
@@ -2010,7 +1974,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "5500"
+		(property "Value" "15000"
 			(at 67.818 90.1121 0)
 			(effects
 				(font
@@ -2146,7 +2110,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5500"
+		(property "Value" "33000"
 			(at 57.658 65.9821 0)
 			(effects
 				(font
@@ -2216,7 +2180,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5500"
+		(property "Value" "33000"
 			(at 67.818 55.8221 0)
 			(effects
 				(font

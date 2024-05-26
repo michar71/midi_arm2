@@ -385,7 +385,6 @@ void process_state(void)
   switch(state)
   {
     case STATE_STARTUP:
-    
     break;
 
     case STATE_WAITCONN:
@@ -403,32 +402,32 @@ void process_state(void)
     break;
 
     case STATE_CAL_BUTTONS:
-      setLED(1,255,0,255);
+      setLED(1,255,0,255,true);
       init_settings_but();
       calibrate_buttons();        
       save_settings();    
-      setLED(1,0,0,0);
     #ifdef DEBUG    
       Serial.println("Button Calib Done...");
       print_settings();
       #endif   
       setState(lastState);
+      setLED(1,0,0,0,true);
     break;
 
     case STATE_CAL_TENSION:
-      setLED(1,64,64,64);
+      setLED(1,64,64,64,true);
       calibrate_tension();
       save_settings();    
-      setLED(1,0,0,0);
     #ifdef DEBUG    
       Serial.println("Tension Calib Done...");
       print_settings();
       #endif   
       setState(lastState);
+      setLED(1,0,0,0,true);
     break;
 
     case STATE_CAL_GYRO:
-      setLED(1,0,0,255);
+      setLED(1,0,0,255,true);
       delay(500);
       mpu_cal_gyro_accel();
       save_settings();
@@ -437,17 +436,19 @@ void process_state(void)
       print_settings();
     #endif  
       setState(lastState);
+      setLED(1,0,0,0,true);
     break;
 
     case STATE_CAL_MAG:
-      setLED(1,0,255,255);
+      setLED(1,0,255,255,true);
       mpu_cal_mag();
       save_settings();
     #ifdef DEBUG    
       Serial.println("Sensor Calib Mag Done...");
       print_settings();
     #endif  
-      setState(lastState);          
+      setState(lastState);     
+      setLED(1,0,0,0,true);     
     break;
 
     case STATE_UPDATE:

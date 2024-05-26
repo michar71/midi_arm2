@@ -69,7 +69,7 @@ void setup_settings_webpage()
     response->print("<h1>Settings</h1><br><p>");
     response->printf("Has Touchpads: %d <br>",checkForTouchpad());
     response->printf("Has Glove: %d <br>",checkForGlove());
-    response->printf("Has Gyeo: %d <br>",checkForGyro());
+    response->printf("Has Gyro: %d <br>",checkForGyro());
           
     response->printf("Acc Bias X: %f <br>",settings.main_acc_bias_x);
     response->printf("Acc Bias Y: %f <br>",settings.main_acc_bias_y);
@@ -116,7 +116,6 @@ void setup_settings_webpage()
     response->printf("TENSION CH2 OUT: %d <br>",tension_get_ch(1));    
     response->printf("TENSION CH3 OUT: %d <br>",tension_get_ch(2));    
     response->printf("TENSION CH4 OUT: %d <br>",tension_get_ch(3));   
-
 
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");

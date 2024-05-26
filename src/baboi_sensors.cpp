@@ -210,8 +210,8 @@ bool mpu_update(void)
 void ESP32_C3_ADC_SETUP(void)
 {
     adc1_config_width((adc_bits_width_t)1); //10 bit.... Who knows why the define doesn't work....
-    adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_0);
-    adc1_config_channel_atten(ADC1_CHANNEL_1, ADC_ATTEN_DB_0);
+    adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_12); //0..2500mV range
+    adc1_config_channel_atten(ADC1_CHANNEL_1, ADC_ATTEN_DB_12); //0..2500mV range
 }
 
 
@@ -264,13 +264,15 @@ bool adc_update_manual()
       //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
       adc_data[curr_ch] = getADCValue(curr_ch);
      
-      /*
+     /* 
       Serial.print("ADC ");
       Serial.print(curr_ch);
-      Serial.print(":");
-      Serial.println(adc_data[curr_ch]);
+      Serial.print("\t:");
+      Serial.print(adc_data[0]);
+      Serial.print("\t:");
+      Serial.println(adc_data[1]);
       */
-     
+
       //Set Channel
       curr_ch++;
       if (curr_ch == ADC_CH_COUNT)
@@ -323,10 +325,10 @@ void calibrate_tension(void)
     init_settings_tension();
 
     //Read Raw Values and calulate min/max. Filter out outliers.
-    for (int ii=0;ii< 500 ;ii++)
+    for (int ii=0;ii< 800 ;ii++)
     {
       //Start ADC
-      startADCConversion(curr_ch);
+      startADCConversion(ccurr_ch);
       //Wait for ADC
       while (is_adc_data_ready() == false)
       {
@@ -334,9 +336,19 @@ void calibrate_tension(void)
       }
 
       //Read ADC
-      int16_t val = adc_get_data(curr_ch);
+ #if BABOI_HW_VER == 2
+      int16_t val = getADCValue(ccurr_ch);
+#endif
+
+ #if BABOI_HW_VER == 3
+      int16_t val = getADCValue(ccurr_ch);
+#endif
+
 
       //#TODO define reasonable limits here to remove outliers
+
+
+      Serial.println(val);
 
       //Record new min/max
       if (val > settings.tension_max[ccurr_ch])
@@ -352,16 +364,19 @@ void calibrate_tension(void)
         ccurr_ch = 0;
 
       //Wait a little bit
-      delay(2);
+      delay(4);
     }
 
     //We create some dead band around the middle for better range control.
+    /*
     for(int ii=0;ii<ADC_CH_COUNT;ii++)
     {
-      //settings.tension_min[ii] = (int16_t)((float)settings.tension_min[ii] * 1.2);
-      //settings.tension_max[ii] = (int16_t)((float)settings.tension_max[ii] * 0.8);
+      settings.tension_min[ii] = (int16_t)((float)settings.tension_min[ii] * 1.2);
+      settings.tension_max[ii] = (int16_t)((float)settings.tension_max[ii] * 0.8);
     }
+    */
   }
+
 }
 
 int16_t tension_get_ch(uint8_t ch)
