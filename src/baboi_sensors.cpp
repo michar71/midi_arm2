@@ -397,7 +397,7 @@ void init_sensors(void)
 {
   //Instantiate Gyro interface
   //------------------------
-  Wire.begin(SDA, SCL,900000);
+  Wire.begin(SDA, SCL,400000);
   //Strange but needed
   i2c_scan(&Wire,MPU_ADDR,127);
   if (!mpu.setup(MPU_ADDR)) 
