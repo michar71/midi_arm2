@@ -42,6 +42,8 @@ boolean isMap;
 kalman KalFilterP;
 kalman KalFilterR;
 kalman KalFilterY;
+kalman KalFilterT0;
+kalman KalFilterT1;
 
 
 int m1 = 0;
@@ -376,7 +378,9 @@ void setup() {
  
   KalFilterP = new kalman(p_noise,s_noise,e_error,0.0);
   KalFilterR = new kalman(p_noise,s_noise,e_error,0.0);  
-  KalFilterY = new kalman(p_noise,s_noise,e_error,0.0);  
+  KalFilterY = new kalman(p_noise,s_noise,e_error,0.0);
+  KalFilterT0 = new kalman(p_noise,s_noise,e_error,0.0);  
+  KalFilterT1 = new kalman(p_noise,s_noise,e_error,0.0);  
 }
 
 //int c;
@@ -406,7 +410,7 @@ public void Map(int theValue) {
 public void CalG(int theValue)
 {
   if (isConnected)
-    bp.sendSetupRequest(0);
+    bp.sendSetupRequest(1);
 }
 
 public void CalB(int theValue)

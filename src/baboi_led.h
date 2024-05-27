@@ -6,7 +6,7 @@
 
 
 // How many leds in your strip?
-#define NUM_LEDS 34
+#define NUM_LEDS 3
 #define NUM_STRIP (NUM_LEDS-2) //0..31
 
 void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b,bool update = false);

@@ -168,10 +168,10 @@ void send_info_data(void)
     //We send this 10 times....
     for (int ii=0;ii<10;ii++)
     {
-        AsyncUDPMessage message;
-        message.printf("%s",send_data);    
-        udp.broadcastTo(message, UDP_BROADCAST_PORT);
-        delay(20);
+      AsyncUDPMessage message;
+      message.printf("%s",send_data);    
+      udp.broadcastTo(message, UDP_BROADCAST_PORT);
+      delay(20);
     }
 #endif 
   }
@@ -185,27 +185,27 @@ bool process_incoming_data(t_comm_channel commChannel)
 {
     if (receive_data[0] == ID_QUERY)
     {
-        //Set the comm channel active we got the message on
-        currentCommChannel = commChannel;
-        //Send back info data on comm channel
-        send_info_data();
-        return true;
+      //Set the comm channel active we got the message on
+      currentCommChannel = commChannel;
+      //Send back info data on comm channel
+      send_info_data();
+      return true;
     }
     else if (receive_data[0] == ID_SETUP)
     {
-        if (receive_data[2] = '0')
-        {
-          setState(STATE_CAL_GYRO);
-        }
-        else if (receive_data[2] = '1')
-        {
-          setState(STATE_CAL_TENSION);
-        }
-        else
-        {
+      if (receive_data[2] = '0')
+      {
+        setState(STATE_CAL_GYRO);
+      }
+      else if (receive_data[2] = '1')
+      {
+        setState(STATE_CAL_TENSION);
+      }
+      else
+      {
 
-        }
-        return true;
+      }
+      return true;
     }
     else if (receive_data[0] == ID_PING)
     {

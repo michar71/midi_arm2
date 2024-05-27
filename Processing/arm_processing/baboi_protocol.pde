@@ -90,7 +90,9 @@ public void process_received_string(String myString)
       tension_ch2 = int(sensors[8]);  
       tension_ch3 = int(sensors[9]);   
       tension_ch4 = int(sensors[10]);  
-       
+      
+      tension_ch1 = (int)KalFilterT0.getFilteredValue((float)tension_ch1);
+      tension_ch2 = (int)KalFilterT1.getFilteredValue((float)tension_ch2);
       v2 = sensors[12];
       v3 = sensors[13];
       v4 = sensors[14];  
