@@ -93,13 +93,6 @@ typedef struct{
 
 
 void setState(t_state newState);
-void calibrate_buttons();
-bool checkForTouchpad(void);
-bool CheckTouchpadsForStrips(void);
 void toggle_status_led(void);
-uint16_t getTouchAnalogValue(uint8_t pad);
-
-
-
 
 #endif //main_h

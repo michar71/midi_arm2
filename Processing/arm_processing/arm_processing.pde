@@ -126,7 +126,7 @@ boolean try_to_open(String comport)
       myPort.stop();
       myPort = null;
     }
-    myPort = new Serial(this, comport, 230400);
+    myPort = new Serial(this, comport, 460800);
     if (myPort != null)
     {
       myPort.bufferUntil('\n');
@@ -383,9 +383,6 @@ void setup() {
   KalFilterT1 = new kalman(p_noise,s_noise,e_error,0.0);  
 }
 
-//int c;
-
-
 public void Range(int theValue) {
         if (isCal)
         {
@@ -423,11 +420,11 @@ void show_map_text()
 {
   fill(255);
   textAlign(LEFT);
-  text("Mapping Keys:",20,height-80);
-  text("Pitch=1,Roll=2,Yaw=3",20,height-64);
-  text("P-Split=4,R-Split=5,=Y-Split=6",20,height-48);
-  text("Button A=7,Button B=8",20,height-32);
-  text("Finger 1=9,Finger 2=0, Finger 3 = -",20,height-16);
+  text("Mapping Keys:",130,height-80);
+  text("Pitch=1,Roll=2,Yaw=3",130,height-64);
+  text("P-Split=4,R-Split=5,=Y-Split=6",130,height-48);
+  text("Button A=7,Button B=8",130,height-32);
+  text("Finger 1=9,Finger 2=0",130,height-16);
 }
 
 
@@ -536,23 +533,6 @@ void draw_cube()
     translate(-180, 0, 100); 
   }
   
-  
-  //Hard-Disable Ch 3/4 for the moment
-  /*
-  if (bp.tension_ch3 != -1)
-  {
-    translate(-180, 0, -200); 
-    box(50, bp.tension_ch3, 50);
-    translate(180, 0, 200); 
-  }
-  if (bp.tension_ch4 != -1)
-  {
-    translate(180, 0, -200); 
-    box(50, bp.tension_ch4, 50);
-    translate(-180, 0, 200); 
-  }
-  */
-  
   rotateY(y);//yaw
   rotateX(p);//pitch
   rotateZ(r);//roll
@@ -567,7 +547,6 @@ void draw_horizon()
 {
   text("T1:"+nf(bp.tension_ch1,0,2),5,70);
   text("T2:"+nf(bp.tension_ch2,0,2),5,82);
-  text("T3:"+nf(bp.tension_ch3,0,2),5,94);
 }
 
 void send_ping()
@@ -607,6 +586,51 @@ void check_timeout()
   }
 }
 
+void draw_led(color[] data)
+{
+  for(int yy=0;yy<data.length;yy++)
+  {
+    fill(data[yy]);
+    stroke(data[yy]);
+    rect(0,70+(yy*4),4,4);
+  }
+}
+
+void send_led()
+{
+  color[] ledData = new color[16];
+  
+   
+  //Add Some colors based on range of numbers...
+  int range = (int)map(bp.cy,bs.miny, bs.maxy, 0,15);
+  range = (int)constrain(range,0,15);
+  
+  int hue = (int)map(bp.cr,bs.minr, bs.maxr, 0,255);
+  hue = (int)constrain(hue,0,255);
+  
+  int sat = (int)map(bp.cp,bs.minp, bs.maxp, 0,15);  
+  sat = (int)constrain(sat,0,255);
+  
+  /*
+  
+  colorMode(HSB, 255,255,255);
+  
+  for (int ii=0;ii<range;ii++)
+     ledData[ii] = color(hue,sat,255);
+     
+  for (int ii=range;ii<16;ii++)
+     ledData[ii] = color(0,0,0);     
+ 
+  colorMode(RGB, 255,255,255); 
+  */
+  
+  for (int ii=range;ii<16;ii++)
+     ledData[ii] = color(hue,sat,range);    
+  
+  draw_led(ledData);
+  bp.sendLEDdata(ledData);  
+}
+
 void draw() 
 {
   if(1==frameCount) 
@@ -644,13 +668,15 @@ void draw()
       if ((isConnected) && (isLive))
       { 
         //limit update rate  
-        if ((millis() - lastUpdate)>30)
+        if ((millis() - lastUpdate)>33)
         {
           lastUpdate = millis();
           bm.update_midi();
           if (bs.artnet_en)
           {
             ba.send_artnet();
+            //Just a Test...
+            send_led();
           }
         }
       }

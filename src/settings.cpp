@@ -49,24 +49,6 @@ void print_settings()
     Serial.println(settings.main_mag_scale_z);    
     Serial.println("");    
 
-    Serial.print("Touch TH CTRL min: ");
-    Serial.println(settings.th_but_ctrl_min);
-    Serial.print("Touch TH A min: ");
-    Serial.println(settings.th_but_a_min);
-    Serial.print("Touch TH B min: ");
-    Serial.println(settings.th_but_b_min);    
-    Serial.print("Touch TH C min: ");
-    Serial.println(settings.th_but_c_min);    
-    Serial.print("Touch TH CTRL max: ");
-    Serial.println(settings.th_but_ctrl_max);
-    Serial.print("Touch TH A max: ");
-    Serial.println(settings.th_but_a_max);
-    Serial.print("Touch TH B max: ");
-    Serial.println(settings.th_but_b_max);    
-    Serial.print("Touch TH C max: ");
-    Serial.println(settings.th_but_c_max);        
-
-    Serial.println("");
     Serial.print("Tension Ch1 Min: ");
     Serial.println(settings.tension_min[0]);    
     Serial.print("Tension Ch1 Max: ");
@@ -74,15 +56,7 @@ void print_settings()
     Serial.print("Tension Ch2 Min: ");
     Serial.println(settings.tension_min[1]);    
     Serial.print("Tension Ch2 Max: ");
-    Serial.println(settings.tension_max[1]);   
-    Serial.print("Tension Ch3 Min: ");
-    Serial.println(settings.tension_min[2]);    
-    Serial.print("Tension Ch3 Max: ");
-    Serial.println(settings.tension_max[2]);   
-    Serial.print("Tension Ch4 Min: ");
-    Serial.println(settings.tension_min[3]);    
-    Serial.print("Tension Ch4 Max: ");
-    Serial.println(settings.tension_max[3]);           
+    Serial.println(settings.tension_max[1]);          
     Serial.println("");        
 
 }
@@ -124,24 +98,14 @@ void init_settings_mag()
 
 void init_settings_tension()
 {
-    for (int ii=0;ii<4;ii++)
+    for (int ii=0;ii<2;ii++)
     {
       settings.tension_max[ii] = -32768;
       settings.tension_min[ii] = 32767;
     }
 }
 
-void init_settings_but()
-{
-  settings.th_but_ctrl_max = 0;
-  settings.th_but_a_max = 0;
-  settings.th_but_b_max = 0;   
-  settings.th_but_c_max = 0; 
-  settings.th_but_ctrl_min = 0xFFFF;
-  settings.th_but_a_min = 0xFFFF;
-  settings.th_but_b_min = 0xFFFF;   
-  settings.th_but_c_min = 0xFFFF;   
-}
+
 
 void init_settings_other()
 {

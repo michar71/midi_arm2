@@ -125,16 +125,6 @@ public void send_midi()
     ControlChange change = new ControlChange(0, 10, bpr.tension_ch2/2);
     myBus.sendControllerChange(change);
   }
-  if (bpr.tension_ch3 != -1)
-  {
-    ControlChange change = new ControlChange(0, 11, bpr.tension_ch3/2);
-    myBus.sendControllerChange(change);
-  }
-  if (bpr.tension_ch4 != -1)
-  {
-    ControlChange change = new ControlChange(0, 12, bpr.tension_ch4/2);
-    myBus.sendControllerChange(change);
-  }  
 }
 
 

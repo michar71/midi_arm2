@@ -2,36 +2,18 @@
 #include "baboi_sensors.h"
 #include "baboi_led.h"
 #include "MPU9250.h"
-#include <Adafruit_ADS1X15.h>
 #include "settings.h"
 #include "main.h"
+#include <driver/adc.h>   // Analog to digital converter APIs
 
 
 MPU9250 mpu;
-Adafruit_ADS1015 ads;     /* Use this for the 12-bit version */
-
 extern setup_t settings;
-
-#define ADC_COUNT 4
-uint16_t adc_val[2][ADC_COUNT];
-uint8_t adc_index1 = 0;
-uint8_t adc_index2 = 0;
-
-uint16_t adc_ch1_avg = 0;
-uint16_t adc_ch2_avg = 0;
 
 bool hasGlove = false;
 bool hasGyro = false;
 
-
-#define ADS1115_ADDR  0x48     //Assuming ADDR pin is tied to GND. Its cvurrenrtly floating, might need wire patch...)
-#if BABOI_HW_VER == 2
-#define ADC_CH_COUNT 4
-#endif
-
-#if BABOI_HW_VER == 3
 #define ADC_CH_COUNT 2
-#endif
 
 uint8_t curr_ch = 0;
 int16_t adc_data[ADC_CH_COUNT];
@@ -203,10 +185,6 @@ bool mpu_update(void)
 
 //ESP32-C3 ADC Continous read control
 //------------------------------------
- #if BABOI_HW_VER == 3
-#include <driver/adc.h>   // Analog to digital converter APIs
-
-
 void ESP32_C3_ADC_SETUP(void)
 {
     adc1_config_width((adc_bits_width_t)1); //10 bit.... Who knows why the define doesn't work....
@@ -215,78 +193,26 @@ void ESP32_C3_ADC_SETUP(void)
 }
 
 
-
- #endif 
-//---------ADS1115 ADC ---------------
-
-
-bool is_adc_data_ready(void)
-{
- #if BABOI_HW_VER == 2
-  return ads.conversionComplete();
- #endif
-
- #if BABOI_HW_VER == 3
-   return true;
- #endif 
-}
-
-void startADCConversion(uint8_t ch)
-{
- #if BABOI_HW_VER == 2
-     ads.startADCReading(MUX_BY_CHANNEL[ch], false);
- #endif 
-
- #if BABOI_HW_VER == 3
- #endif
-}
-
 int32_t getADCValue(uint8_t ch)
 {
- #if BABOI_HW_VER == 2
-    return ads.getLastConversionResults();
- #endif  
-
- #if BABOI_HW_VER == 3
     if (ch == 1)
        return adc1_get_raw(ADC1_CHANNEL_1);
     else 
       return adc1_get_raw(ADC1_CHANNEL_0);
- #endif 
 }
 
 
 bool adc_update_manual()
 {
-    if (is_adc_data_ready())
-    {
-      //Read Data via I2C
-      //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
-      adc_data[curr_ch] = getADCValue(curr_ch);
-     
-     /* 
-      Serial.print("ADC ");
-      Serial.print(curr_ch);
-      Serial.print("\t:");
-      Serial.print(adc_data[0]);
-      Serial.print("\t:");
-      Serial.println(adc_data[1]);
-      */
+    //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
+    adc_data[curr_ch] = getADCValue(curr_ch);     
 
-      //Set Channel
-      curr_ch++;
-      if (curr_ch == ADC_CH_COUNT)
-        curr_ch = 0;
+    //Set Channel
+    curr_ch++;
+    if (curr_ch == ADC_CH_COUNT)
+      curr_ch = 0;
 
-      //Start Conversion
-      startADCConversion(curr_ch);
-
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return true;
 }
 
 //Need to add calibration range adjustment here...
@@ -327,25 +253,8 @@ void calibrate_tension(void)
     //Read Raw Values and calulate min/max. Filter out outliers.
     for (int ii=0;ii< 1000 ;ii++)
     {
-      //Start ADC
-      startADCConversion(ccurr_ch);
-      //Wait for ADC
-      while (is_adc_data_ready() == false)
-      {
-        delay(1);
-      }
-
       //Read ADC
- #if BABOI_HW_VER == 2
       int16_t val = getADCValue(ccurr_ch);
-#endif
-
- #if BABOI_HW_VER == 3
-      int16_t val = getADCValue(ccurr_ch);
-#endif
-
-
-      //#TODO define reasonable limits here to remove outliers
 
 
       //Record new min/max
@@ -364,17 +273,7 @@ void calibrate_tension(void)
       //Wait a little bit
       delay(5);
     }
-
-    //We create some dead band around the middle for better range control.
-    /*
-    for(int ii=0;ii<ADC_CH_COUNT;ii++)
-    {
-      settings.tension_min[ii] = (int16_t)((float)settings.tension_min[ii] * 1.2);
-      settings.tension_max[ii] = (int16_t)((float)settings.tension_max[ii] * 0.8);
-    }
-    */
   }
-
 }
 
 int16_t tension_get_ch(uint8_t ch)
@@ -382,6 +281,10 @@ int16_t tension_get_ch(uint8_t ch)
   int16_t val = 0;
   
   float res = 0;
+
+  if (settings.tension_min[ch] == settings.tension_max[ch])
+    return 0;
+
   res = map(adc_data[ch],settings.tension_min[ch],settings.tension_max[ch],0,255);
   if (res<0)
     val = 0;
@@ -409,37 +312,6 @@ void init_sensors(void)
   hasGyro = true;
   delay(200);
 
-
-  #if BABOI_HW_VER == 2
-  //Instantiate glove wire interface
-  //--------------------------------
-  Wire1.begin(GLOVE_SDA, GLOVE_SCL,4000000);
-  //TODO Check if needed here too...
-  i2c_scan(&Wire1,ADS1115_ADDR,127);
-  if (!ads.begin(ADS1115_ADDR,&Wire1)) 
-  {
-    Serial.println("Failed to initialize ADS1115. No Glove.");
-    hasGlove = false;
-  }
-  else
-  {
-    Serial.println("ADS1115 Ready. Found Glove.");
-    hasGlove =true;
-
-    //Setup IRQ
-    //pinMode(ADS1115_ALERT_PIN, INPUT);
-    // We get a falling edge every time a new sample is ready.
-    //attachInterrupt(ADS1115_ALERT_PIN, ads1115_irq, FALLING);
-
-    //Start ADC
-    ads.setGain(GAIN_FOUR);
-    ads.setDataRate(RATE_ADS1115_128SPS);
-    curr_ch = 0;   
-    ads.startADCReading(MUX_BY_CHANNEL[0], false);
-  }
-#endif
-
-#if BABOI_HW_VER == 3
   //Setup Glove ADC's
   //-----------------
 
@@ -448,11 +320,13 @@ void init_sensors(void)
   pinMode(ADC1_CH0,ANALOG);
   pinMode(ADC1_CH1,ANALOG);
   ESP32_C3_ADC_SETUP();
-  //Set up ADC's?
+
+
+  //mayube we use one of the unused pins and tie it to ground in the glove connector to check if its plugged in...
   hasGlove =true;
 
   Serial.println("Glove ADC Setup done.");
-#endif
+
 
   #ifdef DEBUG
     Serial.println("Sensor Setup Done...");

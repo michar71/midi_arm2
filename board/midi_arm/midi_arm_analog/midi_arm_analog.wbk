@@ -4,7 +4,7 @@
     {
       "analysis": "DC",
       "commands": [
-        ".dc RS1 5k 6k 10",
+        ".dc RS1 10k 20k 10",
         ".kicad adjustpaths",
         ".save all",
         ".probe alli",
@@ -20,6 +20,11 @@
       "measurements": [],
       "showGrid": true,
       "traces": [
+        {
+          "color": "rgb(55, 126, 184)",
+          "signal": "I(V1)",
+          "trace_type": 2050
+        },
         {
           "color": "rgb(228, 26, 28)",
           "signal": "V(ADC)",

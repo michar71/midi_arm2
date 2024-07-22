@@ -27,17 +27,9 @@ typedef struct{
     float second_acc_bias_z;
     float second_gyro_bias_x;
     float second_gyro_bias_y;
-    float second_gyro_bias_z;    
-    char16_t th_but_ctrl_min;
-    char16_t th_but_a_min;
-    char16_t th_but_b_min;
-    char16_t th_but_c_min;
-    char16_t th_but_ctrl_max;
-    char16_t th_but_a_max;
-    char16_t th_but_b_max;
-    char16_t th_but_c_max;    
-    int16_t tension_max[4];
-    int16_t tension_min[4];           
+    float second_gyro_bias_z;      
+    int16_t tension_max[2];
+    int16_t tension_min[2];           
     float offset_roll;
     float offset_pitch;
     float offset_yaw;
@@ -54,7 +46,6 @@ bool load_settings();
 void save_settings();
 void init_settings_mag();
 void init_settings_acc_gyro();
-void init_settings_but();
 void init_settings_tension();
 void init_settings_other();
 

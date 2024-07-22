@@ -67,7 +67,6 @@ void setup_settings_webpage()
     response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
     response->printf("</style></head><body>");  
     response->print("<h1>Settings</h1><br><p>");
-    response->printf("Has Touchpads: %d <br>",checkForTouchpad());
     response->printf("Has Glove: %d <br>",checkForGlove());
     response->printf("Has Gyro: %d <br>",checkForGyro());
           
@@ -91,56 +90,23 @@ void setup_settings_webpage()
     response->printf("Mag Scale Y: %f <br>",settings.main_mag_scale_y);   
     response->printf("Mag Scale Z: %f <br>",settings.main_mag_scale_z);   
 
-    if (checkForTouchpad())
-    { 
-      response->printf("Touch TH CTRL min: %d <br>",settings.th_but_ctrl_min); 
-      response->printf("Touch TH A min: %d <br>",settings.th_but_a_min); 
-      response->printf("Touch TH B min: %d <br>",settings.th_but_b_min);    
-      response->printf("Touch TH C min: %d <br>",settings.th_but_c_min);  
-      response->printf("Touch TH CTRL max: %d <br>",settings.th_but_ctrl_max); 
-      response->printf("Touch TH A max: %d <br>",settings.th_but_a_max); 
-      response->printf("Touch TH B max: %d <br>",settings.th_but_b_max);    
-      response->printf("Touch TH C max: %d <br>",settings.th_but_c_max);      
-    }
-
     response->printf("Tension Ch1 Min: %d <br>",settings.tension_min[0]); 
     response->printf("Tension Ch1 Max: %d <br>",settings.tension_max[0]); 
     response->printf("Tension Ch2 Min: %d <br>",settings.tension_min[1]); 
     response->printf("Tension Ch2 Max: %d <br>",settings.tension_max[1]); 
-    response->printf("Tension Ch3 Min: %d <br>",settings.tension_min[2]); 
-    response->printf("Tension Ch3 Max: %d <br>",settings.tension_max[2]); 
-    response->printf("Tension Ch4 Min: %d <br>",settings.tension_min[3]); 
-    response->printf("Tension Ch4 Max: %d <br>",settings.tension_max[3]); 
-
     response->printf("TENSION CH1 OUT: %d <br>",tension_get_ch(0));      
     response->printf("TENSION CH2 OUT: %d <br>",tension_get_ch(1));    
-    response->printf("TENSION CH3 OUT: %d <br>",tension_get_ch(2));    
-    response->printf("TENSION CH4 OUT: %d <br>",tension_get_ch(3));   
-
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");
     response->printf("Free Heap: %d <br>",ESP.getFreeHeap());   
 
-    if (checkForTouchpad())
-    { 
-     #if BABOI_HW_VER == 2  
-      response->printf("BUTTON CTRL VAL: %d <br>",touchRead(BUT_CTRL));  
-      response->printf("BUTTON A VAL: %d <br>",touchRead(BUT_A));  
-      response->printf("BUTTON B VAL: %d <br>",touchRead(BUT_B));  
-      response->printf("BUTTON C VAL: %d <br>",touchRead(BUT_C));        
-    #endif
-    }
-    else
-    {
-      response->printf("BUTTON CTRL VAL: %d <br>",digitalRead(BUT_CTRL));  
-      response->printf("BUTTON A VAL: %d <br>",digitalRead(BUT_A));  
-      response->printf("BUTTON B VAL: %d <br>",digitalRead(BUT_B));  
-      response->printf("BUTTON C VAL: %d <br>",digitalRead(BUT_C));     
-    }
+    response->printf("BUTTON CTRL VAL: %d <br>",digitalRead(BUT_CTRL));  
+    response->printf("BUTTON A VAL: %d <br>",digitalRead(BUT_A));  
+    response->printf("BUTTON B VAL: %d <br>",digitalRead(BUT_B));  
+    response->printf("BUTTON C VAL: %d <br>",digitalRead(BUT_C));     
+
     response->printf("TENSION CH1 VAL: %d <br>",adc_get_data(0));      
-    response->printf("TENSION CH2 VAL: %d <br>",adc_get_data(1));    
-    response->printf("TENSION CH3 VAL: %d <br>",adc_get_data(2));    
-    response->printf("TENSION CH4 VAL: %d <br>",adc_get_data(3));            
+    response->printf("TENSION CH2 VAL: %d <br>",adc_get_data(1));             
     response->printf("Current Pitch: %f <br>",mpu_GetCurrentPitch());  
     response->printf("Current Roll: %f <br>",mpu_GetCurrentRoll());  
     response->printf("Current Yaw: %f <br>",mpu_GetCurrentYaw());      
@@ -204,7 +170,6 @@ void setup_reset_webpage()
    {
     init_settings_acc_gyro();
     init_settings_mag();
-    init_settings_but();
     init_settings_other();
     save_settings();
     setLED(1,64,64,64);
@@ -332,11 +297,6 @@ void setup_cal_question_webpage()
     response->print("<a href=\"./calgyroacc\">Calibrate Gyro/Accelerometer</a><br><br>");    
     response->printf("Calibrate the magnetometer by moving the baboi through all 3 axises in a figure-eight.<br>");
     response->print("<a href=\"./calmag\">Calibrate Magnetometer</a><br><br>");
-    if (checkForTouchpad())
-    { 
-       response->printf("Calibrate the touchpad buttons by repeated touching them during calibration.<br>");    
-       response->print("<a href=\"./calbuttons\">Calibrate Buttons</a><br><br>");     
-    }
     
     if (checkForGlove())
     {
@@ -392,27 +352,6 @@ void setup_cal_mag_webpage()
   });
 }
 
-void setup_cal_buttons_webpage()
-{
-  server.on("/calbuttons", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    setState(STATE_CAL_BUTTONS); 
-
-    AsyncResponseStream *response = request->beginResponseStream("text/html");
-    response->addHeader("Server","ESP BABOI Calibrate Buttons Page");
-    response->printf("<!DOCTYPE html><html><head><title>BABOI Touch-Button Calibration Page</title><style>");
-    response->printf("h1 {color: maroon;margin-left: 40px;font-size: 40px;font-family: Arial,Helvetica, sans-serif;} ");
-    response->printf("p {font-size: 22px;font-family: Arial, Helvetica, sans-serif;}"); 
-    response->printf("</style></head><body>");  
-    response->printf("<h1>Touch-Button calibration in Progress</h1><br><p>");
-    response->printf("Continue pressing and releasing the touch-buttons until the calibration light turns off.<br>");
-    response->print("<a href=\"./\">Back</a><br><br>");       
-    response->printf("</p>");    
-    response->print("</body></html>");
-    request->send(response);    
-
-  });
-}
 
 void setup_cal_tension_webpage()
 {
@@ -451,7 +390,6 @@ void init_webserver()
     setup_cal_question_webpage();
     setup_cal_gyro_acc_webpage();
     setup_cal_mag_webpage();
-    setup_cal_buttons_webpage();
     setup_cal_tension_webpage();
     setup_wm_webpage();
     setup_setup_webpage();

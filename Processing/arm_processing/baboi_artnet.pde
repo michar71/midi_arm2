@@ -37,8 +37,6 @@ class baboi_artnet{
     // fill dmx array
     int val = 0;
 
-
-
     val =(int)map(bpr.cr,bsr.minr, bsr.maxr, 0,255);
     val = (int)constrain(val,0,255);
     dmxData[0] = (byte) val;
@@ -80,24 +78,7 @@ class baboi_artnet{
     {
       dmxData[7] = (byte) 0; 
     }
-    if (bpr.tension_ch3 != -1)
-    {
-      dmxData[8] = (byte)bpr.tension_ch3;
-    }
-    else
-    {
-      dmxData[8] = (byte) 0; 
-    }
-    if (bpr.tension_ch4 != -1)
-    {
-      dmxData[9] = (byte)bpr.tension_ch4;
-    }
-    else
-    {
-      dmxData[9] = (byte) 0; 
-    }
-    
-    
+
     // send dmx to localhost
     //artnet.unicastDmx("127.0.0.1", 0, 0, dmxData);
     

@@ -1337,7 +1337,7 @@
 		(fields_autoplaced yes)
 		(uuid "2185b24e-1ea2-4db2-b2f3-d083da5c273b")
 		(property "Reference" "V1"
-			(at 40.132 34.2181 0)
+			(at 40.132 34.218 0)
 			(effects
 				(font
 					(size 1.27 1.27)

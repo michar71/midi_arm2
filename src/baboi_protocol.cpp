@@ -73,35 +73,20 @@ void build_processing_data(bool senddata)
 
   int16_t tension_ch1 = -1;
   int16_t tension_ch2 = -1;
-  int16_t tension_ch3 = -1;
-  int16_t tension_ch4 = -1;
+
 
   if (checkForGlove())
   {
     tension_ch1 = tension_get_ch(0);
-    tension_ch2 = tension_get_ch(1);
-    tension_ch3 = -1; //tension_get_ch(2);
-    tension_ch4 = -1; //tension_get_ch(3);          
+    tension_ch2 = tension_get_ch(1);   
   }
 
-  //Special Case for tresting !!!!
-  if(CheckTouchpadsForStrips())
-  {
-    tension_ch1 = getTouchAnalogValue(0);
-    tension_ch2 = getTouchAnalogValue(1);
-    tension_ch3 = getTouchAnalogValue(2);      
-    Serial.print(tension_ch1);
-    Serial.print("/");  
-    Serial.print(tension_ch2);
-    Serial.print("/");  
-    Serial.println(tension_ch3);          
-  }
 
 
   if(senddata)
-    snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f:%d:%d:%d:%d",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val,tension_ch1,tension_ch2,tension_ch3,tension_ch4);
+    snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f:%d:%d",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val,tension_ch1,tension_ch2);
   else
-    snprintf(send_data,SEND_DATA_LENGTH,"%c:0:0:0:0:0:0:0:0:0:0",ID_DATA);
+    snprintf(send_data,SEND_DATA_LENGTH,"%c:0:0:0:0:0:0:0:0",ID_DATA);
 
     //#TODO Combine into one bitmap
     if (state == STATE_LIVE)
@@ -180,6 +165,31 @@ void send_info_data(void)
   setState(STATE_LIVE);
 }
 
+// Function to parse a comma-separated string into integers
+int parseCSV(char *input, uint8_t *values, int maxValues) 
+{
+  char *token = strtok(input, ",");
+  int count = 0;
+  
+  while (token != NULL && count < maxValues) 
+  {
+    values[count++] = (uint8_t)atoi(token); // Convert token to integer and store it
+    token = strtok(NULL, ",");
+  }
+  
+  return count; // Return the number of values parsed
+}
+
+void parse_LED_data(void)
+{
+  uint8_t data[16*3];
+  uint8_t res = parseCSV(&receive_data[2], data, 16*3);
+  if (res == 16*3)
+  {
+    SetLEDsFromArray(data);
+  }
+}
+
 
 bool process_incoming_data(t_comm_channel commChannel)
 {
@@ -212,6 +222,12 @@ bool process_incoming_data(t_comm_channel commChannel)
       lastPing = millis();
       return true;
     }
+   else if (receive_data[0] == ID_LED)
+    {
+      lastPing = millis(); //LED Data aslso acts as ping...
+      parse_LED_data();
+      return true;
+    }    
     return false;
 }
 
@@ -221,7 +237,7 @@ void incoming_protocol_request(void)
   char incomingByte;
   static bool complete = false;
 
-  if (Serial.available() > 0) 
+  while (Serial.available() > 0) 
   {
     // read the incoming byte:
     incomingByte = Serial.read();
@@ -230,7 +246,8 @@ void incoming_protocol_request(void)
     //resetting
     if (len == RECEIVE_DATA_LENGTH-2) 
     {
-      complete = true;
+      len = 0;
+      complete = false;
       receive_data[RECEIVE_DATA_LENGTH-1] = 0;
     }
 
@@ -242,12 +259,15 @@ void incoming_protocol_request(void)
 
     if (complete)
     {
+        toggle_status_led();
         process_incoming_data(COMM_SERIAL);
         len = 0;
         complete = false;
     }
   } 
 }
+
+
 bool checkCommTimeout(void)
 {
   const uint16_t timeout = 1200; //Longer then the 1 sec intervall on the host...
