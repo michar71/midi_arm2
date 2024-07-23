@@ -14,29 +14,18 @@ import java.util.*;
 import controlP5.*;
 import com.jogamp.newt.opengl.GLWindow;
 
-import com.bckmnn.udp.*;
-import java.net.InetSocketAddress;
-import java.net.InetAddress;
-import java.net.SocketAddress;
-
 baboi_protocol bp;
 baboi_midi bm;
 baboi_artnet ba;
 baboi_settings bs;
 
-int baboi_port = 2255;
-
-UDPHelper udp;
-SocketAddress lastUDPclient;
 ControlP5 cp5;
 
-Serial myPort;                  // The serial port
-String my_port = "/dev/cu.usbmodem145101";        // choose your port
-//String my_port = "/dev/tty.MIDIARM";        // choose your port
 float p, r, y;
 
 boolean isCal;
 boolean isMap;
+int lastUpdate = 0;
 
 kalman KalFilterP;
 kalman KalFilterR;
@@ -53,12 +42,7 @@ int m22 = 0;
 int m33 = 0;
 
 boolean isLive = true;
-boolean isConnected = false;
-boolean isValidDevice=false;
 
-int lastUpdate = 0;
-int lastSerial = 0;
-int lastPing = 0;
 
 PVector getWindowLocation(String renderer) 
 {
@@ -77,148 +61,6 @@ PVector getWindowLocation(String renderer)
     l.y = f.getY();
   }
   return l;
-}
-
-boolean get_usbmodem_list(ArrayList<String> list)
-{
-
-  String substring = "usbmodem";
-   
-  try 
-  {
-    //printArray(Serial.list());
-    int i = Serial.list().length;
-    if (i != 0) 
-    {
-    //Buil a list of all the USB Modems
-      for (int j = 0; j < i;j++) 
-      {
-        if (Serial.list()[j].contains(substring) == true)
-        {
-          list.add(Serial.list()[j]);
-        }
-      }
-      println(list);
-      return true;
-    }
-    else
-    {
-      println("No Serial Port Found");
-      return false;
-    }
-    
-  }
-  catch (Exception e)
-  { //Print the type of error
-    println("Serial List Error:", e);
-    return false;  //Tried to connect but no success... Maybe already used?
-  }
-}
-
-
-boolean try_to_open(String comport)
-{
-  try
-  {
-    if (myPort !=null)
-    {
-      myPort.stop();
-      myPort = null;
-    }
-    myPort = new Serial(this, comport, 460800);
-    if (myPort != null)
-    {
-      myPort.bufferUntil('\n');
-      return true;
-    }
-    else 
-    {
-      return false; //No Serial Port device detected at all...
-    }
-  }
-  catch (Exception e)
-  { //Print the type of error
-    println("Serial Open Error:", e);
-    return false;  //Tried to connect but no success... Maybe already used?
-  }  
-}
-
-boolean ping_usbmodem()
-{
-  
-  int maxping = 5;
-  
-   for(int ii=0;ii<maxping;ii++)
-   {
-     String id_query = bp.build_query();
-     myPort.write(id_query);
-     println("Query Sent "+ii);
-     delay(200);
-
-     //Need to be able to identify different types of BABOIs
-     if (isValidDevice)
-        return true;
-   }
-   return false;
-}
-
-boolean try_connect_usb_modem()
-{
-  boolean hasList = false;
-  boolean isOpen = false;
-
-  ArrayList<String> Seriallist = new ArrayList<String>();
-  //Build a list of all USB Modems
-  
-
-  hasList = get_usbmodem_list(Seriallist);
-  if (hasList == false)
-    return false;
-  
- //Loop Through List
- for (int ii = 0;ii < Seriallist.size();ii++)
- {
-   isOpen = false;
-   //Try to open Serial Port
-   isOpen = try_to_open(Seriallist.get(ii));
-   if (isOpen)
-   {
-     return ping_usbmodem();
-   }
- }
- return false;
-}
-
-boolean try_to_connect_wifi()
-{
-  int maxping = 5;
- 
-  
-  for(int ii=0;ii<maxping;ii++)
-  {
-    String id_query = bp.build_query();
-    try
-    {
-
-      //SocketAddress all = new InetSocketAddress(InetAddress.getByName("192.168.1.1"),baboi_port);
-      //udp.sendMessage(UDPHelper.bytesFromString(id_query),all);
-        
-      SocketAddress all = new InetSocketAddress(InetAddress.getByName("255.255.255.255"),baboi_port);
-      udp.sendMessage(UDPHelper.bytesFromString(id_query),all);   
-        
-     } 
-     catch(Exception e)
-     {
-       e.printStackTrace();
-     }
-     println("Wifi Query Sent "+ii);
-     delay(200);
-
-    //Need to be able to identify different types of BABOIs
-    if (isValidDevice)
-       return true;
-   }
-  return false;
 }
 
 void Splitp(boolean theFlag) 
@@ -271,14 +113,10 @@ void settings()
 
 
 void setup() {
-   bp = new baboi_protocol();
-   
+   bp = new baboi_protocol(this); 
    bm = new baboi_midi(bp,bs);
    ba = new baboi_artnet(bp,bs);
 
-  
-  
- //<>// //<>//
   
   surface.setTitle("BABOI CONTROL");
   surface.setResizable(false);
@@ -367,9 +205,7 @@ void setup() {
      .setBroadcast(true)
      ; 
      
-  udp = new UDPHelper(this);
-  udp.setLocalPort(baboi_port);
-  udp.startListening();
+
   
   float p_noise = 4;//2
   float s_noise = 16;//32
@@ -405,13 +241,13 @@ public void Map(int theValue) {
 
 public void CalG(int theValue)
 {
-  if (isConnected)
+  if (bp.checkConnected())
     bp.sendSetupRequest(1);
 }
 
 public void CalB(int theValue)
 {
-  if (isConnected)
+  if (bp.checkConnected())
     bp.sendSetupRequest(0);
 }
 
@@ -548,42 +384,7 @@ void draw_horizon()
   text("T2:"+nf(bp.tension_ch2,0,2),5,82);
 }
 
-void send_ping()
-{
-  int pingRate = 1000;
-  int current_time = millis();
-  if ((current_time - lastPing) > pingRate)
-  {
-    lastPing = millis();
-    bp.sendPing();
-  }
-}
 
-void check_timeout()
-{
-  int timeout = 3000;
-  int current_time = millis();
-  if ((current_time - lastSerial) > timeout)
-  {
-    // Clear the buffer, or available() will still be > 0
-    try
-    {
-      if (myPort != null)
-      {
-        myPort.clear();
-        // Close the port
-        myPort.stop();
-      }
-    }
-    catch (Exception e)
-    {
-      println("Serial EXCEPTION");
-    }
-    println("TIMEOUT");
-    isValidDevice = false;
-    isConnected = false;
-  }
-}
 
 void draw_led(color[] data)
 {
@@ -638,7 +439,7 @@ void draw()
   else
     background(255,0,0);
     
-  if (isConnected)
+  if (bp.checkConnected())
   {
     if (bs.use2D)
     {
@@ -660,7 +461,7 @@ void draw()
     }
     else
     {
-      if ((isConnected) && (isLive))
+      if ((bp.checkConnected()) && (isLive))
       { 
         //limit update rate  
         if ((millis() - lastUpdate)>33)
@@ -676,10 +477,11 @@ void draw()
         }
       }
     }
-    if (isConnected)
-      send_ping();
-    if (isConnected)
-      check_timeout();  
+    if (bp.checkConnected())
+    {
+      bp.send_ping();
+      bp.check_timeout();  
+    }
   }
   else
   {
@@ -688,12 +490,7 @@ void draw()
     line(0,0,width,height);
     line(width,0,0,height);
     text("NO CONNECTION",width/2,height/2);
-    isConnected = try_connect_usb_modem();
-    if (bs.network_en)
-    {
-      if (isConnected == false)
-        isConnected = try_to_connect_wifi();
-    }
+    bp.reconnect(bs.network_en);
   }
 
   PVector loc = getWindowLocation(P3D);
@@ -719,26 +516,12 @@ void calc_call_min_max()
 
 }
 
-//This sould receive broadcast and unicast....
-public void onUdpMessageRecieved(SocketAddress client, byte[] message)
-{
-  lastUDPclient = client;
-  String messageString = UDPHelper.stringFromBytes(message);
-  //println(client + " sent you this message: " + messageString);
-  bp.process_received_string(messageString);
-}
 
-
-void serialEvent(Serial myPort) 
-{  
-  String myString = myPort.readStringUntil('\n'); 
-  bp.process_received_string(myString);
-}
 
 
 void keyPressed() 
 {
-   if(isConnected)
+     if (bp.checkConnected())
    {
     if (key == 'm')
     {
@@ -782,4 +565,14 @@ Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
     bs.save_settings();
   }
 }));
+}
+
+void serialEvent(Serial myPort) 
+{  
+  bp.serialEvent(myPort);
+}
+
+public void onUdpMessageRecieved(SocketAddress client, byte[] message)
+{
+  bp.onUdpMessageRecieved(client,message);
 }
