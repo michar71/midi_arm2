@@ -165,16 +165,19 @@ float mpu_GetCurrentRoll(void)
 float mpu_GetCurrentAX(void)
 {
   return mpu.getLinearAccX();
+  //return mpu.getAccX();
 }
 
 float mpu_GetCurrentAY(void)  
 {
   return mpu.getLinearAccY();
+  //return mpu.getAccY();  
 }
 
 float mpu_GetCurrentAZ(void)
 {
   return mpu.getLinearAccZ();
+  //return mpu.getAccZ();
 }
 
 

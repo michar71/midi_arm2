@@ -541,7 +541,7 @@ public:
 
         lin_acc[0] = a[0] + a31;
         lin_acc[1] = a[1] + a32;
-        lin_acc[2] = a[2] + a33;
+        lin_acc[2] = a[2] - a33;
 
         //Filter Output
         //rpy[0] = kgx.getFilteredValue(rpy[0]);
@@ -586,7 +586,7 @@ private:
             destination[4] -= gyro_bias[0];
             destination[5] -= gyro_bias[1];
             destination[6] -= gyro_bias[2];
-        }                                        
+        }                                     
     }
 
 public:

@@ -13,7 +13,7 @@ import java.lang.*;
 import java.util.*;
 import controlP5.*;
 import com.jogamp.newt.opengl.GLWindow;
-import  java.nio.ByteBuffer;
+
 import com.bckmnn.udp.*;
 import java.net.InetSocketAddress;
 import java.net.InetAddress;
@@ -27,9 +27,8 @@ baboi_settings bs;
 int baboi_port = 2255;
 
 UDPHelper udp;
+SocketAddress lastUDPclient;
 ControlP5 cp5;
-
-
 
 Serial myPort;                  // The serial port
 String my_port = "/dev/cu.usbmodem145101";        // choose your port
@@ -608,10 +607,9 @@ void send_led()
   int hue = (int)map(bp.cr,bs.minr, bs.maxr, 0,255);
   hue = (int)constrain(hue,0,255);
   
-  int sat = (int)map(bp.cp,bs.minp, bs.maxp, 0,15);  
+  int sat = (int)map(bp.cp,bs.minp, bs.maxp, 0,255);  
   sat = (int)constrain(sat,0,255);
   
-  /*
   
   colorMode(HSB, 255,255,255);
   
@@ -622,10 +620,7 @@ void send_led()
      ledData[ii] = color(0,0,0);     
  
   colorMode(RGB, 255,255,255); 
-  */
   
-  for (int ii=range;ii<16;ii++)
-     ledData[ii] = color(hue,sat,range);    
   
   draw_led(ledData);
   bp.sendLEDdata(ledData);  
@@ -727,6 +722,7 @@ void calc_call_min_max()
 //This sould receive broadcast and unicast....
 public void onUdpMessageRecieved(SocketAddress client, byte[] message)
 {
+  lastUDPclient = client;
   String messageString = UDPHelper.stringFromBytes(message);
   //println(client + " sent you this message: " + messageString);
   bp.process_received_string(messageString);
