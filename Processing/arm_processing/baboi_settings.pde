@@ -13,6 +13,7 @@ boolean artnet_en =false;
 boolean network_en =false;
 int winx;
 int winy;
+int fx;
 boolean use2D = false;
 
  public void load_settings()
@@ -40,6 +41,7 @@ boolean use2D = false;
       
       winx = json.getInt("winx");        
       winy = json.getInt("winy");      
+      fx = json.getInt("fx");  
     }
     
     catch (Exception e)
@@ -83,6 +85,7 @@ public void save_settings()
 
   json.setInt("winx",winx);  
   json.setInt("winy",winy);  
+  json.setInt("fx",fx);  
   
   saveJSONObject(json,"setup.json");
 }

@@ -101,9 +101,7 @@ void setup_settings_webpage()
     response->printf("Free Heap: %d <br>",ESP.getFreeHeap());   
 
     response->printf("BUTTON CTRL VAL: %d <br>",digitalRead(BUT_CTRL));  
-    response->printf("BUTTON A VAL: %d <br>",digitalRead(BUT_A));  
-    response->printf("BUTTON B VAL: %d <br>",digitalRead(BUT_B));  
-    response->printf("BUTTON C VAL: %d <br>",digitalRead(BUT_C));     
+    response->printf("BUTTON A VAL: %d <br>",digitalRead(BUT_A));   
 
     response->printf("TENSION CH1 VAL: %d <br>",adc_get_data(0));      
     response->printf("TENSION CH2 VAL: %d <br>",adc_get_data(1));             

@@ -306,17 +306,26 @@ public:
         //me = kgy.getFilteredValue(me);
         //md = kgz.getFilteredValue(md);
 
-        for (size_t i = 0; i < n_filter_iter; ++i) {
+        for (size_t i = 0; i < n_filter_iter; ++i) 
+        {
             quat_filter.update(an, ae, ad, gn, ge, gd, mn, me, md, q);
         }
 
-
-        if (!b_ahrs) {
+        if (!b_ahrs) 
+        {
             temperature_count = read_temperature_data();               // Read the adc values
             temperature = ((float)temperature_count) / 333.87 + 21.0;  // Temperature in degrees Centigrade
-        } else {
+        } 
+        else 
+        {
             update_rpy(q[0], q[1], q[2], q[3]);
         }    
+
+        //Swap pitch and roll here to compensate for V3.5 HW
+        float tmp = rpy[0];
+        rpy[0]= rpy[1];
+        rpy[1] = tmp;
+        
         return true;
     }
 

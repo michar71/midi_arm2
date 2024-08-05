@@ -6,9 +6,6 @@
 #include "settings.h"
 
 
-
-
-#ifdef WIFI
 #include <ESPAsyncWebServer.h>
 
 
@@ -26,5 +23,4 @@ public:
 void init_webserver(void);
 
 
-#endif
 #endif

@@ -12,8 +12,6 @@
 #define CORE_DEBUG_LEVEL 3
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
-#ifdef WIFI
-
 
   #include <WiFi.h>
   #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager 
@@ -27,26 +25,22 @@
 
   unsigned int  timeout   = 120; // seconds to run for
   unsigned int  startTime = millis();
-  bool portalRunning      = false;
-  bool startAP            = false; // start AP and webserver if true, else start only webserver
-#endif
 
-#define CTRL_LED_BRIGHTNESS 32
+
+#define CTRL_LED_BRIGHTNESS 16
 const char* devicename = "BABOI";
 int maj_ver = 3;
-int min_ver = 0;
+int min_ver = 5;
 
 extern setup_t settings;
 
 bool but_a_state = false;
-bool but_b_state = false;
-bool but_c_state = false;
+
 
 
 ButtonClass but_ctrl(BUT_CTRL,false,false);
 ButtonClass but_a(BUT_A,false,false);
-ButtonClass but_b(BUT_B,false,false);
-ButtonClass but_c(BUT_C,false,false);
+
 
 t_state state = STATE_STARTUP;
 t_state lastState = STATE_STARTUP;
@@ -70,29 +64,28 @@ void setup()
 {
     setState(STATE_STARTUP);
     Serial.begin(460800);	
-    #if BABOI_HW_VER == 2
-      setCpuFrequencyMhz(240);
-    #endif
-    #if BABOI_HW_VER == 3
-      setCpuFrequencyMhz(160);
-    #endif
+    setCpuFrequencyMhz(160);
+
     
   #ifdef DEBUG
-    delay(2000);
+   /*
+   delay(5000);
     Serial.setDebugOutput(true);
-    Serial.println("Startup...");
+    for (int ii=0;ii<200;ii++)
+    {
+      Serial.println("Startup...");
+      delay(100);
+    }
+    */
   #endif
     pinMode(STATUS_LED, OUTPUT);     
-    pinMode(ID_PIN,INPUT_PULLUP);
         
     
   #ifdef DEBUG
     Serial.println("Pin Setup Done...");
   #endif
 
-    delay(10);
     settings_init();
-
     led_init();
     led_test();
 #ifdef DEBUG
@@ -105,8 +98,6 @@ void setup()
     but_ctrl.setTouchMode(false);
     pinMode(BUT_CTRL,INPUT_PULLUP);
     pinMode(BUT_A,INPUT_PULLUP);
-    pinMode(BUT_B,INPUT_PULLUP);
-    pinMode(BUT_C,INPUT_PULLUP);
     delay(1);
     //Reset everything if all buttons are down
     if ((digitalRead(BUT_CTRL) == LOW) && (digitalRead(BUT_A) == LOW))
@@ -116,7 +107,7 @@ void setup()
       init_settings_other();
       save_settings();
       setLED(1,CTRL_LED_BRIGHTNESS,CTRL_LED_BRIGHTNESS,CTRL_LED_BRIGHTNESS,true);
-      delay(250);
+      delay(500);
       setLED(0,0,0,0,true);
   #ifdef DEBUG
         Serial.println("Full Reset Done");
@@ -152,8 +143,6 @@ void setup()
   }
 
 
-
-  #ifdef WIFI
     
     //Hmmmm Conceptually not sure how WifiMansger would work....
     //After it connects to a network how do we know the IP adress? 
@@ -203,7 +192,6 @@ void setup()
     init_webserver();
     init_protocol();
 
-  #endif
 
 
   #ifdef DEBUG
@@ -232,8 +220,13 @@ void process_state(void)
     break;
 
     case STATE_PAUSED:
+
       send_processing_data(false);
       setLED(1,CTRL_LED_BRIGHTNESS,0,0);
+      for(int ii=2;ii<NUM_LEDS;ii++)
+      {
+        setLED(ii,0,0,0);
+      } 
     break;
 
     case STATE_CAL_BUTTONS:
@@ -305,21 +298,16 @@ void handle_buttons(void)
   {
     setState(STATE_CAL_GYRO);
   }
+  else if (button_res == VERY_VERY_LONG_PRESS)
+  {
+    setState(STATE_CAL_MAG);
+  }
+
 
     if (digitalRead(BUT_A) == LOW)
       but_a_state = true; 
     else
-      but_a_state = false; 
-
-    if (digitalRead(BUT_B) == LOW)
-      but_b_state = true; 
-    else
-      but_b_state = false; 
-
-    if (digitalRead(BUT_C) == LOW)
-      but_c_state = true; 
-    else
-      but_c_state = false;           
+      but_a_state = false;       
 
 }
 
@@ -327,10 +315,8 @@ void handle_buttons(void)
 void loop() 
 {
   static uint16_t sampleCount = 0;
-#ifdef WIFI
-  //wm.process();
+
   dnsServer.processNextRequest();
-#endif
 
   //Deal with incoming data
   incoming_protocol_request();
@@ -339,8 +325,7 @@ void loop()
   {
     if (mpu_update() == false) 
     {
-      //MPU ERROR
-      //Not sure what to do
+      //Gyro not avasilable yet... Just ignore...
     }
   }
 
@@ -369,11 +354,12 @@ void loop()
       for(int ii=2;ii<NUM_LEDS;ii++)
       {
         setLED(ii,0,0,0);
-    } 
+      } 
     }
     else
+    {
       setLED(0,0,CTRL_LED_BRIGHTNESS,0);  
-
+    }
 
     updateLED();   
   }

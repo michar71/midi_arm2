@@ -4,13 +4,9 @@
 #include "baboi_led.h"
 #include "settings.h"
 #include "main.h"
-
-#ifdef WIFI
 #include <AsyncUDP.h>
 
-    AsyncUDP udp;
-#endif
-
+AsyncUDP udp;
 extern setup_t settings;
 
 t_comm_channel currentCommChannel = COMM_SERIAL;
@@ -99,14 +95,8 @@ void build_processing_data(bool senddata)
     else
       strcat(send_data,":0");
 
-    if (but_b_state)
-      strcat(send_data,":1");
-    else
+    //Button B/C not used
       strcat(send_data,":0");        
-
-    if (but_c_state)
-      strcat(send_data,":1");
-    else
       strcat(send_data,":0");   
 }
 
@@ -119,14 +109,12 @@ void send_processing_data(bool senddata)
   }
   else
   {
-#ifdef WIFI
     AsyncUDPMessage message;
     message.printf("%s",send_data);
 
     //Sending everything as broadcast right now. Replace with unicast later    
     //udp.broadcastTo(message, UDP_BROADCAST_PORT);
     udp.sendTo(message, comm_host_ip, UDP_BROADCAST_PORT);
-#endif  
   }
 }
 
@@ -149,7 +137,6 @@ void send_info_data(void)
   }
   else
   {
-#ifdef WIFI
     //We send this 10 times....
     for (int ii=0;ii<10;ii++)
     {
@@ -158,7 +145,6 @@ void send_info_data(void)
       udp.broadcastTo(message, UDP_BROADCAST_PORT);
       delay(20);
     }
-#endif 
   }
   //Mark State as connected
   setLED(0,0,64,0);
@@ -203,11 +189,11 @@ bool process_incoming_data(t_comm_channel commChannel)
     }
     else if (receive_data[0] == ID_SETUP)
     {
-      if (receive_data[2] = '0')
+      if (receive_data[2] == '0')
       {
         setState(STATE_CAL_GYRO);
       }
-      else if (receive_data[2] = '1')
+      else if (receive_data[2] == '1')
       {
         setState(STATE_CAL_TENSION);
       }
@@ -277,7 +263,6 @@ bool checkCommTimeout(void)
     return false;  
 }
 
-#ifdef WIFI
 
 void setup_udp_broadcast_receiver()
 {
@@ -326,15 +311,12 @@ void setup_udp_broadcast_receiver()
     #endif
 }
 
-#endif
 
 void init_protocol(void)
 {
-#ifdef WIFI
     //This should be the Broadcast IP address
     if(udp.listen(UDP_BROADCAST_PORT)) 
     {
       setup_udp_broadcast_receiver();
     }
-#endif    
 }

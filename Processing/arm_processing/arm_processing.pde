@@ -18,6 +18,8 @@ baboi_protocol bp;
 baboi_midi bm;
 baboi_artnet ba;
 baboi_settings bs;
+baboi_led_fx ledctrl;
+
 
 ControlP5 cp5;
 
@@ -116,6 +118,7 @@ void setup() {
    bp = new baboi_protocol(this); 
    bm = new baboi_midi(bp,bs);
    ba = new baboi_artnet(bp,bs);
+   ledctrl = new baboi_led_fx(16);
 
   
   surface.setTitle("BABOI CONTROL");
@@ -125,7 +128,7 @@ void setup() {
   
   cp5 = new ControlP5(this);
   prepareExitHandler();
- 
+  
 
   //Create UI
   cp5.addButton("Range")
@@ -195,6 +198,7 @@ void setup() {
      .setPosition(5,height-20)
      .setSize(50,18)
      .setBroadcast(true)
+     .setCaptionLabel("CAL B")
      ; 
      
      cp5.addButton("CalG")
@@ -203,8 +207,22 @@ void setup() {
      .setPosition(60,height-20)
      .setSize(50,18)
      .setBroadcast(true)
+     .setCaptionLabel("CAL G")
      ; 
      
+     List<String> fxnames = new ArrayList<String>();
+     ledctrl.getNames(fxnames);
+     /* add a ScrollableList, by default it behaves like a DropdownList */
+     cp5.addScrollableList("FXList")
+       .setBroadcast(false)
+       .setPosition(width-110,96)
+       .setSize(100,120)
+       .setBarHeight(20)
+       .setItemHeight(20)
+       .addItems(fxnames)
+       .setValue(bs.fx)
+       .setBroadcast(true)
+       ;
 
   
   float p_noise = 4;//2
@@ -216,7 +234,18 @@ void setup() {
   KalFilterY = new kalman(p_noise,s_noise,e_error,0.0);
   KalFilterT0 = new kalman(p_noise,s_noise,e_error,0.0);  
   KalFilterT1 = new kalman(p_noise,s_noise,e_error,0.0);  
+  
+  ledctrl.setNextFx(ledctrl.findByIndex(bs.fx));
 }
+
+public void FXList(int n)
+{
+  bs.fx = n; 
+  ledctrl.setNextFx(ledctrl.findByIndex(bs.fx));
+  bs.save_settings();
+  
+}
+
 
 public void Range(int theValue) {
         if (isCal)
@@ -295,22 +324,22 @@ void draw_labels()
   text("P:"+nf(bp.cp,0,2),5,10);
   text("R:"+nf(bp.cr,0,2),5,22);
   text("Y:"+nf(bp.cy,0,2),5,34);
-  text(nf(bs.minp,0,2)+"/"+nf(bs.maxp,0,2),55,10);
-  text(nf(bs.minr,0,2)+"/"+nf(bs.maxr,0,2),55,22);
-  text(nf(bs.miny,0,2)+"/"+nf(bs.maxy,0,2),55,34);
+  text(nf(bs.minp,0,2)+"/"+nf(bs.maxp,0,2),60,10);
+  text(nf(bs.minr,0,2)+"/"+nf(bs.maxr,0,2),60,22);
+  text(nf(bs.miny,0,2)+"/"+nf(bs.maxy,0,2),60,34);
   
   if (bs.splitp)
-    text(m1+"/"+m11,120,10);
+    text(m1+"/"+m11,128,10);
   else
     text(m1,120,10);
     
   if (bs.splitr)  
-    text(m2+"/"+m22,120,22);
+    text(m2+"/"+m22,128,22);
   else
     text(m2,120,22);
   
   if (bs.splity)
-    text(m3+"/"+m33,120,34);  
+    text(m3+"/"+m33,128,34);  
   else
     text(m3,120,34);  
       
@@ -365,14 +394,15 @@ void draw_cube()
   {
     translate(180, 0, -100); 
     box(50, bp.tension_ch2, 50);
-    translate(-180, 0, 100); 
+    translate(-180, 0, 100);  
   }
   
   rotateY(y);//yaw
   rotateX(p);//pitch
   rotateZ(r);//roll
 
-  box(100, 100/2, 100*2);
+  //TODO turen this into an arrow.....
+  box(100*1.5, 100/3, 100);
   
   popMatrix();
 }
@@ -392,35 +422,27 @@ void draw_led(color[] data)
   {
     fill(data[yy]);
     stroke(data[yy]);
-    rect(0,70+(yy*4),4,4);
+    rect(0,140-(yy*4),4,4);
   }
 }
 
 void send_led()
 {
-  color[] ledData = new color[16];
+  color[] ledData;
   
-   
-  //Add Some colors based on range of numbers...
-  int range = (int)map(bp.cy,bs.miny, bs.maxy, 0,15);
-  range = (int)constrain(range,0,15);
+  //we map yaw, pitch, roll to 0..255
+  int y = (int)map(bp.cy,bs.miny, bs.maxy, 0,255);
+  y = (int)constrain(y,0,255);
   
-  int hue = (int)map(bp.cr,bs.minr, bs.maxr, 0,255);
-  hue = (int)constrain(hue,0,255);
+  int r = (int)map(bp.cr,bs.minr, bs.maxr, 0,255);
+  r = (int)constrain(r,0,255);
   
-  int sat = (int)map(bp.cp,bs.minp, bs.maxp, 0,255);  
-  sat = (int)constrain(sat,0,255);
+  int p = (int)map(bp.cp,bs.minp, bs.maxp, 0,255);  
+  p = (int)constrain(p,0,255);
   
-  
-  colorMode(HSB, 255,255,255);
-  
-  for (int ii=0;ii<range;ii++)
-     ledData[ii] = color(hue,sat,255);
-     
-  for (int ii=range;ii<16;ii++)
-     ledData[ii] = color(0,0,0);     
- 
-  colorMode(RGB, 255,255,255); 
+  ledctrl.setOrientation(y, p, r, bp.accx,bp.accy,bp.accz);
+  ledctrl.setArtnet(ba.getArtnetData());
+  ledData = ledctrl.updateLED();
   
   
   draw_led(ledData);
@@ -463,7 +485,7 @@ void draw()
     {
       if ((bp.checkConnected()) && (isLive))
       { 
-        //limit update rate  
+        //Update midi and LED and Artnet 30 times/sec to limit data throughput
         if ((millis() - lastUpdate)>33)
         {
           lastUpdate = millis();
@@ -477,6 +499,8 @@ void draw()
         }
       }
     }
+    
+    //nake sure network is kept alive
     if (bp.checkConnected())
     {
       bp.send_ping();
@@ -513,10 +537,7 @@ void calc_call_min_max()
     bs.miny = bp.cy;
   if (bs.maxy<bp.cy)
     bs.maxy=bp.cy;
-
 }
-
-
 
 
 void keyPressed() 

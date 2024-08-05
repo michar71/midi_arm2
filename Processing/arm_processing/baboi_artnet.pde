@@ -28,7 +28,7 @@ class baboi_artnet{
     //artnet.unicastDmx("127.0.0.1", 0, 0, dmxData);
     
     //Fuckit... Just send it to everybody ;-)
-    artnet.broadcastDmx(0, 0, dmxData);
+    artnet.broadcastDmx(0, 1, dmxData);
   }
   
   
@@ -83,10 +83,33 @@ class baboi_artnet{
     //artnet.unicastDmx("127.0.0.1", 0, 0, dmxData);
     
     //Fuckit... Jsut send it to everybody ;-)
-    //artnet.broadcastDmx(0, 0, dmxData);
+    artnet.broadcastDmx(0, 1, dmxData);
     
-  // send dmx to localhost
-  artnet.unicastDmx("192.168.0.133",0, 1, dmxData);
+    //send dmx to specific client
+    //artnet.unicastDmx("192.168.0.133",0, 1, dmxData);
+}
+
+//Get artnet Data
+byte[]  getArtnetData()
+{
+  byte[] data;
+  if (artnet != null)
+  {
+    try
+    {
+      data = artnet.readDmxData(0, 0);
+    }
+    catch (NullPointerException e)
+    {
+      return null;
+    }
+    
+    return data;
+  }
+  else
+  {
+    return null;
+  }
 }
 
   

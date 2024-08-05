@@ -128,9 +128,9 @@ void mpu_cal_gyro_accel(void)
 
     //Calculate offsets
 
-    settings.offset_roll = -mpu_GetCurrentRoll();
-    settings.offset_pitch = -mpu_GetCurrentPitch();
-    settings.offset_yaw = -mpu_GetCurrentYaw();
+    settings.offset_roll = -(mpu.getRoll() * DEG_TO_RAD);  
+    settings.offset_pitch = -(mpu.getPitch() * DEG_TO_RAD);
+    settings.offset_yaw = -(mpu.getYaw() * DEG_TO_RAD);
 
     mpu_store_data();
 }
@@ -146,9 +146,22 @@ void mpu_cal_mag(void)
 
 float mpu_GetCurrentYaw(void)
 {
+  float angle = (mpu.getYaw() * DEG_TO_RAD);
+  float new_angle = angle + settings.offset_yaw;
+  if (new_angle < -PI)
+     new_angle = new_angle + (2*PI);
+  else if (new_angle > PI)
+     new_angle = new_angle - (2*PI);
+ 
+
+  return new_angle;
+
   //return (mpu.getYaw() * DEG_TO_RAD) + settings.offset_yaw;
-  return (mpu.getYaw() * DEG_TO_RAD) ;
+  //return (mpu.getYaw() * DEG_TO_RAD) ;
 }
+
+
+//Ptich and roll swapped here for V3.5 HW!!!
 
 float mpu_GetCurrentPitch(void)
 {
@@ -209,6 +222,11 @@ bool adc_update_manual()
 {
     //#TODO Add running average here? or a 15%/%85 filter? Or full Kalman?
     adc_data[curr_ch] = getADCValue(curr_ch);     
+
+    //Serial.print("ADC ");
+    //Serial.print(curr_ch);
+    //Serial.print(" VAL ");
+    //Serial.println(adc_data[curr_ch]);
 
     //Set Channel
     curr_ch++;
@@ -276,6 +294,12 @@ void calibrate_tension(void)
       //Wait a little bit
       delay(5);
     }
+
+    //We'll reduce the range of thre strips by 20% at the lower end and 10% at the upper end to create some sort of deadband.
+    settings.tension_max[0] = (int16_t)((float)settings.tension_max[0] * 0.9);
+    settings.tension_max[1] = (int16_t)((float)settings.tension_max[1] * 0.9);
+    settings.tension_min[0] = (int16_t)((float)settings.tension_min[0] * 1.2);
+    settings.tension_min[1] = (int16_t)((float)settings.tension_min[1] * 1.2);
   }
 }
 

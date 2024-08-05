@@ -18,7 +18,7 @@ void print_settings()
     Serial.print(settings.magic1);
     Serial.print(settings.magic2);
     Serial.print(settings.magic3);
-    Serial.print(settings.magic4);  
+    Serial.println(settings.magic4);  
     Serial.println("--------");              
     Serial.print("Acc Bias X: ");
     Serial.println(settings.main_acc_bias_x);

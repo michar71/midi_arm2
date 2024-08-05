@@ -817,12 +817,6 @@
 		(uuid "b5856687-c9ce-4317-99e7-662e3c8abb5f")
 	)
 	(junction
-		(at 66.04 83.82)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "d7c0c3df-a362-4ca1-b9b6-5bc43641a45a")
-	)
-	(junction
 		(at 95.25 96.52)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -878,7 +872,7 @@
 	)
 	(wire
 		(pts
-			(xy 52.07 71.12) (xy 76.2 71.12)
+			(xy 52.07 71.12) (xy 85.09 71.12)
 		)
 		(stroke
 			(width 0)
@@ -948,16 +942,6 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 71.12) (xy 85.09 71.12)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7599b0db-d0fd-42cb-ae87-cc3e03a78f51")
-	)
-	(wire
-		(pts
 			(xy 109.22 57.15) (xy 124.46 57.15)
 		)
 		(stroke
@@ -988,16 +972,6 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 82.55) (xy 66.04 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "94422bd5-b519-48e5-b34b-a68ed05b8ca5")
-	)
-	(wire
-		(pts
 			(xy 95.25 64.77) (xy 95.25 96.52)
 		)
 		(stroke
@@ -1005,16 +979,6 @@
 			(type default)
 		)
 		(uuid "99bfe3f8-74f1-40ba-9ddd-69c853374b6a")
-	)
-	(wire
-		(pts
-			(xy 66.04 83.82) (xy 76.2 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9cc55a28-8bca-4c04-926a-4e365aa25005")
 	)
 	(wire
 		(pts
@@ -1058,7 +1022,7 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 83.82) (xy 66.04 85.09)
+			(xy 66.04 82.55) (xy 66.04 85.09)
 		)
 		(stroke
 			(width 0)
@@ -1425,74 +1389,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 80.01 83.82 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "339bf78b-c696-44ac-ae42-753613e14cc4")
-		(property "Reference" "R5"
-			(at 80.01 78.6595 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "0"
-			(at 80.01 81.0838 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 80.01 85.598 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 80.01 83.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 80.01 83.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "feb77922-2340-4c6c-9d22-760b7bd0a3cf")
-		)
-		(pin "2"
-			(uuid "b01c5ba6-0dbf-4fdd-98b2-31726a8ecbdc")
-		)
-		(instances
-			(project "midi_arm_analog"
-				(path "/307ce423-bb1b-4eb8-9c81-09800713e2e7"
-					(reference "R5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Amplifier_Operational:LM741")
 		(at 97.79 57.15 0)
 		(unit 1)
@@ -1616,74 +1512,6 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 80.01 71.12 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6f952c71-849a-442f-80c9-61c79df5a938")
-		(property "Reference" "R6"
-			(at 80.01 65.9595 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "0"
-			(at 80.01 68.3838 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 80.01 72.898 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 80.01 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 80.01 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "7fe49df2-e40d-4882-a646-ff8431bb665e")
-		)
-		(pin "2"
-			(uuid "96127b5a-2aca-44a1-b0bd-856e9ec0550a")
-		)
-		(instances
-			(project "midi_arm_analog"
-				(path "/307ce423-bb1b-4eb8-9c81-09800713e2e7"
-					(reference "R6")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
 		(at 66.04 78.74 180)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1701,7 +1529,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "10000"
+		(property "Value" "5100"
 			(at 67.818 79.9521 0)
 			(effects
 				(font
@@ -1974,7 +1802,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "15000"
+		(property "Value" "8000"
 			(at 67.818 90.1121 0)
 			(effects
 				(font
@@ -2180,7 +2008,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "33000"
+		(property "Value" "15000"
 			(at 67.818 55.8221 0)
 			(effects
 				(font
