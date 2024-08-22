@@ -43,6 +43,8 @@ int m11 = 0;
 int m22 = 0;
 int m33 = 0;
 
+PShape arrow;
+
 boolean isLive = true;
 
 
@@ -236,6 +238,16 @@ void setup() {
   KalFilterT1 = new kalman(p_noise,s_noise,e_error,0.0);  
   
   ledctrl.setNextFx(ledctrl.findByIndex(bs.fx));
+  
+  arrow = loadShape("arrow.obj");
+  arrow.scale(100);
+  float x = arrow.getChild(0).getVertex(0).x;
+  float y = arrow.getChild(0).getVertex(0).y;
+  float z = arrow.getChild(0).getVertex(0).z;
+  
+  arrow.translate(-x,-y,-z);
+  //arrow.rotateX(PI);
+  arrow.rotateY(PI);
 }
 
 public void FXList(int n)
@@ -371,11 +383,13 @@ void delay(int time) {
 
 void draw_cube()
 {
+  
 
+  
   float dirY = (((float)height/4*3) / float(height) - 0.5) * 2;
   float dirX = (((float)width/4*3) / float(width) - 0.5) * 2;
-  directionalLight(204, 204, 204, -dirX, -dirY, -1); //Why is this linked to the mouse? 
-  noStroke();
+  directionalLight(204, 204, 204, dirX, dirY, -1); //Why is this linked to the mouse? 
+  //noStroke();
   pushMatrix();
   show_acceleration();
   translate(width/2, height/2);
@@ -397,14 +411,19 @@ void draw_cube()
     translate(-180, 0, 100);  
   }
   
+  
   rotateY(y);//yaw
   rotateX(p);//pitch
   rotateZ(r);//roll
 
+  shape(arrow);
   //TODO turen this into an arrow.....
-  box(100*1.5, 100/3, 100);
+  //box(100*1.5, 100/3, 100);
+  
   
   popMatrix();
+  
+  
 }
 
 
