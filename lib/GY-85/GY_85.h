@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include <Wire.h>
+#include "MPU9250/QuaternionFilter.h"
 
 #ifndef GY_85_h
 #define GY_85_h
@@ -12,8 +13,11 @@
 //#define DATAY1 0x35          //Y-Axis Data 1
 //#define DATAZ0 0x36          //Z-Axis Data 0
 //#define DATAZ1 0x37          //Z-Axis Data 1
-#define HMC5883 (0x1E)         //gyro
-#define ITG3200 (0x68)         //compass
+#define HMC5883 (0x1E)         //Magnetometer
+#define QMC5883 (0x0D)         //Magnetometer
+#define ITG3200 (0x68)         //Gyroscope
+
+
 
 
 class GY_85
@@ -34,20 +38,37 @@ typedef struct{
 
 t_GY85RawSensorData sensorData;
 
+bool isAvailable = false;
+byte mag_addr = HMC5883;
+
 private:
-    void GyroCalibrate();
-    void AccCalibrate();
+
     void SetGyro();
     void SetCompass();
     void SetAccelerometer();
+    bool idCompass(void);
+    bool idAcc(void);
+    bool idGyro(void);    
+    bool available(void); 
+    void update_rpy(float qw, float qx, float qy, float qz);
+    void selectFilter(QuatFilterSel sel);
+    bool compassReady(void);
     TwoWire* intWire;
     
 public:
-    void   init(TwoWire* tw);
+    bool   init(TwoWire* tw);
     void readFromAccelerometer();  //Read data and convert to G-Force
     void readFromCompass();
     void readGyro();
     void calibrate();
+    void compassCalibrate(void);
+    void GyroCalibrate();
+    void AccCalibrate();    
+    void readRawFromCompass();
+    bool update();
+    float getPitch();
+    float getRoll();
+    float getYaw();
     
     //callback functions
     inline float accelerometer_x(){ return sensorData.accX; }
@@ -66,6 +87,27 @@ public:
     inline float gyro_y(){ return sensorData.gyroY; }
     inline float gyro_z(){ return sensorData.gyroZ;}
     inline float temp  (){ return sensorData.temp; }
+
+    float getGyroXoffset(void);
+    float getGyroYoffset(void);
+    float getGyroZoffset(void);
+    void setGyroOffset(float offsX,float offsY,float offsZ);
+
+
+    float getAccXoffset(void);
+    float getAccYoffset(void);
+    float getAccZoffset(void);
+    void setAccOffset(float offsX,float offsY,float offsZ);
+
+    float getMagXoffset(void);
+    float getMagYoffset(void);
+    float getMagZoffset(void);
+    void setMagOffset(float offsX,float offsY,float offsZ);
+
+    float getLinearAccX(void);
+    float getLinearAccY(void);
+    float getLinearAccZ(void);
 };
 
 #endif
+

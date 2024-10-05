@@ -70,7 +70,7 @@ boolean get_usbmodem_list(ArrayList<String> list)
     int i = Serial.list().length;
     if (i != 0) 
     {
-    //Buil a list of all the USB Modems
+    //Build a list of all the USB Modems
       for (int j = 0; j < i;j++) 
       {
         if (Serial.list()[j].contains(substring) == true)
@@ -137,7 +137,7 @@ void reconnect(boolean nw)
 boolean ping_usbmodem()
 {
   
-  int maxping = 5;
+  int maxping = 10;
   
    for(int ii=0;ii<maxping;ii++)
    {
@@ -182,7 +182,7 @@ boolean try_connect_usb_modem()
 
 boolean try_to_connect_wifi()
 {
-  int maxping = 5;
+  int maxping = 10;
  
   
   for(int ii=0;ii<maxping;ii++)

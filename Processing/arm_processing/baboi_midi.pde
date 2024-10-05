@@ -18,6 +18,7 @@ MidiBus myBus; // The MidiBus
     bsr = bs;
     MidiBus.list();
     myBus = new MidiBus(this, -1, "Bus 1"); // Create a new MidiBus with no input device and the default MacOS Midi Distributor as output
+    //myBus = new MidiBus(this, -1, "Bluetooth"); // Midi Bus needs to be selectable or a command line/settings parameter
 } 
 
   

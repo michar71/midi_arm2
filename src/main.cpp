@@ -68,15 +68,15 @@ void setup()
 
     
   #ifdef DEBUG
-   /*
-   delay(5000);
+   
+   //delay(5000);
     Serial.setDebugOutput(true);
-    for (int ii=0;ii<200;ii++)
-    {
-      Serial.println("Startup...");
-      delay(100);
-    }
-    */
+   // for (int ii=0;ii<200;ii++)
+   // {
+   //   Serial.println("Startup...");
+   //   delay(100);
+   // }
+    
   #endif
     pinMode(STATUS_LED, OUTPUT);     
         
@@ -100,7 +100,7 @@ void setup()
     pinMode(BUT_A,INPUT_PULLUP);
     delay(1);
     //Reset everything if all buttons are down
-    if ((digitalRead(BUT_CTRL) == LOW) && (digitalRead(BUT_A) == LOW))
+    if (digitalRead(BUT_CTRL) == LOW)
     {
       init_settings_acc_gyro();
       init_settings_mag();
@@ -124,11 +124,13 @@ void setup()
   #ifdef DEBUG
     Serial.println("Settings Loaded");
   #endif    
-    if (checkForGyro())
+    if (checkForMCU())
     {
       mpu_set_settings();
     }
-
+  }
+  else
+  {
     mpu_init_settings();
     init_settings_other();
     save_settings();
@@ -321,12 +323,16 @@ void loop()
   //Deal with incoming data
   incoming_protocol_request();
   //Handle Motion Data
-  if (checkForGyro())
+  if (checkForMCU())
   {
     if (mpu_update() == false) 
     {
       //Gyro not avasilable yet... Just ignore...
     }
+  }
+  else
+  {
+    Serial.println("No MCU");
   }
 
   //Handle Tension Strips

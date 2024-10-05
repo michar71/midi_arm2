@@ -8,7 +8,16 @@
 		"files.associations": {
 			"cmath": "cpp",
 			"esp32-hal-adc.h": "c",
-			"adc.h": "c"
+			"adc.h": "c",
+			"random": "cpp",
+			"istream": "cpp",
+			"ostream": "cpp",
+			"ratio": "cpp",
+			"array": "cpp",
+			"functional": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"utility": "cpp"
 		}
 	}
 }

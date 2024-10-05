@@ -68,7 +68,7 @@ void setup_settings_webpage()
     response->printf("</style></head><body>");  
     response->print("<h1>Settings</h1><br><p>");
     response->printf("Has Glove: %d <br>",checkForGlove());
-    response->printf("Has Gyro: %d <br>",checkForGyro());
+    response->printf("Has Gyro: %d <br>",checkForMCU());
           
     response->printf("Acc Bias X: %f <br>",settings.main_acc_bias_x);
     response->printf("Acc Bias Y: %f <br>",settings.main_acc_bias_y);
@@ -78,13 +78,13 @@ void setup_settings_webpage()
     response->printf("Gyro Bias Y: %f <br>",settings.main_gyro_bias_y);
     response->printf("Gyro Bias Z: %f <br>",settings.main_gyro_bias_z);   
 
-    response->printf("Offset Pitch: %f <br>",settings.offset_pitch);  
-    response->printf("Offset Roll: %f <br>",settings.offset_roll);  
-    response->printf("Offset Yaw: %f <br>",settings.offset_yaw);  
-
     response->printf("Mag Bias X: %f <br>",settings.main_mag_bias_x);    
     response->printf("Mag Bias Y: %f <br>",settings.main_mag_bias_y);    
     response->printf("Mag Bias Z: %f <br>",settings.main_mag_bias_z);    
+
+    response->printf("Offset Pitch: %f <br>",settings.offset_pitch);  
+    response->printf("Offset Roll: %f <br>",settings.offset_roll);  
+    response->printf("Offset Yaw: %f <br>",settings.offset_yaw);  
 
     response->printf("Mag Scale X: %f <br>",settings.main_mag_scale_x);   
     response->printf("Mag Scale Y: %f <br>",settings.main_mag_scale_y);   

@@ -19,7 +19,7 @@ bool adc_update_manual();
 int16_t adc_get_data(uint8_t ch);
 void glove_update(void);
 bool checkForGlove(void);
-bool checkForGyro(void);
+bool checkForMCU(void);
 
 void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr);
 void init_sensors(void);

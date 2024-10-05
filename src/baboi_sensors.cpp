@@ -5,13 +5,16 @@
 #include "settings.h"
 #include "main.h"
 #include <driver/adc.h>   // Analog to digital converter APIs
+#include "GY_85.h"
+
+MPU9250 mpu1;
+GY_85 mpu2;
 
 
-MPU9250 mpu;
 extern setup_t settings;
 
 bool hasGlove = false;
-bool hasGyro = false;
+bool hasMCU = false;
 
 #define ADC_CH_COUNT 2
 
@@ -20,21 +23,51 @@ int16_t adc_data[ADC_CH_COUNT];
 
 #define MPU_ADDR 0x68
 
+typedef enum{
+    DOF_MPU9250,
+    DOF_GY_85,
+    DOF_NONE
+}e_dof;
+
+
+e_dof dof = DOF_NONE;
+
+
+
 
 void mpu_store_data(void)
 {
-    settings.main_acc_bias_x = mpu.getAccBiasX();
-    settings.main_acc_bias_y = mpu.getAccBiasY();
-    settings.main_acc_bias_z = mpu.getAccBiasZ();
-    settings.main_gyro_bias_x = mpu.getGyroBiasX();
-    settings.main_gyro_bias_y = mpu.getGyroBiasY();
-    settings.main_gyro_bias_z = mpu.getGyroBiasZ();
-    settings.main_mag_bias_x = mpu.getMagBiasX();
-    settings.main_mag_bias_y = mpu.getMagBiasY();
-    settings.main_mag_bias_z = mpu.getMagBiasZ();
-    settings.main_mag_scale_x = mpu.getMagScaleX();
-    settings.main_mag_scale_y = mpu.getMagScaleY();
-    settings.main_mag_scale_z = mpu.getMagScaleZ();
+  switch(dof)
+  {
+    case DOF_MPU9250:
+      settings.main_acc_bias_x = mpu1.getAccBiasX();
+      settings.main_acc_bias_y = mpu1.getAccBiasY();
+      settings.main_acc_bias_z = mpu1.getAccBiasZ();
+      settings.main_gyro_bias_x = mpu1.getGyroBiasX();
+      settings.main_gyro_bias_y = mpu1.getGyroBiasY();
+      settings.main_gyro_bias_z = mpu1.getGyroBiasZ();
+      settings.main_mag_bias_x = mpu1.getMagBiasX();
+      settings.main_mag_bias_y = mpu1.getMagBiasY();
+      settings.main_mag_bias_z = mpu1.getMagBiasZ();
+      settings.main_mag_scale_x = mpu1.getMagScaleX();
+      settings.main_mag_scale_y = mpu1.getMagScaleY();
+      settings.main_mag_scale_z = mpu1.getMagScaleZ();
+      break;
+    case DOF_GY_85:
+      settings.main_acc_bias_x = mpu2.getAccXoffset();
+      settings.main_acc_bias_y = mpu2.getAccYoffset();
+      settings.main_acc_bias_z = mpu2.getAccZoffset();
+      settings.main_gyro_bias_x = mpu2.getGyroXoffset();
+      settings.main_gyro_bias_y = mpu2.getGyroYoffset();
+      settings.main_gyro_bias_z = mpu2.getGyroZoffset();
+      settings.main_mag_bias_x = mpu2.getMagXoffset();
+      settings.main_mag_bias_y = mpu2.getMagYoffset();
+      settings.main_mag_bias_z = mpu2.getMagZoffset();
+      settings.main_mag_scale_x = 0;
+      settings.main_mag_scale_y = 0;
+      settings.main_mag_scale_z = 0;
+      break;  
+  }
 }
 
 void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr)
@@ -97,10 +130,20 @@ void i2c_scan(TwoWire* tw,uint8_t startaddr, uint8_t endaddr)
 
 void mpu_set_settings(void)
 {
-    mpu.setAccBias(settings.main_acc_bias_x ,settings.main_acc_bias_y ,settings.main_acc_bias_z);
-    mpu.setGyroBias(settings.main_gyro_bias_x,settings.main_gyro_bias_y,settings.main_gyro_bias_z);
-    mpu.setMagBias(settings.main_mag_bias_x,settings.main_mag_bias_y,settings.main_mag_bias_z);
-    mpu.setMagScale(settings.main_mag_scale_x,settings.main_mag_scale_y,settings.main_mag_scale_z);
+  switch(dof)
+  {
+    case DOF_MPU9250:
+      mpu1.setAccBias(settings.main_acc_bias_x ,settings.main_acc_bias_y ,settings.main_acc_bias_z);
+      mpu1.setGyroBias(settings.main_gyro_bias_x,settings.main_gyro_bias_y,settings.main_gyro_bias_z);
+      mpu1.setMagBias(settings.main_mag_bias_x,settings.main_mag_bias_y,settings.main_mag_bias_z);
+      mpu1.setMagScale(settings.main_mag_scale_x,settings.main_mag_scale_y,settings.main_mag_scale_z);
+      break;
+    case DOF_GY_85:
+      mpu2.setAccOffset(settings.main_acc_bias_x ,settings.main_acc_bias_y ,settings.main_acc_bias_z);
+      mpu2.setGyroOffset(settings.main_gyro_bias_x,settings.main_gyro_bias_y,settings.main_gyro_bias_z);
+      mpu2.setMagOffset(settings.main_mag_bias_x,settings.main_mag_bias_y,settings.main_mag_bias_z);    
+      break;
+  }
 }
 
 
@@ -113,40 +156,77 @@ void mpu_init_settings(void)
 
 void mpu_cal_gyro_accel(void)
 {
-    float roll;
-    float pitch;
-    float yaw;
-
-    init_settings_acc_gyro();
-    mpu.calibrateAccelGyro();
-    //run the MPU for a 3 Sec to get stable readings
-  for (int ii=0;ii<100;ii++)
+  switch(dof)
   {
-    mpu_update();
-    delay(10);
+    case DOF_MPU9250:
+    {
+      float roll;
+      float pitch;
+      float yaw;
+
+      init_settings_acc_gyro();
+      mpu1.calibrateAccelGyro();
+      //run the MPU for a 3 Sec to get stable readings
+    for (int ii=0;ii<100;ii++)
+    {
+      mpu_update();
+      delay(10);
+    }
+
+      //Calculate offsets
+
+      settings.offset_roll = -(mpu1.getRoll() * DEG_TO_RAD);  
+      settings.offset_pitch = -(mpu1.getPitch() * DEG_TO_RAD);
+      settings.offset_yaw = -(mpu1.getYaw() * DEG_TO_RAD);
+      break;
+    }
+    case DOF_GY_85:
+    {
+      init_settings_acc_gyro();
+      mpu2.calibrate();
+      for (int ii=0;ii<100;ii++)
+      {
+        mpu_update();
+        delay(10);
+      }     
+      settings.offset_roll = -(mpu2.getRoll() * DEG_TO_RAD);  
+      settings.offset_pitch = -(mpu2.getPitch() * DEG_TO_RAD);
+      settings.offset_yaw = -(mpu2.getYaw() * DEG_TO_RAD);     
+      break;
+    }
   }
-
-    //Calculate offsets
-
-    settings.offset_roll = -(mpu.getRoll() * DEG_TO_RAD);  
-    settings.offset_pitch = -(mpu.getPitch() * DEG_TO_RAD);
-    settings.offset_yaw = -(mpu.getYaw() * DEG_TO_RAD);
-
-    mpu_store_data();
+  mpu_store_data();
 }
 
 
 void mpu_cal_mag(void)
 {
-    init_settings_mag();
-    mpu.calibrateMag();
-    mpu_store_data();
+  init_settings_mag();
+  switch(dof)
+  {
+    case DOF_MPU9250:    
+      mpu1.calibrateMag();
+      break;
+    case DOF_GY_85:
+      mpu2.compassCalibrate();
+      break;
+  }
+  mpu_store_data();
 }
 
 
 float mpu_GetCurrentYaw(void)
 {
-  float angle = (mpu.getYaw() * DEG_TO_RAD);
+  float angle;
+    switch(dof)
+  {
+    case DOF_MPU9250:    
+      angle = (mpu1.getYaw() * DEG_TO_RAD);
+      break;
+    case DOF_GY_85:
+      angle = (mpu2.getYaw() * DEG_TO_RAD);
+      break;  
+  }
   float new_angle = angle + settings.offset_yaw;
   if (new_angle < -PI)
      new_angle = new_angle + (2*PI);
@@ -166,37 +246,81 @@ float mpu_GetCurrentYaw(void)
 float mpu_GetCurrentPitch(void)
 {
   //return (mpu.getPitch() * DEG_TO_RAD) + settings.offset_pitch;
-  return (mpu.getPitch() * DEG_TO_RAD);
+
+  switch(dof)
+  {
+    case DOF_MPU9250:      
+        return (mpu1.getPitch() * DEG_TO_RAD);
+      case DOF_GY_85:
+        return (mpu2.getPitch() * DEG_TO_RAD);
+  }
 }
 
 float mpu_GetCurrentRoll(void)
 {
   //return (mpu.getRoll() * DEG_TO_RAD) + settings.offset_roll;
-  return (mpu.getRoll() * DEG_TO_RAD);  
+
+  switch(dof)
+  {
+    case DOF_MPU9250:      
+        return (mpu1.getRoll() * DEG_TO_RAD);  
+      case DOF_GY_85:
+        return (mpu2.getRoll() * DEG_TO_RAD);  
+  }  
 }
 
 float mpu_GetCurrentAX(void)
 {
-  return mpu.getLinearAccX();
+  
   //return mpu.getAccX();
+
+  switch(dof)
+  {
+    case DOF_MPU9250:      
+        return mpu1.getLinearAccX();
+      case DOF_GY_85:
+        return mpu2.getLinearAccX();
+  }    
 }
 
 float mpu_GetCurrentAY(void)  
 {
-  return mpu.getLinearAccY();
+  
   //return mpu.getAccY();  
+
+  switch(dof)
+  {
+    case DOF_MPU9250:      
+        return mpu1.getLinearAccY();
+      case DOF_GY_85:
+        return mpu2.getLinearAccY();
+  }    
 }
 
 float mpu_GetCurrentAZ(void)
 {
-  return mpu.getLinearAccZ();
+  
   //return mpu.getAccZ();
+
+  switch(dof)
+  {
+    case DOF_MPU9250:      
+        return mpu1.getLinearAccZ();
+      case DOF_GY_85:
+        return mpu2.getLinearAccZ();
+  }  
 }
 
 
 bool mpu_update(void)
 {
-    return mpu.update();
+  switch(dof)
+  {
+    case DOF_MPU9250:      
+        return mpu1.update();
+      case DOF_GY_85:
+        return mpu2.update();
+  }      
 }
 
 //ESP32-C3 ADC Continous read control
@@ -257,9 +381,9 @@ bool checkForGlove(void)
   return hasGlove;
 }
 
-bool checkForGyro(void)
+bool checkForMCU(void)
 {
-  return hasGyro;
+  return hasMCU;
 }
 
 
@@ -329,14 +453,34 @@ void init_sensors(void)
   //------------------------
   Wire.begin(SDA, SCL,400000);
   //Strange but needed
-  i2c_scan(&Wire,MPU_ADDR,127);
-  if (!mpu.setup(MPU_ADDR)) 
+  //i2c_scan(&Wire,MPU_ADDR,127);
+  i2c_scan(&Wire,0,127);
+
+  if (!mpu1.setup(MPU_ADDR)) 
   { 
       Serial.println("Failed to initialize MPU9250. No Gyro/Acc/Mag.");
-      setLED(0,64,0,0);
-      hasGyro = false;
+
+      if (!mpu2.init(&Wire))
+      {
+        Serial.println("Failed to initialize GY-85. No Gyro/Acc/Mag.");
+        setLED(0,64,0,0);
+        hasMCU = false;
+        dof = DOF_NONE;
+      }
+      else
+      {
+        Serial.println("Found GY-85");
+        hasMCU = true;
+        dof = DOF_GY_85;
+      }
   }    
-  hasGyro = true;
+  else
+  {
+    Serial.println("Found MPU9250");
+    hasMCU = true;
+    dof = DOF_MPU9250;
+  }
+  
   delay(200);
 
   //Setup Glove ADC's

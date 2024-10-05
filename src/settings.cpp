@@ -57,8 +57,15 @@ void print_settings()
     Serial.println(settings.tension_min[1]);    
     Serial.print("Tension Ch2 Max: ");
     Serial.println(settings.tension_max[1]);          
-    Serial.println("");        
+    Serial.println("");    
 
+
+    Serial.print("Offset Roll: ");
+    Serial.println(settings.offset_roll);    
+    Serial.print("Offset Pitch: ");
+    Serial.println(settings.offset_pitch);   
+    Serial.print("Offset Yaw: ");
+    Serial.println(settings.offset_yaw);    
 }
 
 
@@ -132,58 +139,70 @@ bool load_settings()
 #ifdef DEBUG  
     print_settings();    
 #endif
-  if (isnan(settings.main_acc_bias_x))
-  {
-    settings.main_acc_bias_x = 0;
-  }
-  if (isnan(settings.main_acc_bias_y))
-  {
-    settings.main_acc_bias_y = 0;
-  }
-  if (isnan(settings.main_acc_bias_z))
-  {
-    settings.main_acc_bias_z = 0;
-  }  
-  if (isnan(settings.main_gyro_bias_x))
-  {
-    settings.main_gyro_bias_x = 0;
-  }
-  if (isnan(settings.main_gyro_bias_y))
-  {
-    settings.main_gyro_bias_y = 0;
-  }
-  if (isnan(settings.main_gyro_bias_z))
-  {
-    settings.main_gyro_bias_z = 0;
-  }  
-  if (isnan(settings.main_mag_bias_x))
-  {
-    settings.main_mag_bias_x = 0;
-  }
-  if (isnan(settings.main_mag_bias_y))
-  {
-    settings.main_mag_bias_y = 0;
-  }
-  if (isnan(settings.main_mag_bias_z))
-  {
-    settings.main_mag_bias_z = 0;
-  }   
-    if (isnan(settings.main_mag_scale_x))
-  {
-    settings.main_mag_scale_x = 0;
-  }
-  if (isnan(settings.main_mag_scale_y))
-  {
-    settings.main_mag_scale_y = 0;
-  }
-  if (isnan(settings.main_mag_scale_z))
-  {
-    settings.main_mag_scale_z = 0;
-  }  
 
   if ((settings.magic0 == 'M') && (settings.magic1 == 'A') && (settings.magic2 == 'G') && (settings.magic3 == 'I') && (settings.magic4 == 'C'))
   {
-    return true;
+    if (isnan(settings.main_acc_bias_x))
+    {
+      settings.main_acc_bias_x = 0;
+    }
+    if (isnan(settings.main_acc_bias_y))
+    {
+      settings.main_acc_bias_y = 0;
+    }
+    if (isnan(settings.main_acc_bias_z))
+    {
+      settings.main_acc_bias_z = 0;
+    }  
+    if (isnan(settings.main_gyro_bias_x))
+    {
+      settings.main_gyro_bias_x = 0;
+    }
+    if (isnan(settings.main_gyro_bias_y))
+    {
+      settings.main_gyro_bias_y = 0;
+    }
+    if (isnan(settings.main_gyro_bias_z))
+    {
+      settings.main_gyro_bias_z = 0;
+    }  
+    if (isnan(settings.main_mag_bias_x))
+    {
+      settings.main_mag_bias_x = 0;
+    }
+    if (isnan(settings.main_mag_bias_y))
+    {
+      settings.main_mag_bias_y = 0;
+    }
+    if (isnan(settings.main_mag_bias_z))
+    {
+      settings.main_mag_bias_z = 0;
+    }   
+      if (isnan(settings.main_mag_scale_x))
+    {
+      settings.main_mag_scale_x = 0;
+    }
+    if (isnan(settings.main_mag_scale_y))
+    {
+      settings.main_mag_scale_y = 0;
+    }
+    if (isnan(settings.main_mag_scale_z))
+    {
+      settings.main_mag_scale_z = 0;
+    }  
+    if (isnan(settings.offset_pitch))
+    {
+      settings.offset_pitch = 0;
+    }  
+    if (isnan(settings.offset_roll))
+    {
+      settings.offset_roll = 0;
+    }  
+    if (isnan(settings.offset_yaw))
+    {
+      settings.offset_yaw = 0;
+    }  
+      return true;
   }
   else
   {

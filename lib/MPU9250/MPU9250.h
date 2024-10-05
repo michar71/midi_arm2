@@ -5,7 +5,6 @@
 #include <Wire.h>
 #include "MPU9250/MPU9250RegisterMap.h"
 #include "MPU9250/QuaternionFilter.h"
-#include "kalman.h"
 
 
 enum class ACCEL_FS_SEL {
@@ -62,10 +61,6 @@ static constexpr uint8_t MPU9250_WHOAMI_DEFAULT_VALUE {0x71};
 static constexpr uint8_t MPU9255_WHOAMI_DEFAULT_VALUE {0x73};
 static constexpr uint8_t MPU6500_WHOAMI_DEFAULT_VALUE {0x70};
 
-//Kalman filters for Gyro
-Kalman kgx(0.3,14,4,0); //suggested initial values for high noise filtering
-Kalman kgy(0.3,14,4,0); //suggested initial values for high noise filtering
-Kalman kgz(0.3,14,4,0); //suggested initial values for high noise filtering
 
 struct MPU9250Setting {
     ACCEL_FS_SEL accel_fs_sel {ACCEL_FS_SEL::A16G};
@@ -99,7 +94,7 @@ class MPU9250_ {
     float mag_bias_factory[3] {0., 0., 0.};
     float mag_bias[3] {0., 0., 0.};  // mag calibration value in MAG_OUTPUT_BITS: 16BITS
     float mag_scale[3] {1., 1., 1.};
-    float magnetic_declination = 0;  // Japan, 24th June
+    float magnetic_declination = 0;  // None, only measure relative...
 
     // Temperature
     int16_t temperature_count {0};  // temperature raw count output
@@ -300,11 +295,6 @@ public:
         float mn = m[1];
         float me = m[0];
         float md = -m[2];
-
-        //Filter Gyro Data
-        //mn = kgx.getFilteredValue(mn);
-        //me = kgy.getFilteredValue(me);
-        //md = kgz.getFilteredValue(md);
 
         for (size_t i = 0; i < n_filter_iter; ++i) 
         {
@@ -551,11 +541,6 @@ public:
         lin_acc[0] = a[0] + a31;
         lin_acc[1] = a[1] + a32;
         lin_acc[2] = a[2] - a33;
-
-        //Filter Output
-        //rpy[0] = kgx.getFilteredValue(rpy[0]);
-        //rpy[1] = kgy.getFilteredValue(rpy[1]);
-        //rpy[2] = kgz.getFilteredValue(rpy[2]);
     }
 
     void update_accel_gyro() {

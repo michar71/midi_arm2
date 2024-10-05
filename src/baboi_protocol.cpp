@@ -57,7 +57,7 @@ void build_processing_data(bool senddata)
   float ay_val = 0;
   float az_val = 0;
 
-  if (checkForGyro())
+  if (checkForMCU())
   {
     yaw_val = mpu_GetCurrentYaw();
     pitch_val = mpu_GetCurrentPitch();

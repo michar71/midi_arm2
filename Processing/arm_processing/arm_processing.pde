@@ -532,7 +532,14 @@ void draw()
     stroke(255,0,0);
     line(0,0,width,height);
     line(width,0,0,height);
-    text("NO CONNECTION",width/2,height/2);
+
+    int w = (int)textWidth("NO CONNECTION");
+    fill(0,0,0);
+    stroke(255,0,0);
+    rect(width/2-(w/2)-4,height/2-13-50,w+8,20);
+    fill(255,0,0);   
+    stroke(255,0,0);
+    text("NO CONNECTION",width/2-(w/2),height/2-50);
     bp.reconnect(bs.network_en);
   }
 
