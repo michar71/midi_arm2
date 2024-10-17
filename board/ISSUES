@@ -3,17 +3,5 @@
 New Gen V4 Board
 ----------------
 
-- Connector for Glove(Horizontal)
-- Option for alternate Gyro/Mag (GY-85)
-- Move uC to back of board
-- Reduce to 1 big/1 small button
-- Label GND for Glove and LED connector
-- Use WS2812 2020
-- Assemble SMD by JCBPCB
-- Better thought through mounting holes
 
-TODO
-----
-- Select LED Effect from App
-- Send Range limiters from app to Device
-- Send ARTNet data from App to device
+

@@ -451,7 +451,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "midi_arm.kicad_pro",
+    "filename": "midi_arm_tiny_flip.kicad_pro",
     "version": 1
   },
   "net_settings": {
