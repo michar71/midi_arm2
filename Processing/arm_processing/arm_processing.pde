@@ -48,6 +48,7 @@ PShape arrow;
 boolean isLive = true;
 
 
+
 PVector getWindowLocation(String renderer) 
 {
   PVector l = new PVector();
@@ -117,8 +118,8 @@ void settings()
 
 
 void setup() {
-   bp = new baboi_protocol(this); 
-   bm = new baboi_midi(bp,bs);
+   bp = new baboi_protocol(this,bs.uartOverride); 
+   bm = new baboi_midi(bp,bs,bs.midiOut);
    ba = new baboi_artnet(bp,bs);
    ledctrl = new baboi_led_fx(16);
 

@@ -23,6 +23,7 @@ int tension_ch1,tension_ch2;
 boolean b_A_state = false;
 boolean b_B_state = false;
 boolean b_C_state = false;
+String UARTOverride = "";
 
 String ID;
 int pos;
@@ -46,9 +47,10 @@ int lastPing = 0;
 PApplet theSketch;
 
 
-baboi_protocol(PApplet sketch)
+baboi_protocol(PApplet sketch,String UART)
 {
   theSketch = sketch;
+  UARTOverride = UART;
   udp = new UDPHelper(theSketch);
   udp.setLocalPort(baboi_port);
   udp.startListening();
@@ -160,23 +162,42 @@ boolean try_connect_usb_modem()
 
   ArrayList<String> Seriallist = new ArrayList<String>();
   //Build a list of all USB Modems
-  
-
   hasList = get_usbmodem_list(Seriallist);
   if (hasList == false)
-    return false;
-  
- //Loop Through List
- for (int ii = 0;ii < Seriallist.size();ii++)
- {
-   isOpen = false;
-   //Try to open Serial Port
-   isOpen = try_to_open(Seriallist.get(ii));
-   if (isOpen)
+      return false;
+      
+  println("Available UARTs:");
+  for (int ii = 0;ii < Seriallist.size();ii++)
+    println(Seriallist.get(ii));
+
+
+  if (0 == UARTOverride.compareTo(""))
+  {
+   println("Trying to Locate BABOI");
+   //Loop Through List
+   for (int ii = 0;ii < Seriallist.size();ii++)
    {
-     return ping_usbmodem();
+     isOpen = false;
+     //Try to open Serial Port
+     isOpen = try_to_open(Seriallist.get(ii));
+     if (isOpen)
+     {
+       return ping_usbmodem();
+     }
    }
- }
+  }
+  else
+  {
+      println("?Using UART Override");
+     isOpen = false;
+     //Try to open Serial Port
+     isOpen = try_to_open(UARTOverride);
+     if (isOpen)
+     {
+       return ping_usbmodem();
+     }    
+  }
+ 
  return false;
 }
 

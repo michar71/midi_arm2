@@ -1,12 +1,9 @@
 ﻿Designator,Footprint,Quantity,Value,LCSC Part #
 "D1_6, D1_5, D1_4, D1_3, D1_2, D1, D2_6, D2_5, D2_4, D2_3, D2_2, D2",LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm,12,WS2812B,
-"J2_6, J2_5, J2_4, J2_3, J2_2, J2",LED_conn,6,Conn_01x03_Pin,
-"J3_6, J3_5, J3_4, J3_3, J3_2, J3",PinHeader_1x04_P2.54mm_Vertical,6,Conn_01x04_Pin,
+"J1_6, J1_5, J1_4, J1_3, J1_2, J1",PinHeader_1x06_P2.54mm_Vertical,6,Conn_01x06_Socket,
 "J4_6, J4_5, J4_4, J4_3, J4_2, J4",PinHeader_1x05_P2.54mm_Vertical,6,Conn_01x05_Pin,
 "R1_6, R1_5, R1_4, R1_3, R1_2, R1, R2_6, R2_5, R2_4, R2_3, R2_2, R2, R3_6, R3_5, R3_4, R3_3, R3_2, R3, R4_6, R4_5, R4_4, R4_3, R4_2, R4, R8_6, R8_5, R8_4, R8_3, R8_2, R8, R9_6, R9_5, R9_4, R9_3, R9_2, R9",0805,36,33K,
 "R13_6, R13_5, R13_4, R13_3, R13_2, R13, R14_6, R14_5, R14_4, R14_3, R14_2, R14",0805,12,51K,
-"R15_6, R15_5, R15_4, R15_3, R15_2, R15",0805,6,0k,
-"R16_6, R16_5, R16_4, R16_3, R16_2, R16",0805,6,24K,
 "R5_6, R5_5, R5_4, R5_3, R5_2, R5, R7_6, R7_5, R7_4, R7_3, R7_2, R7",0805,12,10K,
 "SW1_6, SW1_5, SW1_4, SW1_3, SW1_2, SW1",SW_Push_SMD,6,SW_MEC_5E,
 "SW2_6, SW2_5, SW2_4, SW2_3, SW2_2, SW2",SW_Push_SPST_NO_Alps_SKRK,6,SW_DIP_x01,

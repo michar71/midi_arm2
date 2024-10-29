@@ -11,6 +11,8 @@ boolean splitr = false;
 boolean splity = false;
 boolean artnet_en =false;
 boolean network_en =false;
+String midiOut = "";
+String uartOverride = "";
 int winx;
 int winy;
 int fx;
@@ -61,7 +63,32 @@ boolean use2D = false;
     { //Print the type of error
       println("Using 3D");
     }
-      
+    
+    
+    try
+    {
+      midiOut = json.getString("midiBusOut","Bus 1");
+      println("Using Midi Bus Out:" + midiOut);
+    }
+    catch (Exception e)
+    { //Print the type of error
+      midiOut = "Bus 1";
+      println("Using Default Midi Bus Out:" + midiOut);
+    }    
+   
+    try
+    {
+      uartOverride = json.getString("UARToverride","");
+      if (0 == uartOverride.compareTo(""))
+        println("Using default UART");
+      else
+        println("Using Custom UART:" + uartOverride);
+    }
+    catch (Exception e)
+    { //Print the type of error
+      uartOverride = "";
+      println("Using Default UART");
+    }          
   }
 }
 

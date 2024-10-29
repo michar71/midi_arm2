@@ -12,12 +12,12 @@ baboi_protocol bpr;
 baboi_settings bsr;
 MidiBus myBus; // The MidiBus
 
- public baboi_midi(baboi_protocol bp,baboi_settings bs)
+ public baboi_midi(baboi_protocol bp,baboi_settings bs,String bus)
 {
     bpr = bp;
     bsr = bs;
     MidiBus.list();
-    myBus = new MidiBus(this, -1, "Bus 1"); // Create a new MidiBus with no input device and the default MacOS Midi Distributor as output
+    myBus = new MidiBus(this, -1, bus); // Create a new MidiBus with no input device and the default MacOS Midi Distributor as output
     //myBus = new MidiBus(this, -1, "Bluetooth"); // Midi Bus needs to be selectable or a command line/settings parameter
 } 
 
