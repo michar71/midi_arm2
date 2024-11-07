@@ -27,6 +27,11 @@ float m_offx = 0;
 float m_offy = 0;
 float m_offz = 0;
 
+float m_scalex = 1;
+float m_scaley = 1;
+float m_scalez = 1;
+
+
 size_t n_filter_iter {1};
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};  // vector to hold quaternion
 float rpy[3] {0.f, 0.f, 0.f};
@@ -94,12 +99,35 @@ float GY_85::getMagZoffset(void)
    return m_offz;
 }
 
+float GY_85::getMagXscale(void)
+{
+   return m_scalex;
+}
+
+float GY_85::getMagYscale(void)
+{
+   return m_scaley;
+}
+
+float GY_85::getMagZscale(void)
+{
+   return m_scalez;
+}
+
 void GY_85::setMagOffset(float offsX,float offsY,float offsZ)
 {
   m_offx = offsX;
   m_offy = offsY;
   m_offz = offsZ;
 }
+
+void GY_85::setMagScale(float scaleX,float scaleY,float scaleZ)
+{
+  m_scalex = scaleX;
+  m_scaley = scaleY;
+  m_scalez = scaleZ;
+}
+
 
 void GY_85::SetAccelerometer()
 {
@@ -253,12 +281,28 @@ void GY_85::compassCalibrate(void)
   m_offy = (valueMax.YAxis + valueMin.YAxis) / 2;
   m_offz = (valueMax.ZAxis + valueMin.ZAxis) / 2;
 
+  float x_avg_delta = (valueMax.XAxis - valueMin.XAxis)/2;
+	float y_avg_delta = (valueMax.YAxis - valueMin.YAxis)/2;
+	float z_avg_delta = (valueMax.ZAxis - valueMin.ZAxis)/2;
+
+	float avg_delta = (x_avg_delta + y_avg_delta + z_avg_delta) / 3;
+
+	m_scalex = avg_delta / x_avg_delta;
+	m_scaley = avg_delta / y_avg_delta;
+	m_scalez = avg_delta / z_avg_delta;
+
   Serial.print("Mag cal offset X:");
   Serial.print(m_offx);
   Serial.print(" Y:");
   Serial.print(m_offy);
   Serial.print(" Z:");
   Serial.print(m_offz);
+  Serial.print("Mag scale X:");
+  Serial.print(m_scalex);
+  Serial.print(" Y:");
+  Serial.print(m_scalez);
+  Serial.print(" Z:");
+  Serial.print(m_offz);  
   Serial.print(" Max X:");
   Serial.print(valueMax.XAxis);
   Serial.print(" Max Y:");
@@ -272,9 +316,7 @@ void GY_85::compassCalibrate(void)
   Serial.print(" Min Z:");
   Serial.println(valueMin.ZAxis);
 
-
   readFromCompass();
-
 }
 
 
@@ -304,8 +346,13 @@ void GY_85::SetCompass()
   {
     //Put the QMC5883 IC into the correct operating mode
     intWire->beginTransmission( mag_addr );      //open communication with QMC5883
+    intWire->write( 0x0B );                     //select FBR register
+    intWire->write( 0x01 );                     //period 1
+    intWire->endTransmission();
+
+    intWire->beginTransmission( mag_addr );      //open communication with QMC5883
     intWire->write( 0x09 );                     //select mode register
-    intWire->write( 0x0D );                     //00 00 11 01-> Oversample 64, +/- 2Ga, Output Data rate 100Hz, Continous
+    intWire->write( 0xCD );                     //11 00 11 01-> Oversample 64, +/- 2Ga, Output Data rate 200Hz, Continous
     intWire->endTransmission();
   }
 }
@@ -451,7 +498,7 @@ bool GY_85::compassReady(void)
     if (0 != intWire->endTransmission())
       return false;
 
-    intWire->requestFrom( mag_addr, 1 );         // request 6 bytes from device
+    intWire->requestFrom( mag_addr, 1 );         // request 1 byte from device
 
     uint8_t i = 0;
     while(intWire->available())                 // device may send less than requested (abnormal)
@@ -491,9 +538,9 @@ void GY_85::readFromCompass()
     int16_t valY = (int16_t) (((uint16_t)buff[2]<<8) | buff[3]);
     int16_t valZ = (int16_t) (((uint16_t)buff[4]<<8) | buff[5]);
 
-    float cvalx = (float) valX - m_offx;
-    float cvaly = (float) valY - m_offy;
-    float cvalz = (float) valZ - m_offz;
+    float cvalx = ((float) valX - m_offx) * m_scalex;
+    float cvaly = ((float) valY - m_offy) * m_scaley;
+    float cvalz = ((float) valZ - m_offz) * m_scalez;
 
     /*
     Serial.print("Mag Raw X:");
@@ -512,7 +559,10 @@ void GY_85::readFromCompass()
   else
   {
     if (compassReady() == false)
+    {
+        //Serial.println("CNR");
         return;
+    }
     intWire->beginTransmission( mag_addr );
     intWire->write( 0x00 );               //select register 3, X MSB register
     intWire->endTransmission();
@@ -529,18 +579,20 @@ void GY_85::readFromCompass()
     int16_t valX = (int16_t) (((uint16_t)buff[1]<<8) | buff[0]);
     int16_t valY = (int16_t) (((uint16_t)buff[3]<<8) | buff[2]);
     int16_t valZ = (int16_t) (((uint16_t)buff[5]<<8) | buff[4]);
-    
+  
+
+    float cvalx = ((float) valX - m_offx) * m_scalex;
+    float cvaly = ((float) valY - m_offy) * m_scaley;
+    float cvalz = ((float) valZ - m_offz) * m_scalez;
+
     /*
+    Serial.print("Mag Raw X:");
     Serial.print(valX);
     Serial.print(",");
     Serial.print(valY);
     Serial.print(",");
     Serial.println(valZ);
     */
-
-    float cvalx = (float) valX - m_offx;
-    float cvaly = (float) valY - m_offy;
-    float cvalz = (float) valZ - m_offz;
 
     //Not sure if the math checks out on this.....
     //Max Range is +/- 2Ga
@@ -590,7 +642,7 @@ void GY_85::readRawFromCompass()
     }
     else
     {
-      //Tell the HMC5883 where to begin reading data
+      //Tell the QMC5883 where to begin reading data
       intWire->beginTransmission( mag_addr );
       intWire->write( 0x00 );               //select register 3, X MSB register
       intWire->endTransmission();
@@ -787,21 +839,24 @@ bool GY_85::update()
         Serial.print(accelerometer_y());
         Serial.print(":");
         Serial.print(accelerometer_z());
+        Serial.print("\t");
         Serial.print(" G:");                
         Serial.print(gyro_x());
         Serial.print(":");
         Serial.print(gyro_y());
         Serial.print(":");        
         Serial.print(gyro_z());
+        Serial.print("\t");
         Serial.print(" C:");
         Serial.print(compass_x());
         Serial.print(":");        
         Serial.print(compass_y());
         Serial.print(":");        
         Serial.println(compass_z());
-        */
+        
 
-       //selectFilter(QuatFilterSel::MAHONY);
+       selectFilter(QuatFilterSel::MAHONY);
+       */
 
         float an = accelerometer_x();
         float ae = accelerometer_y();
@@ -821,11 +876,17 @@ bool GY_85::update()
 
         update_rpy(q[0], q[1], q[2], q[3]);
 
-        //Swap pitch and roll here to compensate for V3.5 HW
+        //Swap pitch and roll here to compensate for V4 HW
         float tmp = rpy[0];
         rpy[0]= rpy[1];
         rpy[1] = tmp;
-
+        
+        rpy[2] += 180.0;
+        if (rpy[2] >= +180.f)
+            rpy[2] -= 360.f;
+        else if (rpy[2] < -180.f)
+            rpy[2] += 360.f;
+        
         /*
         Serial.print("Roll:");        
         Serial.print(getRoll());
@@ -833,7 +894,8 @@ bool GY_85::update()
         Serial.print(getPitch());
         Serial.print(" Yaw:");        
         Serial.println(getYaw());
-       */
+        */
+
         return true;  
 }
 

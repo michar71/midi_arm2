@@ -95,7 +95,11 @@ void setup_settings_webpage()
     response->printf("Tension Ch2 Min: %d <br>",settings.tension_min[1]); 
     response->printf("Tension Ch2 Max: %d <br>",settings.tension_max[1]); 
     response->printf("TENSION CH1 OUT: %d <br>",tension_get_ch(0));      
-    response->printf("TENSION CH2 OUT: %d <br>",tension_get_ch(1));    
+    response->printf("TENSION CH2 OUT: %d <br>",tension_get_ch(1));   
+    response->printf("Auto Connect: %d <br>",settings.autoConnect);   
+    response->printf("ID: %s <br>",settings.ID);   
+    response->printf("Position: %d <br>",settings.pos);   
+    response->printf("LED Brightness: %d <br>",settings.led_brightness);       
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");
     response->printf("Free Heap: %d <br>",ESP.getFreeHeap());   
@@ -204,9 +208,12 @@ void setup_setup_webpage()
     response->printf("<label for=\"ID\">BABOI ID (8 Characters):</label>");   
     response->printf("<input type=\"text\" name=\"ID\" maxlength=\"8\" size=\"8\" value=\"%s\" <br>",settings.ID);   
 
+    response->printf("<label for=\"LED\">LED Brightness (0..255):</label>");   
+    char ledbr[5] = "";
+    printf(ledbr,"%d",settings.led_brightness);
+    response->printf("<input type=\"text\" name=\"LED\" maxlength=\"3\" size=\"8\" value=\"%s\" <br>",ledbr);   
 
     response->printf("<br><br>Position:<br>");
-
     if (settings.pos = 0)
     {
       response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\"/>");
@@ -244,6 +251,10 @@ void setup_handle_setup()
         if (p->name() == "ID") 
         {
           snprintf(settings.ID,8,p->value().c_str());
+        }
+        if (p->name() == "LED") 
+        {
+          settings.led_brightness = atoi(p->value().c_str());
         }
         if (p->name() == "pos") {
           if(p->value().c_str() == "Left")

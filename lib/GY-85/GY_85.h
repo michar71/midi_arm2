@@ -102,7 +102,11 @@ public:
     float getMagXoffset(void);
     float getMagYoffset(void);
     float getMagZoffset(void);
+    float getMagXscale(void);
+    float getMagYscale(void);
+    float getMagZscale(void);
     void setMagOffset(float offsX,float offsY,float offsZ);
+    void setMagScale(float scaleX,float scaleY,float scaleZ);
 
     float getLinearAccX(void);
     float getLinearAccY(void);

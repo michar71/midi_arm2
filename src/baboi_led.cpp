@@ -2,6 +2,9 @@
 #include "baboi_led.h"
 #include "baboi_sensors.h"
 #include "hsv2rgb.h"
+#include "settings.h"
+
+extern setup_t settings;
 
 // Define the array of leds
 CRGB leds[NUM_LEDS];
@@ -25,7 +28,6 @@ const uint8_t  gamma8[] = {
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
 
 
-#define MAX_LED_BRIGHTNESS 255
 
 void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b,bool update)
 {
@@ -33,7 +35,7 @@ void setLED(uint8_t led,uint8_t r, uint8_t g, uint8_t b,bool update)
   leds[led].g= g;
   leds[led].b= b;
   if (update)
-    FastLED.show(MAX_LED_BRIGHTNESS);
+    FastLED.show(settings.led_brightness);
 }
 
 void led_test(void)
@@ -41,17 +43,17 @@ void led_test(void)
 
   for(int ii=0;ii<NUM_LEDS;ii++)
   {
-    setLED(ii,MAX_LED_BRIGHTNESS,0,0,true);
+    setLED(ii,settings.led_brightness,0,0,true);
   }
   delay(100);
   for(int ii=0;ii<NUM_LEDS;ii++)
   {
-    setLED(ii,0,MAX_LED_BRIGHTNESS,0,true);
+    setLED(ii,0,settings.led_brightness,0,true);
   }
   delay(100);
   for(int ii=0;ii<NUM_LEDS;ii++)
   {
-    setLED(ii,0,0,MAX_LED_BRIGHTNESS,true);
+    setLED(ii,0,0,settings.led_brightness,true);
   }
   delay(100);
   for(int ii=0;ii<NUM_LEDS;ii++)
@@ -82,5 +84,5 @@ void SetLEDsFromArray(uint8_t *pArray)
 
 void updateLED(void)
 {
-  FastLED.show(MAX_LED_BRIGHTNESS);
+  FastLED.show(settings.led_brightness);
 }

@@ -119,6 +119,7 @@ void init_settings_other()
   settings.autoConnect = false;  
   sprintf(settings.ID,"BABOI");  
   settings.pos = 0;
+  settings.led_brightness =20;
 }
 
 void save_settings()

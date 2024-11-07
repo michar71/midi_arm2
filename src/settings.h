@@ -36,6 +36,7 @@ typedef struct{
     bool autoConnect;
     char ID[9];       //ID String, 8 Character + Zero
     uint16_t pos;      //0 = right, 1 = left
+    uint8_t led_brightness;
 }setup_t;
 
 

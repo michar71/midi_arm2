@@ -63,9 +63,9 @@ void mpu_store_data(void)
       settings.main_mag_bias_x = mpu2.getMagXoffset();
       settings.main_mag_bias_y = mpu2.getMagYoffset();
       settings.main_mag_bias_z = mpu2.getMagZoffset();
-      settings.main_mag_scale_x = 0;
-      settings.main_mag_scale_y = 0;
-      settings.main_mag_scale_z = 0;
+      settings.main_mag_scale_x = mpu2.getMagXscale();
+      settings.main_mag_scale_y = mpu2.getMagYscale();
+      settings.main_mag_scale_z = mpu2.getMagZscale();
       break;  
   }
 }
@@ -142,6 +142,7 @@ void mpu_set_settings(void)
       mpu2.setAccOffset(settings.main_acc_bias_x ,settings.main_acc_bias_y ,settings.main_acc_bias_z);
       mpu2.setGyroOffset(settings.main_gyro_bias_x,settings.main_gyro_bias_y,settings.main_gyro_bias_z);
       mpu2.setMagOffset(settings.main_mag_bias_x,settings.main_mag_bias_y,settings.main_mag_bias_z);    
+      mpu2.setMagScale(settings.main_mag_scale_x,settings.main_mag_scale_y,settings.main_mag_scale_z);
       break;
   }
 }
@@ -172,9 +173,7 @@ void mpu_cal_gyro_accel(void)
       mpu_update();
       delay(10);
     }
-
       //Calculate offsets
-
       settings.offset_roll = -(mpu1.getRoll() * DEG_TO_RAD);  
       settings.offset_pitch = -(mpu1.getPitch() * DEG_TO_RAD);
       settings.offset_yaw = -(mpu1.getYaw() * DEG_TO_RAD);
@@ -227,13 +226,12 @@ float mpu_GetCurrentYaw(void)
       angle = (mpu2.getYaw() * DEG_TO_RAD);
       break;  
   }
-  float new_angle = angle + settings.offset_yaw;
+  float new_angle = angle + settings.offset_yaw + PI; //+PI because we need to rotate it around the YAW angle by 180 Deg to point in the right direction....
   if (new_angle < -PI)
      new_angle = new_angle + (2*PI);
   else if (new_angle > PI)
      new_angle = new_angle - (2*PI);
  
-
   return new_angle;
 
   //return (mpu.getYaw() * DEG_TO_RAD) + settings.offset_yaw;

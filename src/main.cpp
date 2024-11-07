@@ -71,11 +71,11 @@ void setup()
    
    //delay(5000);
     Serial.setDebugOutput(true);
-   // for (int ii=0;ii<200;ii++)
-   // {
-   //   Serial.println("Startup...");
-   //   delay(100);
-   // }
+    //for (int ii=0;ii<100;ii++)
+    //{
+    //  Serial.println("Startup...");
+    //  delay(100);
+    //}
     
   #endif
     pinMode(STATUS_LED, OUTPUT);     
@@ -213,18 +213,18 @@ void process_state(void)
     break;
 
     case STATE_WAITCONN:
-      setLED(0,CTRL_LED_BRIGHTNESS,CTRL_LED_BRIGHTNESS,0);
+      setLED(0,255,255,0);
     break;
 
     case STATE_LIVE:
       send_processing_data(true);
-      setLED(1,0,CTRL_LED_BRIGHTNESS,0);
+      setLED(1,0,255,0);
     break;
 
     case STATE_PAUSED:
 
       send_processing_data(false);
-      setLED(1,CTRL_LED_BRIGHTNESS,0,0);
+      setLED(1,255,0,0);
       for(int ii=2;ii<NUM_LEDS;ii++)
       {
         setLED(ii,0,0,0);
@@ -232,7 +232,7 @@ void process_state(void)
     break;
 
     case STATE_CAL_BUTTONS:
-      setLED(1,CTRL_LED_BRIGHTNESS,0,CTRL_LED_BRIGHTNESS,true);   
+      setLED(1,255,0,255,true);   
       save_settings();    
     #ifdef DEBUG    
       Serial.println("Button Calib Done...");
@@ -243,7 +243,7 @@ void process_state(void)
     break;
 
     case STATE_CAL_TENSION:
-      setLED(1,CTRL_LED_BRIGHTNESS,CTRL_LED_BRIGHTNESS,CTRL_LED_BRIGHTNESS,true);
+      setLED(1,255,255,255,true);
       calibrate_tension();
       save_settings();    
     #ifdef DEBUG    
@@ -255,7 +255,7 @@ void process_state(void)
     break;
 
     case STATE_CAL_GYRO:
-      setLED(1,0,0,CTRL_LED_BRIGHTNESS,true);
+      setLED(1,0,0,255,true);
       delay(500);
       mpu_cal_gyro_accel();
       save_settings();
@@ -268,7 +268,7 @@ void process_state(void)
     break;
 
     case STATE_CAL_MAG:
-      setLED(1,0,CTRL_LED_BRIGHTNESS,CTRL_LED_BRIGHTNESS,true);
+      setLED(1,0,255,255,true);
       mpu_cal_mag();
       save_settings();
     #ifdef DEBUG    
@@ -356,7 +356,7 @@ void loop()
     //Check if we have a comm timeout
     if (checkCommTimeout())
     {
-      setLED(0,CTRL_LED_BRIGHTNESS,0,0);
+      setLED(0,255,0,0);
       for(int ii=2;ii<NUM_LEDS;ii++)
       {
         setLED(ii,0,0,0);
@@ -364,7 +364,7 @@ void loop()
     }
     else
     {
-      setLED(0,0,CTRL_LED_BRIGHTNESS,0);  
+      setLED(0,0,255,0);  
     }
 
     updateLED();   
