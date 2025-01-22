@@ -5,7 +5,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 .DS_Store
 
 # Precompiled Headers

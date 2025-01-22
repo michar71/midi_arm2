@@ -4279,6 +4279,16 @@
 		)
 		(uuid "614b1cdd-82b3-4da7-84f4-5941a9c646a0")
 	)
+	(text "Spare 1 Unconneced = Right Glove, Spare 1 Pulled to GND = Left Glove"
+		(exclude_from_sim no)
+		(at 52.07 163.83 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "7eaec943-d661-4b49-818d-fdc4c0bbdc89")
+	)
 	(text "A"
 		(exclude_from_sim no)
 		(at 153.67 156.21 0)

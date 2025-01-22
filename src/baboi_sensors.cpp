@@ -233,9 +233,6 @@ float mpu_GetCurrentYaw(void)
      new_angle = new_angle - (2*PI);
  
   return new_angle;
-
-  //return (mpu.getYaw() * DEG_TO_RAD) + settings.offset_yaw;
-  //return (mpu.getYaw() * DEG_TO_RAD) ;
 }
 
 
@@ -269,9 +266,6 @@ float mpu_GetCurrentRoll(void)
 
 float mpu_GetCurrentAX(void)
 {
-  
-  //return mpu.getAccX();
-
   switch(dof)
   {
     case DOF_MPU9250:      
@@ -297,9 +291,6 @@ float mpu_GetCurrentAY(void)
 
 float mpu_GetCurrentAZ(void)
 {
-  
-  //return mpu.getAccZ();
-
   switch(dof)
   {
     case DOF_MPU9250:      

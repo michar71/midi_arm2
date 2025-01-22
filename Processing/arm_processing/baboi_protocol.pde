@@ -25,10 +25,11 @@ boolean b_B_state = false;
 boolean b_C_state = false;
 String UARTOverride = "";
 
-String ID;
-int pos;
+String ID = "";
+int pos = 0;
 int min_ver = 0;
 int maj_ver = 0;
+int HW_ver = 0;
 String deviceName = "UNKNOWN";
 
 int baboi_port = 2255;
@@ -289,8 +290,9 @@ public void process_received_string(String myString)
     maj_ver = parseInt(list[2]);
     min_ver = parseInt(list[3]);
     //ID = list[4];
-    //pos = parseInt(list[5]);
-    println(deviceName+":"+maj_ver+"."+min_ver+" ID:"+ID+" POS:"+pos);
+    HW_ver = parseInt(list[4]);
+    pos = parseInt(list[5]);
+    println(deviceName+":"+maj_ver+"."+min_ver+" ID:"+HW_ver+" POS:"+pos);
     isValidDevice = true;
     return;
   }

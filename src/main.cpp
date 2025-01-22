@@ -94,12 +94,25 @@ void setup()
 
   #ifdef DEBUG
     Serial.println("Using Hard Buttons");
-  #endif          
+  #endif      
+
+    //setup buttons    
     but_ctrl.setTouchMode(false);
     pinMode(BUT_CTRL,INPUT_PULLUP);
     pinMode(BUT_A,INPUT_PULLUP);
     delay(1);
-    //Reset everything if all buttons are down
+
+    //Delay Startup if A button is down
+    if (digitalRead(BUT_A) == LOW)
+    {
+      for (int ii=0;ii<100;ii++)
+      {
+        Serial.println("Startup...");
+        delay(100);
+      }
+    }
+
+    //Reset everything if CTRL buttons are down
     if (digitalRead(BUT_CTRL) == LOW)
     {
       init_settings_acc_gyro();
