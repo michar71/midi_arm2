@@ -342,7 +342,7 @@ public void process_received_string(String myString)
       else
         b_A_state = true;
         
-      if (v3 == 0)
+      if (v3 == 0)`
         b_B_state = false;
       else
         b_B_state = true;
