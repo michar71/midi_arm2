@@ -399,7 +399,7 @@ Example current_green = lerpVal(current_green,(int)params.get("COL_R"));
     
     void setOrientation(float yaw, float pitch, float roll, float accX, float accY, float accZ)
     {
-        current_pitch = pitch;
+        current_pitch = pitch;  
         current_roll = roll;
         current_yaw = yaw;
         current_acc_x = accX;

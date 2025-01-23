@@ -341,21 +341,23 @@ void draw_labels()
   text(nf(bs.minr,0,2)+"/"+nf(bs.maxr,0,2),60,22);
   text(nf(bs.miny,0,2)+"/"+nf(bs.maxy,0,2),60,34);
   
-  if (bs.splitp)
-    text(m1+"/"+m11,128,10);
-  else
-    text(m1,120,10);
-    
-  if (bs.splitr)  
-    text(m2+"/"+m22,128,22);
-  else
-    text(m2,120,22);
-  
-  if (bs.splity)
-    text(m3+"/"+m33,128,34);  
-  else
-    text(m3,120,34);  
+  if (isCal == false)
+  {
+    if (bs.splitp)
+      text(m1+"/"+m11,128,10);
+    else
+      text(m1,128,10);
       
+    if (bs.splitr)  
+      text(m2+"/"+m22,128,22);
+    else
+      text(m2,128,22);
+    
+    if (bs.splity)
+      text(m3+"/"+m33,128,34);  
+    else
+      text(m3,128,34);  
+  }    
       
   if (bp.b_A_state)
     text("A", 5,46);
@@ -365,7 +367,7 @@ void draw_labels()
     
   if (bp.b_C_state)
     text("C", 35,46);
-    
+  
   text(bp.deviceName+" V"+bp.maj_ver+"."+ bp.min_ver, 5,58);  
 
     
@@ -376,17 +378,15 @@ void draw_labels()
   hint(ENABLE_DEPTH_TEST);
 }
 
-void delay(int time) {
+void delay(int time) 
+{
   int current = millis();
   while (millis () < current+time) Thread.yield();
 }
 
 
 void draw_cube()
-{
-  
-
-  
+{  
   float dirY = (((float)height/4*3) / float(height) - 0.5) * 2;
   float dirX = (((float)width/4*3) / float(width) - 0.5) * 2;
   directionalLight(204, 204, 204, dirX, dirY, -1); //Why is this linked to the mouse? 
@@ -411,8 +411,6 @@ void draw_cube()
     box(50, bp.tension_ch2, 50);
     translate(-180, 0, 100);  
   }
-  
-  
   rotateY(y);//yaw
   rotateX(p);//pitch
   rotateZ(r);//roll
@@ -421,10 +419,7 @@ void draw_cube()
   //TODO turen this into an arrow.....
   //box(100*1.5, 100/3, 100);
   
-  
-  popMatrix();
-  
-  
+  popMatrix(); 
 }
 
 
@@ -451,13 +446,31 @@ void send_led()
   color[] ledData;
   
   //we map yaw, pitch, roll to 0..255
-  int y = (int)map(bp.cy,bs.miny, bs.maxy, 0,255);
+  
+  float div;
+  float offset;
+  
+  div = (int)(abs(bp.cy) / (2*PI));
+  offset = (2*PI) * div;
+  if (bp.cy < 0)
+     offset = offset * -1;  
+  
+  int y = (int)map(bp.cy,bs.miny+offset, bs.maxy+offset, 0,255);
   y = (int)constrain(y,0,255);
   
-  int r = (int)map(bp.cr,bs.minr, bs.maxr, 0,255);
+  div = (int)(abs(bp.cr) / (2*PI));
+  offset = (2*PI) * div;
+  if (bp.cr < 0)
+     offset = offset * -1;  
+     
+  int r = (int)map(bp.cr,bs.minr+offset, bs.maxr+offset, 0,255);
   r = (int)constrain(r,0,255);
   
-  int p = (int)map(bp.cp,bs.minp, bs.maxp, 0,255);  
+  div = (int)(abs(bp.cp) / (2*PI));
+  offset = (2*PI) * div;
+  if (bp.cp < 0)
+     offset = offset * -1;    
+  int p = (int)map(bp.cp,bs.minp+offset, bs.maxp+offset, 0,255);  
   p = (int)constrain(p,0,255);
   
   ledctrl.setOrientation(y, p, r, bp.accx,bp.accy,bp.accz);

@@ -28,18 +28,26 @@ MidiBus myBus; // The MidiBus
 public void send_midi()
 {
   
+  float div;
+  float offset;
+  
+  div = (int)(abs(bpr.cp) / (2*PI));
+  offset = (2*PI) * div;
+  if (bpr.cp < 0)
+     offset = offset * -1;
+  
   if (bsr.splitp)
   {
-      float half = map(50,0,100, bsr.minp,bsr.maxp);
+      float half = map(50,0,100, bsr.minp+offset,bsr.maxp+offset);
       if (bpr.cp < half)
       {
-        m1 =(int)map(bpr.cp,bsr.minp, half, 127,0);
+        m1 =(int)map(bpr.cp,bsr.minp+offset, half, 127,0);
         m1 = (int)constrain(m1,0,127);
         m11 = 0;
       }
       else
       {
-        m11 =(int)map(bpr.cp,half, bsr.maxp, 0,127);
+        m11 =(int)map(bpr.cp,half, bsr.maxp+offset, 0,127);
         m11 = (int)constrain(m11,0,127);
         m1 = 0;
       }
@@ -51,24 +59,31 @@ public void send_midi()
   else
   {
     m11 = 0;
-    m1 =(int)map(bpr.cp,bsr.minp, bsr.maxp, 0,127);
+    
+    m1 =(int)map(bpr.cp,bsr.minp+offset, bsr.maxp+offset, 0,127);
     m1 = (int)constrain(m1,0,127);
     ControlChange change1 = new ControlChange(0, 1, m1);
     myBus.sendControllerChange(change1);
   }
   
+  
+  div = (int)(abs(bpr.cr) / (2*PI));
+  offset = (2*PI) * div;
+  if (bpr.cr < 0)
+     offset = offset * -1;  
+  
   if (bsr.splitr)
   {
-      float half = map(50,0,100, bsr.minr,bsr.maxr);
+      float half = map(50,0,100, bsr.minr+offset,bsr.maxr+offset);
       if (bpr.cr < half)
       {
-        m2 =(int)map(bpr.cr,bsr.minr, half, 127,0);
+        m2 =(int)map(bpr.cr,bsr.minr+offset, half, 127,0);
         m2 = (int)constrain(m2,0,127);
         m22 = 0;
       }
       else
       {
-        m22 =(int)map(bpr.cr,half, bsr.maxr, 0,127);
+        m22 =(int)map(bpr.cr,half, bsr.maxr+offset, 0,127);
         m22 = (int)constrain(m22,0,127);
         m2 = 0;
       } 
@@ -80,24 +95,30 @@ public void send_midi()
   else
   {
     m22 = 0;
-    m2 =(int)map(bpr.cr,bsr.minr, bsr.maxr, 0,127);
+    m2 =(int)map(bpr.cr,bsr.minr+offset, bsr.maxr+offset, 0,127);
     m2 = (int)constrain(m2,0,127);
     ControlChange change1 = new ControlChange(0, 2, m2);
     myBus.sendControllerChange(change1);
   }
   
+  
+  div = (int)(abs(bpr.cy) / (2*PI));
+  offset = (2*PI) * div;
+  if (bpr.cy < 0)
+     offset = offset * -1;  
+     
   if (bsr.splity)
   {
-      float half = map(50,0,100, bsr.miny,bsr.maxy);
+      float half = map(50,0,100, bsr.miny+offset,bsr.maxy+offset);
       if (bpr.cy < half)
       {
-        m3 =(int)map(bpr.cy,bsr.miny, half, 127,0);
+        m3 =(int)map(bpr.cy,bsr.miny+offset, half, 127,0);
         m3 = (int)constrain(m3,0,127);
         m33 = 0;
       }
       else
       {
-        m33 =(int)map(bpr.cy,half, bsr.maxy, 0,127);
+        m33 =(int)map(bpr.cy,half, bsr.maxy+offset, 0,127);
         m33 = (int)constrain(m33,0,127);
         m3 = 0;
       }
@@ -109,7 +130,7 @@ public void send_midi()
   else
   {
     m33 = 0;
-    m3 =(int)map(bpr.cy,bsr.miny, bsr.maxy, 0,127);
+    m3 =(int)map(bpr.cy,bsr.miny+offset, bsr.maxy+offset, 0,127);
     m3 = (int)constrain(m3,0,127);
     ControlChange change1 = new ControlChange(0, 3, m3);
     myBus.sendControllerChange(change1);
