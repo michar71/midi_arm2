@@ -33,11 +33,9 @@
 
 #define ADC1_CH0 0
 #define ADC1_CH1 1
-
-
+#define SPARE_1 10
+#define SPARE_2 11
 #define ID_PIN 21 //Pull to GND for Touch pads
-
-
 #define STATUS_LED 8 //Assuming D2 here...
 
 

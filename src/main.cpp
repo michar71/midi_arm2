@@ -100,6 +100,7 @@ void setup()
     but_ctrl.setTouchMode(false);
     pinMode(BUT_CTRL,INPUT_PULLUP);
     pinMode(BUT_A,INPUT_PULLUP);
+    pinMode(SPARE_1, INPUT_PULLUP);
     delay(1);
 
     //Delay Startup if A button is down
@@ -208,6 +209,15 @@ void setup()
     init_protocol();
 
 
+  //Determine Left or right glove
+  if (digitalRead(BUT_A) == LOW)  //Right Glove
+  {
+    settings.pos = 0;
+  }
+  else // Left Glove
+  {
+    settings.pos = 1;
+  }
 
   #ifdef DEBUG
     Serial.println("Setup Done...");

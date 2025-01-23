@@ -213,21 +213,6 @@ void setup_setup_webpage()
     printf(ledbr,"%d",settings.led_brightness);
     response->printf("<input type=\"text\" name=\"LED\" maxlength=\"3\" size=\"8\" value=\"%s\" <br>",ledbr);   
 
-    response->printf("<br><br>Position:<br>");
-    if (settings.pos = 0)
-    {
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\"/>");
-      response->printf("<label for=\"Left\">Left</label/>");
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\" checked />");
-      response->printf("<label for=\"Right\">Right</label><br><br>");
-    }
-    else
-    {
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Left\" checked />");
-      response->printf("<label for=\"Left\">Left</label>");
-      response->printf("<input type=\"radio\" name=\"pos\" value=\"Right\" />");
-      response->printf("<label for=\"Right\">Right</label><br><br>");
-    }
     response->printf("<input type=\"submit\" value=\"SAVE\">");   
     response->printf("</form>");    
     response->print("<br><a href=\"./\">Back</a><br><br>");       
@@ -255,17 +240,7 @@ void setup_handle_setup()
         if (p->name() == "LED") 
         {
           settings.led_brightness = atoi(p->value().c_str());
-        }
-        if (p->name() == "pos") {
-          if(p->value().c_str() == "Left")
-          {
-            settings.pos = 1;
-          }
-          else 
-          {
-            settings.pos = 0;
-          }
-        }        
+        }      
       }
     }
     save_settings();
