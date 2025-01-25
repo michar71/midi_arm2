@@ -98,7 +98,18 @@ void setup_settings_webpage()
     response->printf("TENSION CH2 OUT: %d <br>",tension_get_ch(1));   
     response->printf("Auto Connect: %d <br>",settings.autoConnect);   
     response->printf("ID: %s <br>",settings.ID);   
-    response->printf("Position: %d <br>",settings.pos);   
+    if (settings.pos == 0)
+    {
+      response->printf("Position: Right Glove<br>");
+    }
+    else if (settings.pos == 1)
+    {
+      response->printf("Position: Left Glove<br>");
+    }
+    else
+    {
+      response->printf("Position: Unknown <br>");
+    }  
     response->printf("LED Brightness: %d <br>",settings.led_brightness);       
     response->printf("</p>");  
     response->print("<h1>Debug Data</h1><br><p>");

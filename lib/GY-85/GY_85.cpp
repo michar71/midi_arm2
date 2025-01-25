@@ -468,7 +468,7 @@ bool GY_85::idGyro(void)
 
       intWire->requestFrom( ITG3200, 1);         // request 6 bytes from device
       uint8_t i = 0;
-      Serial.print("Acc ID ");
+      Serial.print("Gyro ID ");
       while(intWire->available())                 // device may send less than requested (abnormal)
       {
         buff[i] = intWire->read();              // receive a byte

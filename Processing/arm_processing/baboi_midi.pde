@@ -31,10 +31,10 @@ public void send_midi()
   float div;
   float offset;
   
-  div = (int)(abs(bpr.cp) / (2*PI));
+  div = (int)(bpr.cp / (2*PI));
   offset = (2*PI) * div;
   if (bpr.cp < 0)
-     offset = offset * -1;
+     offset = offset - (2*PI);  
   
   if (bsr.splitp)
   {
@@ -67,10 +67,12 @@ public void send_midi()
   }
   
   
-  div = (int)(abs(bpr.cr) / (2*PI));
+  div = (int)(bpr.cr / (2*PI));
   offset = (2*PI) * div;
   if (bpr.cr < 0)
-     offset = offset * -1;  
+     offset = offset - (2*PI);  
+     
+  println(offset);   
   
   if (bsr.splitr)
   {
@@ -102,10 +104,10 @@ public void send_midi()
   }
   
   
-  div = (int)(abs(bpr.cy) / (2*PI));
+  div = (int)(bpr.cy / (2*PI));
   offset = (2*PI) * div;
   if (bpr.cy < 0)
-     offset = offset * -1;  
+     offset = offset - (2*PI);  
      
   if (bsr.splity)
   {

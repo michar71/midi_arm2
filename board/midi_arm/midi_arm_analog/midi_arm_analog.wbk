@@ -4,7 +4,7 @@
     {
       "analysis": "DC",
       "commands": [
-        ".dc RS1 5k 20k 10",
+        ".dc RS1 5k 15k 10",
         ".kicad adjustpaths",
         ".save all",
         ".probe alli",

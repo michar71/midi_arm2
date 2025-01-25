@@ -264,6 +264,7 @@ public void Range(int theValue) {
         if (isCal)
         {
           isCal = false;
+          bs.normalize_range_settings();
           bs.save_settings();
         }
         else
@@ -450,26 +451,26 @@ void send_led()
   float div;
   float offset;
   
-  div = (int)(abs(bp.cy) / (2*PI));
+  div = (int)(bp.cy / (2*PI));
   offset = (2*PI) * div;
   if (bp.cy < 0)
-     offset = offset * -1;  
+     offset = offset - (2*PI);    
   
   int y = (int)map(bp.cy,bs.miny+offset, bs.maxy+offset, 0,255);
   y = (int)constrain(y,0,255);
   
-  div = (int)(abs(bp.cr) / (2*PI));
+  div = (int)(bp.cr / (2*PI));
   offset = (2*PI) * div;
   if (bp.cr < 0)
-     offset = offset * -1;  
+     offset = offset - (2*PI);  
      
   int r = (int)map(bp.cr,bs.minr+offset, bs.maxr+offset, 0,255);
   r = (int)constrain(r,0,255);
   
-  div = (int)(abs(bp.cp) / (2*PI));
+  div = (int)(bp.cp / (2*PI));
   offset = (2*PI) * div;
   if (bp.cp < 0)
-     offset = offset * -1;    
+     offset = offset - (2*PI);   
   int p = (int)map(bp.cp,bs.minp+offset, bs.maxp+offset, 0,255);  
   p = (int)constrain(p,0,255);
   
@@ -603,6 +604,7 @@ void keyPressed()
         if (isCal)
         {
           isCal = false;
+          bs.normalize_range_settings();
           bs.save_settings();
         }
         else

@@ -213,10 +213,12 @@ void setup()
   if (digitalRead(BUT_A) == LOW)  //Right Glove
   {
     settings.pos = 0;
+    Serial.println("Right Glove");
   }
   else // Left Glove
   {
     settings.pos = 1;
+    Serial.println("Left Glove");
   }
 
   #ifdef DEBUG

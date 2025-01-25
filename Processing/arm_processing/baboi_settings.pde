@@ -128,5 +128,48 @@ public void clear_cal_min_max()
 }
 
 
+//Normalize the range to +/- PI so we do not have issues with 
+//wraparound protection
+public void normalize_range_settings()
+{
+  float div;
+  float offset;
+  
+  div = (int)(minp / (2*PI));
+  offset = (2*PI) * div;
+  if (minp < 0)
+     offset = offset - (2*PI);
+  minp=minp + offset;   
+  
+  div = (int)(maxp / (2*PI));
+  offset = (2*PI) * div;
+  if (maxp < 0)
+     offset = offset - (2*PI);
+  maxp=maxp + offset;
+  
+  div = (int)(minr / (2*PI));
+  offset = (2*PI) * div;
+  if (minr < 0)
+     offset = offset - (2*PI);
+  minr=minr + offset;   
+  
+  div = (int)(maxr / (2*PI));
+  offset = (2*PI) * div;
+  if (maxr < 0)
+     offset = offset - (2*PI);
+  maxp=maxr + offset;
+  
+  div = (int)(miny / (2*PI));
+  offset = (2*PI) * div;
+  if (miny < 0)
+     offset = offset - (2*PI);
+  miny=miny + offset;   
+  
+  div = (int)(maxy / (2*PI));
+  offset = (2*PI) * div;
+  if (maxy < 0)
+     offset = offset - (2*PI);
+  maxy=maxy + offset;  
+} 
 
 }
