@@ -1,0 +1,22 @@
+[
+  {
+    "val": 255,
+    "param": "COL_G"
+  },
+  {
+    "val": 255,
+    "param": "COL_R"
+  },
+  {
+    "val": 255,
+    "param": "BRIGHT"
+  },
+  {
+    "val": 255,
+    "param": "COL_B"
+  },
+  {
+    "val": 50,
+    "param": "SCALE"
+  }
+]

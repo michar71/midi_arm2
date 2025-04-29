@@ -385,7 +385,7 @@ bool GY_85::idCompass(void)
 
     if (mag_addr == HMC5883)
     {
-      intWire->requestFrom( mag_addr, 3 );         // request 6 bytes from device
+      intWire->requestFrom((uint8_t)mag_addr, (uint8_t)3 );         // request 6 bytes from device
       uint8_t i = 0;
       Serial.print("Compass ID ");
       while(intWire->available())                 // device may send less than requested (abnormal)
@@ -406,7 +406,7 @@ bool GY_85::idCompass(void)
     }
     else
     {
-      intWire->requestFrom( mag_addr, 1);         // request 6 bytes from device
+      intWire->requestFrom( (uint8_t)mag_addr, (uint8_t)1);         // request 6 bytes from device
       uint8_t i = 0;
       Serial.print("Compass ID ");
       while(intWire->available())                 // device may send less than requested (abnormal)
@@ -437,7 +437,7 @@ bool GY_85::idAcc(void)
     intWire->write( 0x00 );               //select register 0x0A, X MSB register
     byte error = intWire->endTransmission();
 
-      intWire->requestFrom( ADXL345, 1);         // request 6 bytes from device
+      intWire->requestFrom( (uint8_t)ADXL345, (uint8_t)1);         // request 6 bytes from device
       uint8_t i = 0;
       Serial.print("Acc ID ");
       while(intWire->available())                 // device may send less than requested (abnormal)
@@ -466,7 +466,7 @@ bool GY_85::idGyro(void)
     intWire->write( 0x00 );               //select register 0x0A, X MSB register
     byte error = intWire->endTransmission();
 
-      intWire->requestFrom( ITG3200, 1);         // request 6 bytes from device
+      intWire->requestFrom( (uint8_t)ITG3200, (uint8_t)1);         // request 6 bytes from device
       uint8_t i = 0;
       Serial.print("Gyro ID ");
       while(intWire->available())                 // device may send less than requested (abnormal)
@@ -498,7 +498,7 @@ bool GY_85::compassReady(void)
     if (0 != intWire->endTransmission())
       return false;
 
-    intWire->requestFrom( mag_addr, 1 );         // request 1 byte from device
+    intWire->requestFrom( (uint8_t)mag_addr, (uint8_t)1 );         // request 1 byte from device
 
     uint8_t i = 0;
     while(intWire->available())                 // device may send less than requested (abnormal)
@@ -525,7 +525,7 @@ void GY_85::readFromCompass()
     intWire->write( 0x03 );               //select register 3, X MSB register
     intWire->endTransmission();
 
-  intWire->requestFrom( mag_addr, 6 );         // request 6 bytes from device
+  intWire->requestFrom( (uint8_t)mag_addr, (uint8_t)6 );         // request 6 bytes from device
 
     uint8_t i = 0;
     while(intWire->available())                 // device may send less than requested (abnormal)
@@ -567,7 +567,7 @@ void GY_85::readFromCompass()
     intWire->write( 0x00 );               //select register 3, X MSB register
     intWire->endTransmission();
 
-    intWire->requestFrom( mag_addr, 6 );         // request 6 bytes from device
+    intWire->requestFrom( (uint8_t)mag_addr, (uint8_t)6 );         // request 6 bytes from device
 
     uint8_t i = 0;
     while(intWire->available())                 // device may send less than requested (abnormal)
@@ -623,7 +623,7 @@ void GY_85::readRawFromCompass()
       intWire->write( 0x03 );               //select register 3, X MSB register
       intWire->endTransmission();
 
-    intWire->requestFrom( mag_addr, 6 );         // request 6 bytes from device
+    intWire->requestFrom( (uint8_t)mag_addr, (uint8_t)6 );         // request 6 bytes from device
 
       uint8_t i = 0;
       while(intWire->available())                 // device may send less than requested (abnormal)
@@ -647,7 +647,7 @@ void GY_85::readRawFromCompass()
       intWire->write( 0x00 );               //select register 3, X MSB register
       intWire->endTransmission();
 
-      intWire->requestFrom( mag_addr, 6 );         // request 6 bytes from device
+      intWire->requestFrom( (uint8_t)mag_addr, (uint8_t)6 );         // request 6 bytes from device
 
       uint8_t i = 0;
       while(intWire->available())                 // device may send less than requested (abnormal)
@@ -730,7 +730,7 @@ void GY_85::readGyro()
     intWire->write( 0x1B );
     intWire->endTransmission();
 
-    intWire->requestFrom( ITG3200, 8 );             // request 8 bytes from ITG3200
+    intWire->requestFrom( (uint8_t)ITG3200, (uint8_t)8 );             // request 8 bytes from ITG3200
     
     int i = 0;
     byte buff[8];

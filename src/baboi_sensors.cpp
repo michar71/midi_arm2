@@ -408,11 +408,11 @@ void calibrate_tension(void)
       delay(5);
     }
 
-    //We'll reduce the range of thre strips by 20% at the lower end and 10% at the upper end to create some sort of deadband.
+    //We'll reduce the range of thre strips by 10% at the lower end and 10% at the upper end to create some sort of deadband.
     settings.tension_max[0] = (int16_t)((float)settings.tension_max[0] * 0.9);
     settings.tension_max[1] = (int16_t)((float)settings.tension_max[1] * 0.9);
-    settings.tension_min[0] = (int16_t)((float)settings.tension_min[0] * 1.2);
-    settings.tension_min[1] = (int16_t)((float)settings.tension_min[1] * 1.2);
+    settings.tension_min[0] = (int16_t)((float)settings.tension_min[0] * 1.1);
+    settings.tension_min[1] = (int16_t)((float)settings.tension_min[1] * 1.1);
   }
 }
 
@@ -481,14 +481,9 @@ void init_sensors(void)
   pinMode(ADC1_CH1,ANALOG);
   ESP32_C3_ADC_SETUP();
 
-
-  //mayube we use one of the unused pins and tie it to ground in the glove connector to check if its plugged in...
+  //maybe we use one of the unused pins and tie it to ground in the glove connector to check if its plugged in...
   hasGlove =true;
-
   Serial.println("Glove ADC Setup done.");
 
-
-  #ifdef DEBUG
-    Serial.println("Sensor Setup Done...");
-  #endif        
+    Serial.println("Sensor Setup Done...");       
 }

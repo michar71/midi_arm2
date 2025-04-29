@@ -98,6 +98,7 @@ void setup()
 
     //setup buttons    
     but_ctrl.setTouchMode(false);
+    but_a.setTouchMode(false);
     pinMode(BUT_CTRL,INPUT_PULLUP);
     pinMode(BUT_A,INPUT_PULLUP);
     pinMode(SPARE_1, INPUT_PULLUP);
@@ -210,15 +211,15 @@ void setup()
 
 
   //Determine Left or right glove
-  if (digitalRead(BUT_A) == LOW)  //Right Glove
-  {
-    settings.pos = 0;
-    Serial.println("Right Glove");
-  }
-  else // Left Glove
+  if (digitalRead(BUT_A) == LOW)  //Left Glove
   {
     settings.pos = 1;
     Serial.println("Left Glove");
+  }
+  else // Left Glove
+  {
+    settings.pos = 0;
+    Serial.println("Right Glove");
   }
 
   #ifdef DEBUG
@@ -231,7 +232,6 @@ void setup()
 
 void process_state(void)
 {
-  setLED(0,0,0,0);
   switch(state)
   {
     case STATE_STARTUP:
@@ -329,8 +329,6 @@ void handle_buttons(void)
   {
     setState(STATE_CAL_MAG);
   }
-
-
     if (digitalRead(BUT_A) == LOW)
       but_a_state = true; 
     else
@@ -381,7 +379,7 @@ void loop()
     //Check if we have a comm timeout
     if (checkCommTimeout())
     {
-      setLED(0,255,0,0);
+      setLED(0,255,0,0);  
       for(int ii=2;ii<NUM_LEDS;ii++)
       {
         setLED(ii,0,0,0);

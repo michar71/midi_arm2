@@ -8,6 +8,7 @@
 #define ID_SETUP 'S'  //Setup Parameters
 #define ID_PING 'P'   //Timeout Ping from Host 
 #define ID_LED 'L'    //16x3 comma seperated numbers of LED Data
+#define ID_REQUEST 'R' //Request to start sending data
 
 typedef enum{
     COMM_SERIAL,

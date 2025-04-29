@@ -77,8 +77,6 @@ void build_processing_data(bool senddata)
     tension_ch2 = tension_get_ch(1);   
   }
 
-
-
   if(senddata)
     snprintf(send_data,SEND_DATA_LENGTH,"%c:%.2f:%.2f:%.2f:%.2f:%.2f:%.2f:%d:%d",ID_DATA,yaw_val,pitch_val,roll_val,ax_val,ay_val,az_val,tension_ch1,tension_ch2);
   else
@@ -128,27 +126,16 @@ void send_info_data(void)
   build_info_data();  
   if (currentCommChannel == COMM_SERIAL)
   {  
-    //We send this 10 times....
-    for (int ii=0;ii<10;ii++)
-    {
+        Serial.flush();
         Serial.println(send_data);
-        delay(20);
-    }
   }
   else
   {
-    //We send this 10 times....
-    for (int ii=0;ii<10;ii++)
-    {
       AsyncUDPMessage message;
       message.printf("%s",send_data);    
       udp.broadcastTo(message, UDP_BROADCAST_PORT);
-      delay(20);
-    }
   }
-  //Mark State as connected
-  setLED(0,0,64,0);
-  setState(STATE_LIVE);
+
 }
 
 // Function to parse a comma-separated string into integers
@@ -187,6 +174,14 @@ bool process_incoming_data(t_comm_channel commChannel)
       send_info_data();
       return true;
     }
+    else if (receive_data[0] == ID_REQUEST)
+    {
+      //Mark State as connected
+      setState(STATE_LIVE);
+      lastPing = millis();
+      return true;
+    }
+
     else if (receive_data[0] == ID_SETUP)
     {
       if (receive_data[2] == '0')
@@ -245,10 +240,12 @@ void incoming_protocol_request(void)
 
     if (complete)
     {
-        toggle_status_led();
-        process_incoming_data(COMM_SERIAL);
+        
+        if (process_incoming_data(COMM_SERIAL))
+          toggle_status_led();
         len = 0;
         complete = false;
+        return;
     }
   } 
 }
